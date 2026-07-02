@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Onboarding · GEB University</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='16' fill='%231E2D40'/><text y='68' x='12' font-size='62' font-family='sans-serif' font-weight='bold' fill='%232E9E94'>G</text></svg>">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap');
+  :root {
+    --verde-oscuro: #EEF2F5;
+    --verde-medio: #2E9E94;
+    --verde-claro: #4DB6AC;
+    --verde-acento: #2E9E94;
+    --blanco: #263040;
+    --gris-claro: #E0E8EF;
+    --gris-medio: #7A93A8;
+    --gris-texto: #9EB3C2;
+    --negro: #1E2D40;
+    --amarillo: #F59E0B;
+    --rojo: #EF5350;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--verde-oscuro); color: var(--blanco); min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    background: #D8E5EE;
+    border-bottom: 2px solid var(--verde-acento);
+    padding: 0 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px; position: sticky; top: 0; z-index: 100;
+  }
+  .logo { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 0.08em; color: #4DB6AC; text-transform: uppercase; }
+  .logo span { color: #9EB3C2; font-weight: 300; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  #last-updated { font-size: 11px; color: #9EB3C2; letter-spacing: 0.04em; }
+  .btn-refresh { background: transparent; border: 1px solid var(--verde-acento); color: var(--verde-acento); padding: 5px 14px; border-radius: 4px; font-size: 12px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+  .btn-refresh:hover { background: var(--verde-acento); color: #ffffff; }
+
+  /* TABS */
+  .tabs-bar { background: #D8E5EE; padding: 0 32px; display: flex; border-bottom: 1px solid #C8D8E4; }
+  .tab-btn { padding: 14px 24px; font-size: 13px; font-weight: 500; color: #9EB3C2; background: transparent; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; letter-spacing: 0.02em; }
+  .tab-btn:hover { color: #ffffff; }
+  .tab-btn.active { color: #2E9E94; border-bottom-color: #2E9E94; }
+
+  /* FILTERS */
+  .filters-bar { background: #E4ECF2; padding: 14px 32px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid #D0DDE8; }
+  .filter-label { font-size: 11px; color: #5A7A90; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+  .filter-select { background: var(--verde-oscuro); border: 1px solid #B8CDD8; color: #1E2D40; padding: 6px 28px 6px 10px; border-radius: 4px; font-size: 12px; font-family: 'Inter', sans-serif; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%232E9E94'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; min-width: 140px; }
+  .filter-select:focus { outline: none; border-color: var(--verde-acento); }
+  .filter-divider { width: 1px; height: 20px; background: #B8CDD8; margin: 0 4px; }
+  .btn-clear { font-size: 11px; color: #7A93A8; background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif; text-decoration: underline; padding: 4px; }
+  .btn-clear:hover { color: #2E9E94; }
+
+  /* MAIN */
+  .main { padding: 24px 32px; max-width: 1500px; margin: 0 auto; }
+
+  /* KPI CARDS */
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .kpi-card { background: #E4ECF2; border: 1px solid #C8D8E4; border-radius: 8px; padding: 18px 20px; position: relative; overflow: hidden; }
+  .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--verde-acento); }
+  .kpi-label { font-size: 10px; color: var(--gris-texto); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+  .kpi-value { font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 700; color: #1E2D40; line-height: 1; }
+  .kpi-value.green { color: var(--verde-acento); }
+  .kpi-value.yellow { color: var(--amarillo); }
+  .kpi-value.red { color: var(--rojo); }
+  .kpi-sub { font-size: 11px; color: var(--gris-texto); margin-top: 4px; }
+
+  /* SECTION TITLE */
+  .section-title { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; color: #2E9E94; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: #C8D8E4; }
+
+  /* TABLE */
+  .table-wrapper { background: #E4ECF2; border: 1px solid #C8D8E4; border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th { background: #D8E5EE; color: var(--verde-acento); font-weight: 600; letter-spacing: 0.04em; padding: 10px 14px; text-align: left; white-space: nowrap; border-bottom: 1px solid #C8D8E4; font-size: 11px; text-transform: uppercase; }
+  tbody tr { border-bottom: 1px solid #D0DDE8; transition: background 0.15s; }
+  tbody tr:hover { background: #D8E8F2; }
+  tbody td { padding: 9px 14px; color: #1E2D40; white-space: nowrap; max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
+  .td-name { font-weight: 500; min-width: 160px; }
+  .td-sucursal { color: #1A7A72; font-weight: 600; font-size: 11px; }
+  .td-mes { color: #7A93A8; font-size: 11px; }
+
+  /* BADGE */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+  .badge-si { background: #D0EDE8; color: var(--verde-acento); }
+  .badge-no { background: #FAE0E0; color: #E57373; }
+
+  /* SCORE BAR */
+  .score-cell { display: flex; align-items: center; gap: 8px; min-width: 90px; }
+  .score-bar-bg { flex: 1; height: 4px; background: #D8E5EE; border-radius: 2px; overflow: hidden; min-width: 44px; }
+  .score-bar-fill { height: 100%; border-radius: 2px; }
+  .score-num { font-weight: 600; font-size: 12px; min-width: 36px; text-align: right; }
+  .score-green .score-bar-fill { background: var(--verde-acento); }
+  .score-green .score-num { color: var(--verde-acento); }
+  .score-yellow .score-bar-fill { background: var(--amarillo); }
+  .score-yellow .score-num { color: var(--amarillo); }
+  .score-red .score-bar-fill { background: var(--rojo); }
+  .score-red .score-num { color: var(--rojo); }
+
+  /* STATE */
+  .state-box { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: #7A93A8; gap: 12px; }
+  .spinner { width: 32px; height: 32px; border: 3px solid #C8D8E4; border-top-color: var(--verde-acento); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .state-msg { font-size: 13px; text-align: center; line-height: 1.6; }
+
+  /* CHECKLIST GRID */
+  .checklist-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-bottom: 24px; }
+  .check-item { background: #E4ECF2; border: 1px solid #C8D8E4; border-radius: 6px; padding: 12px 14px; }
+  .check-item-label { font-size: 10px; color: #5A7A90; margin-bottom: 8px; font-weight: 500; line-height: 1.4; }
+  .check-item-pct { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; }
+  .check-bar-bg { height: 3px; background: #D8E5EE; border-radius: 2px; margin-top: 6px; overflow: hidden; }
+  .check-bar-fill { height: 100%; border-radius: 2px; }
+
+  /* BAR CHART */
+  .bar-chart { margin-bottom: 4px; }
+  .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .bar-label { font-size: 11px; color: #1E2D40; width: 130px; flex-shrink: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-track { flex: 1; height: 20px; background: #D8E5EE; border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; background: var(--verde-acento); display: flex; align-items: center; padding-left: 8px; transition: width 0.8s ease; }
+  .bar-inner-label { font-size: 10px; font-weight: 600; color: #ffffff; white-space: nowrap; }
+  .bar-count { font-size: 11px; color: #7A93A8; width: 36px; text-align: right; flex-shrink: 0; }
+
+  /* NPS */
+  .nps-badge { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; font-weight: 700; font-size: 11px; }
+  .nps-promotor { background: #D0EDE8; color: var(--verde-acento); }
+  .nps-pasivo { background: #FDF3DC; color: var(--amarillo); }
+  .nps-detractor { background: #FAE0E0; color: var(--rojo); }
+
+  /* TEXT CELL */
+  .text-preview { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #5A7A90; font-style: italic; font-size: 11px; }
+
+  /* PANEL 2 COL */
+  .panel-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .panel-box { background: #E4ECF2; border: 1px solid #C8D8E4; border-radius: 8px; padding: 18px; }
+  .panel-box h4 { font-size: 11px; color: #5A7A90; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 14px; }
+
+  .empty { padding: 40px; text-align: center; color: #7A93A8; font-size: 13px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* TOGGLE ALERTA */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .section-header .section-title { margin-bottom: 0; flex: 1; }
+  .toggle-wrap { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .toggle-label { font-size: 11px; color: #5A7A90; font-weight: 500; letter-spacing: 0.04em; }
+  .toggle-switch { position: relative; width: 40px; height: 22px; cursor: pointer; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-track { position: absolute; inset: 0; background: #C8D8E4; border-radius: 22px; border: 1px solid #B8CDD8; transition: background 0.2s; }
+  .toggle-switch input:checked + .toggle-track { background: var(--rojo); border-color: var(--rojo); }
+  .toggle-knob { position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; background: var(--gris-medio); border-radius: 50%; transition: transform 0.2s, background 0.2s; pointer-events: none; }
+  .toggle-switch input:checked ~ .toggle-knob { transform: translateX(18px); background: var(--blanco); }
+  .alerta-count { font-size: 11px; color: var(--rojo); font-weight: 600; background: #FAE0E0; padding: 2px 8px; border-radius: 20px; display: none; }
+  .alerta-count.visible { display: inline-block; }
+  /* Fila con alerta */
+  tr.alerta-row td:first-child { border-left: 3px solid #EF5350; }
+  /* Celda con valor bajo */
+  .cell-alert { color: var(--rojo) !important; font-weight: 600; }
+
+  /* ── MODAL DETALLE ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(30,45,64,0.5);
+    z-index: 200; display: none; align-items: stretch; justify-content: flex-end;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-panel {
+    background: #F5F9FC;
+    border-left: 2px solid var(--verde-acento);
+    width: 480px; max-width: 95vw;
+    height: 100vh; overflow-y: auto;
+    padding: 0;
+    animation: slideIn 0.22s ease;
+  }
+  @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  .modal-header {
+    background: #D8E5EE;
+    padding: 20px 24px;
+    position: sticky; top: 0; z-index: 1;
+    border-bottom: 1px solid #C8D8E4;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  }
+  .modal-header-info { flex: 1; }
+  .modal-nombre { font-family: 'Space Grotesk', sans-serif; font-size: 17px; font-weight: 700; color: #1E2D40; margin-bottom: 4px; }
+  .modal-meta { font-size: 11px; color: var(--gris-medio); display: flex; gap: 10px; flex-wrap: wrap; }
+  .modal-meta span { background: #D8E8F2; border: 1px solid #B8CDD8; padding: 2px 8px; border-radius: 4px; color: #1E2D40; }
+  .modal-close {
+    background: none; border: none; color: #7A93A8; font-size: 20px;
+    cursor: pointer; padding: 2px 6px; line-height: 1; flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .modal-close:hover { color: #1E2D40; }
+  .modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 6px; }
+  .modal-section-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: #7A93A8;
+    margin: 14px 0 6px;
+  }
+  .modal-section-label:first-child { margin-top: 0; }
+  .modal-item {
+    background: #E4ECF2;
+    border: 1px solid #C8D8E4;
+    border-radius: 6px;
+    padding: 10px 14px;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  }
+  .modal-item.alerta {
+    background: #FDECEA;
+    border-color: #F5C6C6;
+  }
+  .modal-item-label { font-size: 12px; color: #3D5A70; line-height: 1.4; flex: 1; }
+  .modal-item-vals { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+  .modal-resp { font-size: 12px; font-weight: 600; }
+  .modal-resp.ok { color: var(--verde-acento); }
+  .modal-resp.mal { color: var(--rojo); }
+  .modal-resp.neutro { color: var(--amarillo); }
+  .modal-esperado { font-size: 10px; color: #7A93A8; }
+  .modal-sent-resp {
+    font-size: 11px; line-height: 1.5; color: #5A7A90;
+    font-style: italic; margin-top: 4px;
+  }
+  .modal-sent-resp.mal { color: var(--rojo); font-style: normal; font-weight: 500; }
+
+  /* ── SEGUIMIENTO 30 DÍAS ── */
+  .seg-cell { display: flex; align-items: center; gap: 6px; min-width: 130px; }
+  .seg-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: #2E9E94; flex-shrink: 0; }
+  .seg-info { display: flex; flex-direction: column; gap: 1px; }
+  .seg-pendiente { font-size: 10px; color: #C62828; font-weight: 600; }
+  .seg-dias { font-size: 10px; color: #7A93A8; }
+  .seg-resuelto { font-size: 10px; color: #1A7A72; font-weight: 600; }
+  .seg-detalle { font-size: 9px; color: #7A93A8; }
+  .seg-edit-btn { font-size: 10px; color: #2E9E94; background: none; border: none; cursor: pointer; text-decoration: underline; padding: 0; }
+
+  .seg-popover-overlay { position: fixed; inset: 0; z-index: 300; display: none; }
+  .seg-popover-overlay.open { display: block; }
+  .seg-popover {
+    position: absolute;
+    background: #ffffff;
+    border: 1px solid #C8D8E4;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(30,45,64,0.25);
+    padding: 14px;
+    width: 240px;
+    z-index: 301;
+  }
+  .seg-popover label { font-size: 11px; color: #5A7A90; font-weight: 600; display: block; margin-bottom: 4px; margin-top: 10px; }
+  .seg-popover label:first-child { margin-top: 0; }
+  .seg-popover input {
+    width: 100%; padding: 6px 8px; border: 1px solid #C8D8E4; border-radius: 4px;
+    font-size: 12px; font-family: 'Inter', sans-serif; color: #1E2D40;
+  }
+  .seg-popover-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .seg-popover-actions button {
+    flex: 1; padding: 6px; border-radius: 4px; font-size: 11px; font-weight: 600;
+    cursor: pointer; border: none; font-family: 'Inter', sans-serif;
+  }
+  .seg-btn-guardar { background: #2E9E94; color: #fff; }
+  .seg-btn-cancelar { background: #E0E8EF; color: #5A7A90; }
+  .seg-btn-quitar { background: #FDECEA; color: #C62828; margin-top: 8px; width: 100%; padding: 6px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; font-family: 'Inter', sans-serif; }
+
+  @media (max-width: 900px) {
+    .panel-2col { grid-template-columns: 1fr; }
+    .main { padding: 16px; }
+    .filters-bar, header { padding: 0 16px; }
+    .filters-bar { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">GEB University <span>· Onboarding</span></div>
+  <div class="header-right">
+    <span id="last-updated">—</span>
+    <button class="btn-refresh" onclick="loadAll()">↺ Actualizar</button>
+  </div>
+</header>
+
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="switchTab('preonboarding')">Preonboarding</button>
+  <button class="tab-btn" onclick="switchTab('treinta')">Encuesta 30 Días</button>
+  <button class="tab-btn" onclick="switchTab('evaluacion')">Evaluación Inducción</button>
+  <button class="tab-btn" onclick="switchTab('certificaciones')">Certificaciones</button>
+</div>
+
+<div class="filters-bar">
+  <span class="filter-label">Filtrar por</span>
+  <select class="filter-select" id="f-sucursal" onchange="applyFilters()"><option value="">Todas las sucursales</option></select>
+  <select class="filter-select" id="f-mes" onchange="applyFilters()"><option value="">Todos los meses</option></select>
+  <div class="filter-divider" id="ev-divider" style="display:none"></div>
+  <select class="filter-select" id="f-lider" onchange="applyFilters()" style="display:none"><option value="">Todos los líderes</option></select>
+  <select class="filter-select" id="f-rol" onchange="applyFilters()" style="display:none">
+    <option value="">Todos los grupos</option>
+    <option value="limpieza">Orden y Limpieza</option>
+    <option value="operacion">Operación</option>
+  </select>
+  <button class="btn-clear" onclick="clearFilters()">Limpiar</button>
+</div>
+
+<div class="main">
+
+  <!-- PREONBOARDING -->
+  <div class="tab-panel active" id="panel-preonboarding">
+    <div id="pre-loading" class="state-box"><div class="spinner"></div><span class="state-msg">Cargando datos…</span></div>
+    <div id="pre-content" style="display:none">
+      <div class="kpi-row" id="pre-kpis"></div>
+      <div class="panel-2col">
+        <div class="panel-box"><h4>Respuestas por sucursal</h4><div id="pre-by-suc"></div></div>
+        <div class="panel-box"><h4>Respuestas por mes</h4><div id="pre-by-mes"></div></div>
+      </div>
+      <div class="section-header">
+        <div class="section-title">Detalle por colaborador</div>
+        <div class="toggle-wrap">
+          <span class="alerta-count" id="pre-alerta-count"></span>
+          <span class="toggle-label">Solo alertas</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="pre-toggle-alerta" onchange="renderPre()">
+            <div class="toggle-track"></div>
+            <div class="toggle-knob"></div>
+          </label>
+        </div>
+      </div>
+      <div class="table-wrapper"><div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>Nombre</th><th>Sucursal</th><th>Mes</th>
+            <th>Trato</th><th>Escuchado</th><th>Rol claro</th>
+            <th>Puntual</th><th>Bienvenida</th><th>Comunicación</th>
+            <th>NPS</th><th>Lo mejor</th><th>Mejorar</th>
+          </tr></thead>
+          <tbody id="pre-tbody"></tbody>
+        </table>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- 30 DÍAS -->
+  <div class="tab-panel" id="panel-treinta">
+    <div id="d30-loading" class="state-box"><div class="spinner"></div><span class="state-msg">Cargando datos…</span></div>
+    <div id="d30-content" style="display:none">
+      <div class="kpi-row" id="d30-kpis"></div>
+      <div class="section-title">% Cumplimiento por ítem logístico</div>
+      <div class="checklist-summary" id="d30-checklist"></div>
+      <div class="panel-2col">
+        <div class="panel-box"><h4>Respuestas por sucursal</h4><div id="d30-by-suc"></div></div>
+        <div class="panel-box"><h4>Sentimiento de incorporación</h4><div id="d30-sentimiento"></div></div>
+      </div>
+      <div class="section-header">
+        <div class="section-title">Detalle por colaborador</div>
+        <div class="toggle-wrap">
+          <span class="alerta-count" id="d30-alerta-count"></span>
+          <span class="toggle-label">Solo alertas</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="d30-toggle-alerta" onchange="renderD30()">
+            <div class="toggle-track"></div>
+            <div class="toggle-knob"></div>
+          </label>
+        </div>
+      </div>
+      <div class="table-wrapper"><div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>Nombre</th><th>Sucursal</th><th>Rol</th><th>Turno</th><th>Mes</th>
+            <th>Org. coincide</th><th>Dec. correcta</th><th>Conectado</th>
+            <th>Equipo</th><th>Incorporación</th><th>Líder</th>
+            <th>KPIs de rol</th><th>Certificación</th><th>Capacitación</th>
+            <th>Recorrido</th><th>Plan desarrollo</th><th>Plan 12m</th>
+            <th>Uniforme</th><th>Gafete</th><th>Vales</th><th>Nómina</th>
+            <th>Seguimiento</th>
+          </tr></thead>
+          <tbody id="d30-tbody"></tbody>
+        </table>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- EVALUACIÓN -->
+  <div class="tab-panel" id="panel-evaluacion">
+    <div id="ev-loading" class="state-box"><div class="spinner"></div><span class="state-msg">Cargando datos…</span></div>
+    <div id="ev-content" style="display:none">
+      <div class="kpi-row" id="ev-kpis"></div>
+      <div class="panel-2col">
+        <div class="panel-box"><h4>% Filosofía promedio por sucursal</h4><div id="ev-suc-fil"></div></div>
+        <div class="panel-box"><h4>% Juego del Año promedio por sucursal</h4><div id="ev-suc-juego"></div></div>
+      </div>
+      <div class="section-title">Detalle por colaborador</div>
+      <div class="table-wrapper"><div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>Nombre</th><th>Rol</th><th>Líder</th><th>Sucursal</th><th>Turno</th><th>Mes</th>
+            <th>Pts Propósito</th><th>% Propósito</th>
+            <th>Pts Credo</th><th>% Credo</th>
+            <th>Pts Valores</th><th>% Valores</th>
+            <th>% Filosofía</th>
+            <th>Juego</th><th>País</th><th>Indicadores</th>
+            <th>% Juego del Año</th>
+          </tr></thead>
+          <tbody id="ev-tbody"></tbody>
+        </table>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- CERTIFICACIONES -->
+  <div class="tab-panel" id="panel-certificaciones">
+    <div id="cert-loading" class="state-box"><div class="spinner"></div><span class="state-msg">Cargando datos…</span></div>
+    <div id="cert-content" style="display:none">
+      <div class="kpi-row" id="cert-kpis"></div>
+      <div class="panel-2col">
+        <div class="panel-box"><h4>Avance por sucursal</h4><div id="cert-by-suc"></div></div>
+        <div class="panel-box"><h4>Avance por área</h4><div id="cert-by-area"></div></div>
+      </div>
+      <div class="section-title">Detalle por colaborador</div>
+      <div class="table-wrapper"><div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>Nombre</th><th>Club</th><th>Líder</th><th>Fecha de ingreso</th><th>Turno</th><th>Rol</th><th>Área</th>
+            <th>Sem 1</th><th>Sem 2</th><th>Sem 3</th><th>Sem 4</th>
+            <th>Semanas completadas</th><th>% Avance</th><th>Estatus</th>
+          </tr></thead>
+          <tbody id="cert-tbody"></tbody>
+        </table>
+      </div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL DETALLE 30 DÍAS -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-panel" id="modal-panel">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-nombre" id="modal-nombre">—</div>
+        <div class="modal-meta" id="modal-meta"></div>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- POPOVER SEGUIMIENTO 30 DÍAS -->
+<div class="seg-popover-overlay" id="seg-popover-overlay" onclick="closeSegPopover(event)">
+  <div class="seg-popover" id="seg-popover">
+    <label>Fecha resuelto</label>
+    <input type="date" id="seg-fecha">
+    <label>Resuelto por</label>
+    <input type="text" id="seg-resuelto-por" placeholder="Nombre de quien dio seguimiento">
+    <div class="seg-popover-actions">
+      <button class="seg-btn-cancelar" onclick="closeSegPopoverDirect()">Cancelar</button>
+      <button class="seg-btn-guardar" onclick="guardarSeguimiento()">Guardar</button>
+    </div>
+    <button class="seg-btn-quitar" id="seg-btn-quitar" onclick="quitarSeguimiento()" style="display:none">Quitar seguimiento</button>
+  </div>
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbzRRcURonub1sNF9z7QOfWmtj-elYqohLAXO73M6S6I6TwvWQLCeSNhZ5SulR8BMffm/exec';
+
+let DATA = { pre: [], d30: [], ev: [], cert: [] };
+let ACTIVE = 'preonboarding';
+
+// ── HELPERS DE COLUMNAS DINÁMICAS ──
+function getNombre(r) {
+  // Busca cualquier columna que contenga 'nombre' y tenga valor
+  const entry = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
+  return entry ? String(entry[1]).trim() : '—';
+}
+function getSucursal(r) {
+  const entry = Object.entries(r).find(([k,v]) => k.toLowerCase() === 'sucursal' && v && String(v).trim().length > 1);
+  return entry ? String(entry[1]).trim() : '—';
+}
+
+// ── SEGUIMIENTO 30 DÍAS (localStorage) ──
+const SEG_KEY = 'geb_seguimiento_30dias';
+let _segCurrentRowKey = null;
+
+function getSegStore() {
+  try {
+    return JSON.parse(localStorage.getItem(SEG_KEY) || '{}');
+  } catch(e) { return {}; }
+}
+function setSegStore(store) {
+  localStorage.setItem(SEG_KEY, JSON.stringify(store));
+}
+// Llave única por fila: nombre + fecha de marca temporal (estable aunque se reordenen filas)
+function segRowKey(r) {
+  const nombre = getNombre(r);
+  const ts = r['Marca temporal'] || '';
+  return `${nombre}__${ts}`;
+}
+function getSeguimiento(r) {
+  const store = getSegStore();
+  return store[segRowKey(r)] || null;
+}
+
+function diasEntre(fechaInicio, fechaFin) {
+  const d1 = new Date(fechaInicio);
+  const d2 = new Date(fechaFin);
+  if (isNaN(d1) || isNaN(d2)) return null;
+  return Math.round((d2 - d1) / (1000*60*60*24));
+}
+
+function segCellHtml(r) {
+  const seg = getSeguimiento(r);
+  const key = segRowKey(r).replace(/'/g, "&#39;").replace(/"/g, '&quot;');
+  const fechaComentario = parseFecha(r['Marca temporal']);
+  const fechaComentarioISO = fechaComentario ? fechaComentario.toISOString().slice(0,10) : '';
+
+  if (seg && seg.resuelto) {
+    const dias = diasEntre(fechaComentarioISO, seg.fecha);
+    return `<div class="seg-cell">
+      <input type="checkbox" class="seg-checkbox" checked onclick="event.stopPropagation(); abrirSegPopover(event, '${key}', '${fechaComentarioISO}')">
+      <div class="seg-info">
+        <span class="seg-resuelto">✓ Resuelto ${seg.fecha || ''}</span>
+        <span class="seg-detalle">${dias!==null?dias+' día(s) · ':''}${seg.por||'—'}</span>
+      </div>
+    </div>`;
+  }
+  return `<div class="seg-cell">
+    <input type="checkbox" class="seg-checkbox" onclick="event.stopPropagation(); abrirSegPopover(event, '${key}', '${fechaComentarioISO}')">
+    <span class="seg-pendiente">Pendiente</span>
+  </div>`;
+}
+
+function abrirSegPopover(evt, rowKey, fechaComentarioISO) {
+  _segCurrentRowKey = rowKey;
+  const store = getSegStore();
+  const existing = store[rowKey];
+
+  document.getElementById('seg-fecha').value = existing?.fecha || new Date().toISOString().slice(0,10);
+  document.getElementById('seg-resuelto-por').value = existing?.por || '';
+  document.getElementById('seg-btn-quitar').style.display = existing ? 'block' : 'none';
+
+  const overlay = document.getElementById('seg-popover-overlay');
+  const pop = document.getElementById('seg-popover');
+  overlay.classList.add('open');
+
+  // Posicionar cerca del checkbox que se clickeó, siempre dentro de la pantalla visible
+  const rect = evt.target.getBoundingClientRect();
+  const popHeight = 260; // alto aproximado del popover
+  const popWidth = 240;
+  let top = rect.bottom + 6;
+  let left = rect.left;
+  // Si se sale por abajo, lo ponemos arriba del checkbox
+  if (top + popHeight > window.innerHeight) {
+    top = rect.top - popHeight - 6;
+    if (top < 10) top = 10;
+  }
+  // Si se sale por la derecha
+  if (left + popWidth > window.innerWidth - 10) {
+    left = window.innerWidth - popWidth - 10;
+  }
+  if (left < 10) left = 10;
+  pop.style.position = 'fixed';
+  pop.style.top = top + 'px';
+  pop.style.left = left + 'px';
+
+  // Si estaba sin marcar y no tenía registro, dejamos el checkbox marcado visualmente al abrir
+  if (!existing) evt.target.checked = true;
+}
+function closeSegPopover(e) {
+  if (e.target.id === 'seg-popover-overlay') closeSegPopoverDirect();
+}
+function closeSegPopoverDirect() {
+  document.getElementById('seg-popover-overlay').classList.remove('open');
+  // Si se cerró sin guardar y no había seguimiento previo, regresa el checkbox a sin marcar
+  renderD30();
+}
+function guardarSeguimiento() {
+  const fecha = document.getElementById('seg-fecha').value;
+  const por = document.getElementById('seg-resuelto-por').value.trim();
+  if (!fecha || !por) {
+    alert('Por favor completa la fecha y el nombre de quién dio seguimiento.');
+    return;
+  }
+  const store = getSegStore();
+  store[_segCurrentRowKey] = { resuelto: true, fecha, por };
+  setSegStore(store);
+  document.getElementById('seg-popover-overlay').classList.remove('open');
+  renderD30();
+}
+function quitarSeguimiento() {
+  const store = getSegStore();
+  delete store[_segCurrentRowKey];
+  setSegStore(store);
+  document.getElementById('seg-popover-overlay').classList.remove('open');
+  renderD30();
+}
+// ── FETCH ──
+async function fetchSheet(name) {
+  const res = await fetch(`${API}?sheet=${encodeURIComponent(name)}`);
+  if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
+  return await res.json();
+}
+
+// ── HELPERS ──
+function parseFecha(val) {
+  if (!val) return null;
+  // Apps Script devuelve Date como "Date(year,month,day,h,m,s)" o string
+  if (typeof val === 'string' && val.startsWith('Date(')) {
+    const parts = val.replace('Date(','').replace(')','').split(',').map(Number);
+    return new Date(parts[0], parts[1], parts[2], parts[3]||0, parts[4]||0);
+  }
+  const d = new Date(val);
+  return isNaN(d) ? null : d;
+}
+function getMes(val) {
+  const d = parseFecha(val);
+  if (!d) return '—';
+  return d.toLocaleString('es-MX', { month: 'short', year: 'numeric' });
+}
+function getMesSort(val) {
+  const d = parseFecha(val);
+  if (!d) return '';
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+function scoreClass(p) {
+  if (p === null || p === undefined || isNaN(p)) return 'score-green';
+  if (p >= 80) return 'score-green';
+  if (p >= 60) return 'score-yellow';
+  return 'score-red';
+}
+function scoreBar(val, max) {
+  const n = parseFloat(val);
+  if (!val || isNaN(n)) return '<span style="color:#7A93A8">—</span>';
+  const p = Math.round(n / max * 100);
+  const cls = scoreClass(p);
+  return `<div class="score-cell ${cls}">
+    <div class="score-bar-bg"><div class="score-bar-fill" style="width:${p}%"></div></div>
+    <span class="score-num">${n}</span>
+  </div>`;
+}
+function pctBar(val) {
+  const p = parseFloat(val);
+  if (isNaN(p) || val === '' || val === 0) return '<span style="color:#7A93A8">—</span>';
+  const cls = scoreClass(p);
+  return `<div class="score-cell ${cls}">
+    <div class="score-bar-bg"><div class="score-bar-fill" style="width:${p}%"></div></div>
+    <span class="score-num">${Math.round(p)}%</span>
+  </div>`;
+}
+function siNo(val) {
+  const s = String(val||'').trim().toLowerCase();
+  if (s === 'sí' || s === 'si' || s === 'true') return '<span class="badge badge-si">Sí</span>';
+  if (s === 'no' || s === 'false') return '<span class="badge badge-no">No</span>';
+  return '<span style="color:#7A93A8">—</span>';
+}
+function npsClass(n) { return n >= 9 ? 'nps-promotor' : n >= 7 ? 'nps-pasivo' : 'nps-detractor'; }
+function txt(t) {
+  if (!t || ['.','—','-','N/a','X','x'].includes(String(t).trim())) return '<span style="color:#7A93A8">—</span>';
+  const s = String(t).replace(/</g,'&lt;');
+  return `<span class="text-preview" title="${s}">${s}</span>`;
+}
+function uniq(arr) { return [...new Set(arr.filter(Boolean))].sort(); }
+function avg(arr) { const a = arr.filter(n=>!isNaN(n)&&n!==''&&n!==null); return a.length ? a.reduce((s,v)=>s+parseFloat(v),0)/a.length : null; }
+
+function barChart(el, data, max100) {
+  const entries = Object.entries(data).sort((a,b)=>b[1]-a[1]);
+  const maxVal = max100 ? 100 : Math.max(...entries.map(e=>e[1]), 1);
+  el.innerHTML = entries.map(([k,v]) => {
+    const w = Math.round(v/maxVal*100);
+    return `<div class="bar-row">
+      <span class="bar-label" title="${k}">${k}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${w}%">
+        ${w>18?`<span class="bar-inner-label">${max100?v+'%':v}</span>`:''}
+      </div></div>
+      <span class="bar-count" style="color:#5A7A90">${w<=18?(max100?v+'%':v):''}</span>
+    </div>`;
+  }).join('');
+}
+function kpiCard(label, val, sub, color) {
+  return `<div class="kpi-card">
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-value ${color||''}">${val}</div>
+    ${sub?`<div class="kpi-sub">${sub}</div>`:''}
+  </div>`;
+}
+
+// ── FILTROS ──
+function getF() {
+  return {
+    suc: document.getElementById('f-sucursal').value,
+    mes: document.getElementById('f-mes').value,
+    lider: document.getElementById('f-lider').value,
+    rol: document.getElementById('f-rol').value,
+  };
+}
+function fillSelect(id, opts, ph) {
+  const el = document.getElementById(id);
+  const cur = el.value;
+  el.innerHTML = `<option value="">${ph}</option>` + opts.map(o=>`<option value="${o}"${o===cur?' selected':''}>${o}</option>`).join('');
+}
+function clearFilters() {
+  ['f-sucursal','f-mes','f-lider','f-rol'].forEach(id => document.getElementById(id).value='');
+  applyFilters();
+}
+function applyFilters() {
+  if (ACTIVE==='preonboarding') renderPre();
+  if (ACTIVE==='treinta') renderD30();
+  if (ACTIVE==='evaluacion') renderEv();
+  if (ACTIVE==='certificaciones') renderCert();
+}
+function populateFilters() {
+  const certSucs = DATA.cert.map(r => clubNombre(r['Club']));
+  const allSuc = [...DATA.pre.map(r=>r['Sucursal']), ...DATA.d30.map(r=>r['Sucursal']), ...DATA.ev.map(r=>r['Sucursal']), ...certSucs];
+  fillSelect('f-sucursal', uniq(allSuc), 'Todas las sucursales');
+
+  const mesMap = {};
+  [...DATA.pre, ...DATA.d30, ...DATA.ev].forEach(r => {
+    const k = getMesSort(r['Marca temporal']), v = getMes(r['Marca temporal']);
+    if (k && v!=='—') mesMap[k]=v;
+  });
+  const meses = Object.entries(mesMap).sort((a,b)=>a[0].localeCompare(b[0])).map(([,v])=>v);
+  fillSelect('f-mes', [...new Set(meses)], 'Todos los meses');
+
+  fillSelect('f-lider', uniq(DATA.ev.map(r=>r['Nombre del líder evaluador'])), 'Todos los líderes');
+  // f-rol tiene opciones fijas, no necesita popularse
+}
+function updateEvFilters() {
+  const show = ACTIVE === 'evaluacion';
+  document.getElementById('f-lider').style.display = show ? '' : 'none';
+  document.getElementById('f-rol').style.display = show ? '' : 'none';
+  document.getElementById('ev-divider').style.display = show ? '' : 'none';
+}
+
+// ── PREONBOARDING ──
+function renderPre() {
+  const {suc, mes} = getF();
+  const rows = DATA.pre.filter(r => {
+    if (!r['Nombre:'] && !r['Nombre']) return false;
+    if (suc && r['Sucursal'] !== suc) return false;
+    if (mes && getMes(r['Marca temporal']) !== mes) return false;
+    return true;
+  });
+
+  const npsRows = rows.filter(r => r['Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  '] !== '' && r['Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  '] !== null);
+  const npsVals = npsRows.map(r => parseFloat(r['Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  '])).filter(n => !isNaN(n) && n >= 0 && n <= 10);
+  const avgNPS = avg(npsVals);
+  const promotores = npsVals.filter(n=>n>=9).length;
+  const detractores = npsVals.filter(n=>n<=6).length;
+  const pasivos = npsVals.filter(n=>n>=7&&n<=8).length;
+  const nTotal = npsVals.length;
+  const npsBase = promotores + detractores;
+  const npsScore = npsBase > 0 ? Math.round((promotores/npsBase - detractores/npsBase)*100) : (promotores > 0 ? 100 : null);
+  const tratoVals = rows.map(r=>parseFloat(r['El trato del equipo de reclutamiento fue amable.  '])).filter(n=>!isNaN(n)&&n>0);
+  const avgTrato = avg(tratoVals);
+
+  document.getElementById('pre-kpis').innerHTML =
+    kpiCard('Total respuestas', rows.length, '') +
+    kpiCard('NPS', npsScore!==null?npsScore:'—', `${promotores} prom. · ${pasivos} pasivos · ${detractores} detract.`, npsScore>=50?'green':npsScore>=0?'yellow':'red') +
+    kpiCard('Trato promedio', avgTrato!==null?`${avgTrato.toFixed(1)}/5`:'—', 'Equipo de reclutamiento', avgTrato>=4.5?'green':avgTrato>=3.5?'yellow':'red');
+
+  const bySuc={}, byMes={};
+  rows.forEach(r => {
+    const s=r['Sucursal']||'Sin sucursal'; bySuc[s]=(bySuc[s]||0)+1;
+    const m=getMes(r['Marca temporal']); byMes[m]=(byMes[m]||0)+1;
+  });
+  barChart(document.getElementById('pre-by-suc'), bySuc);
+  barChart(document.getElementById('pre-by-mes'), byMes);
+
+  const tbody = document.getElementById('pre-tbody');
+  if (!rows.length) { tbody.innerHTML=`<tr><td colspan="14" class="empty">Sin resultados para los filtros aplicados.</td></tr>`; return; }
+
+  const npsKey = 'Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  ';
+  const ratingCols = [
+    'El trato del equipo de reclutamiento fue amable.  ',
+    'Me sentí escuchado(a) durante el proceso. ',
+    'Me explicaron claramente el rol y expectativas. ',
+    'El proceso fue puntual y respetuoso con mi tiempo. ',
+    'Me sentí bienvenido(a) antes de iniciar. ',
+    'La comunicación fue clara y profesional. ',
+  ];
+  const checkCols = [
+    'Checklist [Recibí mi carta oferta con información clara.]',
+    'Checklist [Recibí lista de documentos necesarios.]',
+    'Checklist [Recibí información completa de mi inducción (fecha, hora, sucursal, ubicación).]',
+    'Checklist [Me compartieron el nombre de mi líder directo.]',
+    'Checklist [Alguien estuvo disponible para resolver mis dudas.]',
+    'Checklist [Los tiempos del proceso fueron respetados (entrevista, respuesta, ingreso).]',
+  ];
+
+  function preHasAlert(r) {
+    const npsN = parseFloat(r[npsKey]);
+    if (!isNaN(npsN) && npsN < 9) return true;
+    if (ratingCols.some(c => { const v=parseFloat(r[c]); return !isNaN(v) && v > 0 && v <= 4; })) return true;
+    if (checkCols.some(c => String(r[c]||'').includes('1 = No'))) return true;
+    return false;
+  }
+
+  const soloAlertas = document.getElementById('pre-toggle-alerta').checked;
+  const alertCount = rows.filter(preHasAlert).length;
+  const cntEl = document.getElementById('pre-alerta-count');
+  cntEl.textContent = `${alertCount} con alerta`;
+  cntEl.classList.toggle('visible', alertCount > 0);
+
+  const visibles = soloAlertas ? rows.filter(preHasAlert) : rows;
+  if (!visibles.length) { tbody.innerHTML=`<tr><td colspan="12" class="empty">No hay registros con alertas en los filtros actuales.</td></tr>`; return; }
+
+  function scoreBarAlert(val, max) {
+    const n = parseFloat(val);
+    if (!val || isNaN(n) || n === 0) return '<span style="color:#7A93A8">—</span>';
+    const p = Math.round(n / max * 100);
+    const cls = scoreClass(p);
+    const alert = n <= 4 ? ' cell-alert' : '';
+    return `<div class="score-cell ${cls}">
+      <div class="score-bar-bg"><div class="score-bar-fill" style="width:${p}%"></div></div>
+      <span class="score-num${alert}">${n}</span>
+    </div>`;
+  }
+
+  tbody.innerHTML = visibles.map(r => {
+    const nps = r[npsKey];
+    const npsN = parseFloat(nps);
+    const hasAlert = preHasAlert(r);
+    const npsBadge = (nps!==''&&nps!==null&&!isNaN(npsN))
+      ? `<span class="nps-badge ${npsClass(npsN)}">${nps}</span>`
+      : '—';
+    return `<tr class="${hasAlert?'alerta-row':''}">
+      <td class="td-name">${getNombre(r)}</td>
+      <td class="td-sucursal">${getSucursal(r)}</td>
+      <td class="td-mes">${getMes(r['Marca temporal'])}</td>
+      <td>${scoreBarAlert(r['El trato del equipo de reclutamiento fue amable.  '],5)}</td>
+      <td>${scoreBarAlert(r['Me sentí escuchado(a) durante el proceso. '],5)}</td>
+      <td>${scoreBarAlert(r['Me explicaron claramente el rol y expectativas. '],5)}</td>
+      <td>${scoreBarAlert(r['El proceso fue puntual y respetuoso con mi tiempo. '],5)}</td>
+      <td>${scoreBarAlert(r['Me sentí bienvenido(a) antes de iniciar. '],5)}</td>
+      <td>${scoreBarAlert(r['La comunicación fue clara y profesional. '],5)}</td>
+      <td>${npsBadge}</td>
+      <td>${txt(r['¿Qué fue lo mejor de tu proceso antes de ingresar? '])}</td>
+      <td>${txt(r['  ¿Qué pudimos haber hecho mejor?  '])}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── 30 DÍAS ──
+const CHECK_ITEMS = [
+  ['  ¿Tu líder se reunió contigo para explicarte los indicadores clave de desempeño de tu rol?', 'KPIs de rol'],
+  ['  ¿Recibiste por escrito tu certificación de rol?', 'Certificación escrita'],
+  ['  ¿Tu capacitación se cumplió al pie de la letra?  ', 'Capacitación completa'],
+  ['  ¿Alguien te dio un recorrido por la empresa y te presentó a la mayoría de los miembros del equipo?  ', 'Recorrido y presentación'],
+  ['  ¿Te hemos compartido un plan claro de tu desarrollo aquí con nosotros?  ', 'Plan de desarrollo'],
+  ['  ¿Te hemos compartido cómo será tu formación y capacitación en los próximos 12 meses con nosotros?  ', 'Plan formación 12m'],
+  ['  ¿Recibiste tu uniforme en tiempo y forma?  ', 'Uniforme'],
+  ['  ¿Recibiste tu gafete en tiempo y forma?  ', 'Gafete'],
+  ['  ¿Se te entregó tu tarjeta de vales a tiempo?  ', 'Tarjeta de vales'],
+  ['  ¿Se te avisó a tiempo de tu tarjeta de nómina?  ', 'Tarjeta nómina'],
+];
+function isSi(v) { const s=String(v||'').trim().toLowerCase(); return s==='sí'||s==='si'; }
+function sentScore(v) {
+  if (!v) return 0;
+  const s = String(v);
+  if (s.includes('básico') || s.includes('No parecen') || s.includes('no tiene tiempo') || s.includes('Eso fue todo')) return 1;
+  return 2;
+}
+
+function renderD30() {
+  const {suc,mes} = getF();
+  const rows = DATA.d30.filter(r => {
+    if (!r['Nombre']) return false;
+    if (suc && r['Sucursal']!==suc) return false;
+    if (mes && getMes(r['Marca temporal'])!==mes) return false;
+    return true;
+  });
+
+  const n = rows.length;
+  const siOrg = rows.filter(r=>isSi(r['  ¿Esta organización y el trabajo coinciden con lo anunciado?  '])).length;
+  const siDec = rows.filter(r=>isSi(r['  ¿Tomé la decisión correcta al aceptar este trabajo?  '])).length;
+  const siCon = rows.filter(r=>isSi(r['  ¿Me siento conectado con esta organización?  '])).length;
+
+  document.getElementById('d30-kpis').innerHTML =
+    kpiCard('Respuestas', n, '') +
+    kpiCard('Org. coincide', n?`${Math.round(siOrg/n*100)}%`:'—', `${siOrg}/${n}`, siOrg/n>=0.9?'green':siOrg/n>=0.7?'yellow':'red') +
+    kpiCard('Decisión correcta', n?`${Math.round(siDec/n*100)}%`:'—', `${siDec}/${n}`, siDec/n>=0.9?'green':'yellow') +
+    kpiCard('Conectado', n?`${Math.round(siCon/n*100)}%`:'—', `${siCon}/${n}`, siCon/n>=0.9?'green':'yellow');
+
+  // Checklist
+  const cl = document.getElementById('d30-checklist');
+  cl.innerHTML = CHECK_ITEMS.map(([col,label]) => {
+    const cnt = rows.filter(r=>isSi(r[col])).length;
+    const p = n ? Math.round(cnt/n*100) : 0;
+    const color = p>=80?'var(--verde-acento)':p>=60?'var(--amarillo)':'var(--rojo)';
+    return `<div class="check-item">
+      <div class="check-item-label">${label}</div>
+      <div class="check-item-pct" style="color:${color}">${p}%</div>
+      <div class="check-bar-bg"><div class="check-bar-fill" style="width:${p}%;background:${color}"></div></div>
+    </div>`;
+  }).join('');
+
+  // Por sucursal
+  const bySuc={};
+  rows.forEach(r=>{ const s=r['Sucursal']||'Sin sucursal'; bySuc[s]=(bySuc[s]||0)+1; });
+  barChart(document.getElementById('d30-by-suc'), bySuc);
+
+  // Sentimiento incorporación
+  const sent={2:0,1:0};
+  rows.forEach(r=>{ const s=sentScore(r['Incorporación']); if(s) sent[s]++; });
+  const sentEl = document.getElementById('d30-sentimiento');
+  const sentLabels={2:'✓ Respuesta positiva',1:'⚠ Requiere atención'};
+  const sentColors={2:'var(--verde-acento)',1:'var(--rojo)'};
+  sentEl.innerHTML = [2,1].map(k=>{
+    const p=n?Math.round(sent[k]/n*100):0;
+    return `<div class="bar-row">
+      <span class="bar-label">${sentLabels[k]}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${sentColors[k]}">
+        ${p>18?`<span class="bar-inner-label">${sent[k]}</span>`:''}
+      </div></div>
+      <span class="bar-count" style="color:${sentColors[k]}">${p<=18?sent[k]:''}</span>
+    </div>`;
+  }).join('');
+
+  // Tabla
+  const tbody = document.getElementById('d30-tbody');
+  if (!rows.length) { tbody.innerHTML=`<tr><td colspan="22" class="empty">Sin resultados.</td></tr>`; return; }
+
+  const siNoAlertCols = [
+    '  ¿Esta organización y el trabajo coinciden con lo anunciado?  ',
+    '  ¿Tomé la decisión correcta al aceptar este trabajo?  ',
+    '  ¿Me siento conectado con esta organización?  ',
+    '  ¿Tu líder se reunió contigo para explicarte los indicadores clave de desempeño de tu rol?',
+    '  ¿Recibiste por escrito tu certificación de rol?',
+    '  ¿Tu capacitación se cumplió al pie de la letra?  ',
+    '  ¿Alguien te dio un recorrido por la empresa y te presentó a la mayoría de los miembros del equipo?  ',
+    '  ¿Te hemos compartido un plan claro de tu desarrollo aquí con nosotros?  ',
+    '  ¿Te hemos compartido cómo será tu formación y capacitación en los próximos 12 meses con nosotros?  ',
+    '  ¿Recibiste tu uniforme en tiempo y forma?  ',
+    '  ¿Recibiste tu gafete en tiempo y forma?  ',
+    '  ¿Se te entregó tu tarjeta de vales a tiempo?  ',
+    '  ¿Se te avisó a tiempo de tu tarjeta de nómina?  ',
+  ];
+
+  function d30HasAlert(r) {
+    if (siNoAlertCols.some(c => { const v=String(r[c]||'').trim().toLowerCase(); return v==='no'; })) return true;
+    if (sentScore(r['Incorporación'])===1 || sentScore(r['Equipo'])===1 || sentScore(r['Líder'])===1) return true;
+    return false;
+  }
+
+  const soloAlertasD30 = document.getElementById('d30-toggle-alerta').checked;
+  const alertCountD30 = rows.filter(d30HasAlert).length;
+  const cntElD30 = document.getElementById('d30-alerta-count');
+  cntElD30.textContent = `${alertCountD30} con alerta`;
+  cntElD30.classList.toggle('visible', alertCountD30 > 0);
+
+  const visiblesD30 = soloAlertasD30 ? rows.filter(d30HasAlert) : rows;
+  if (!visiblesD30.length) { tbody.innerHTML=`<tr><td colspan="22" class="empty">No hay registros con alertas en los filtros actuales.</td></tr>`; return; }
+
+  const sentTag = v => {
+    const s = sentScore(v);
+    if (s===2) return '<span style="color:var(--verde-acento);font-size:11px">✓ Bien</span>';
+    if (s===1) return '<span style="color:var(--rojo);font-size:11px;font-weight:600">⚠ Atención</span>';
+    return '<span style="color:#7A93A8">—</span>';
+  };
+
+  // siNo con resaltado de No
+  const siNoAlert = v => {
+    const s = String(v||'').trim().toLowerCase();
+    if (s==='sí'||s==='si') return '<span class="badge badge-si">Sí</span>';
+    if (s==='no') return '<span class="badge badge-no" style="font-weight:700">✕ No</span>';
+    return '<span style="color:#7A93A8">—</span>';
+  };
+
+  // Guardamos los datos para el modal
+  window._d30Rows = visiblesD30;
+
+  tbody.innerHTML = visiblesD30.map((r, idx) => {
+    const hasAlert = d30HasAlert(r);
+    return `<tr class="${hasAlert?'alerta-row':''}" style="cursor:pointer" onclick="openModal(window._d30Rows[${idx}])">
+      <td class="td-name">${r['Nombre']||'—'} <span style="font-size:10px;color:#7A93A8;margin-left:4px">↗</span></td>
+      <td class="td-sucursal">${r['Sucursal']||'—'}</td>
+      <td style="font-size:11px">${r['Rol']||'—'}</td>
+      <td style="color:#5A7A90;font-size:11px">${r['Turno']||'—'}</td>
+      <td class="td-mes">${getMes(r['Marca temporal'])}</td>
+      <td>${siNoAlert(r['  ¿Esta organización y el trabajo coinciden con lo anunciado?  '])}</td>
+      <td>${siNoAlert(r['  ¿Tomé la decisión correcta al aceptar este trabajo?  '])}</td>
+      <td>${siNoAlert(r['  ¿Me siento conectado con esta organización?  '])}</td>
+      <td>${sentTag(r['Equipo'])}</td>
+      <td>${sentTag(r['Incorporación'])}</td>
+      <td>${sentTag(r['Líder'])}</td>
+      <td>${siNoAlert(r['  ¿Tu líder se reunió contigo para explicarte los indicadores clave de desempeño de tu rol?'])}</td>
+      <td>${siNoAlert(r['  ¿Recibiste por escrito tu certificación de rol?'])}</td>
+      <td>${siNoAlert(r['  ¿Tu capacitación se cumplió al pie de la letra?  '])}</td>
+      <td>${siNoAlert(r['  ¿Alguien te dio un recorrido por la empresa y te presentó a la mayoría de los miembros del equipo?  '])}</td>
+      <td>${siNoAlert(r['  ¿Te hemos compartido un plan claro de tu desarrollo aquí con nosotros?  '])}</td>
+      <td>${siNoAlert(r['  ¿Te hemos compartido cómo será tu formación y capacitación en los próximos 12 meses con nosotros?  '])}</td>
+      <td>${siNoAlert(r['  ¿Recibiste tu uniforme en tiempo y forma?  '])}</td>
+      <td>${siNoAlert(r['  ¿Recibiste tu gafete en tiempo y forma?  '])}</td>
+      <td>${siNoAlert(r['  ¿Se te entregó tu tarjeta de vales a tiempo?  '])}</td>
+      <td>${siNoAlert(r['  ¿Se te avisó a tiempo de tu tarjeta de nómina?  '])}</td>
+      <td onclick="event.stopPropagation()">${segCellHtml(r)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── EVALUACIÓN ──
+function renderEv() {
+  const {suc,mes,lider,rol} = getF();
+  const rows = DATA.ev.filter(r => {
+    if (!r['Nombre del colaborador']) return false;
+    if (suc && r['Sucursal']!==suc) return false;
+    if (mes && getMes(r['Marca temporal'])!==mes) return false;
+    if (lider && r['Nombre del líder evaluador']!==lider) return false;
+    if (rol) {
+      const rolNorm = String(r['Rol']||'').toLowerCase();
+      const esLimpieza = rolNorm.includes('limpieza') || rolNorm.includes('orden') || rolNorm.includes('aseo') || rolNorm.includes('intendencia') || rolNorm.includes('mantenimiento');
+      if (rol==='limpieza' && !esLimpieza) return false;
+      if (rol==='operacion' && esLimpieza) return false;
+    }
+    return true;
+  });
+
+  const n = rows.length;
+  const filVals = rows.map(r=>{
+    let v = parseFloat(r['% Calificación Filosofía']);
+    if(!isNaN(v)&&v>0) return v;
+    const i=parseFloat(r['Calificación Propósito']),l=parseFloat(r['Calificación Credo']),o=parseFloat(r['Calificación Valores']);
+    if(!isNaN(i)||!isNaN(l)||!isNaN(o)) return Math.round(((i||0)+(l||0)+(o||0))/17*100);
+    return NaN;
+  }).filter(v=>!isNaN(v)&&v>0);
+  const juegoVals = rows.map(r=>{
+    let v = parseFloat(r['% Calificación Juego del Año']);
+    if(!isNaN(v)&&v>0) return v;
+    // Recalcula desde fuente
+    const juegoTxt = r['¿Cómo se llama el Juego del Año?  (marcar solo si lo menciona)']||'';
+    const paisTxt  = r['¿Dijo correctamente el país?']||'';
+    const indTxt   = r['¿Cómo se obtienen los puntos?  (marcar solo si lo menciona, puede ser un sinonimo o algo similar)']||'';
+    if(!juegoTxt&&!paisTxt&&!indTxt) return NaN;
+    const j = (juegoTxt.includes('Clubes')||juegoTxt.includes('Copa'))?1:0;
+    const p = (paisTxt.toLowerCase()==='sí'||paisTxt.toLowerCase()==='si')?1:0;
+    let ind=0;
+    if(indTxt.includes('Base Activa'))ind++;
+    if(indTxt.toLowerCase().includes('penal'))ind++;
+    if(indTxt.includes('1%'))ind++;
+    if(indTxt.toLowerCase().includes('país')||indTxt.toLowerCase().includes('pais'))ind++;
+    return Math.round((j+p+ind)/6*100);
+  }).filter(v=>!isNaN(v)&&v>0);
+  const avgFil = avg(filVals);
+  const avgJuego = avg(juegoVals);
+
+  // Promedios individuales
+  const propVals = rows.map(r=>parseFloat(r['% Propósito'])).filter(v=>!isNaN(v)&&v>0);
+  const credoVals = rows.map(r=>parseFloat(r['% Credo'])).filter(v=>!isNaN(v)&&v>0);
+  const valoresVals = rows.map(r=>parseFloat(r['% Valores'])).filter(v=>!isNaN(v)&&v>0);
+  const avgProp = avg(propVals);
+  const avgCredo = avg(credoVals);
+  const avgValores = avg(valoresVals);
+
+  document.getElementById('ev-kpis').innerHTML =
+    kpiCard('Evaluaciones', n, '') +
+    kpiCard('% Propósito prom.', avgProp!==null?`${avgProp.toFixed(1)}%`:'—', 'Máx. 3 pts', avgProp>=80?'green':avgProp>=60?'yellow':'red') +
+    kpiCard('% Credo prom.', avgCredo!==null?`${avgCredo.toFixed(1)}%`:'—', 'Máx. 5 pts', avgCredo>=80?'green':avgCredo>=60?'yellow':'red') +
+    kpiCard('% Valores prom.', avgValores!==null?`${avgValores.toFixed(1)}%`:'—', 'Máx. 9 pts', avgValores>=80?'green':avgValores>=60?'yellow':'red') +
+    kpiCard('% Filosofía prom.', avgFil!==null?`${avgFil.toFixed(1)}%`:'—', 'Propósito · Credo · Valores', avgFil>=80?'green':avgFil>=60?'yellow':'red') +
+    kpiCard('% Juego del Año prom.', avgJuego!==null?`${avgJuego.toFixed(1)}%`:'—', 'Nombre · País · Indicadores', avgJuego>=80?'green':avgJuego>=60?'yellow':'red');
+
+  // Por sucursal — promedios
+  const sucFil={}, sucFilN={}, sucJuego={}, sucJuegoN={};
+  rows.forEach(r=>{
+    const s=r['Sucursal']||'Sin sucursal';
+    let f=parseFloat(r['% Calificación Filosofía']);
+    if(isNaN(f)||f===0){
+      const i=parseFloat(r['Calificación Propósito']),l=parseFloat(r['Calificación Credo']),o=parseFloat(r['Calificación Valores']);
+      if(!isNaN(i)||!isNaN(l)||!isNaN(o)) f=Math.round(((i||0)+(l||0)+(o||0))/17*100);
+    }
+    let j=parseFloat(r['% Calificación Juego del Año']);
+    if(isNaN(j)||j===0){
+      const jt=r['¿Cómo se llama el Juego del Año?  (marcar solo si lo menciona)']||'';
+      const pt=r['¿Dijo correctamente el país?']||'';
+      const it=r['¿Cómo se obtienen los puntos?  (marcar solo si lo menciona, puede ser un sinonimo o algo similar)']||'';
+      if(jt||pt||it){
+        const jv=(jt.includes('Clubes')||jt.includes('Copa'))?1:0;
+        const pv=(pt.toLowerCase()==='sí'||pt.toLowerCase()==='si')?1:0;
+        let iv=0;if(it.includes('Base Activa'))iv++;if(it.toLowerCase().includes('penal'))iv++;if(it.includes('1%'))iv++;if(it.toLowerCase().includes('país')||it.toLowerCase().includes('pais'))iv++;
+        j=Math.round((jv+pv+iv)/6*100);
+      }
+    }
+    if(!isNaN(f)&&f>0){sucFil[s]=(sucFil[s]||0)+f; sucFilN[s]=(sucFilN[s]||0)+1;}
+    if(!isNaN(j)&&j>0){sucJuego[s]=(sucJuego[s]||0)+j; sucJuegoN[s]=(sucJuegoN[s]||0)+1;}
+  });
+  const avgBySuc = (sum,cnt) => Object.fromEntries(Object.keys(sum).map(k=>[k,Math.round(sum[k]/cnt[k])]));
+  barChart(document.getElementById('ev-suc-fil'), avgBySuc(sucFil,sucFilN), true);
+  barChart(document.getElementById('ev-suc-juego'), avgBySuc(sucJuego,sucJuegoN), true);
+
+  const tbody = document.getElementById('ev-tbody');
+  if (!rows.length) { tbody.innerHTML=`<tr><td colspan="17" class="empty">Sin resultados.</td></tr>`; return; }
+
+  tbody.innerHTML = rows.map(r=>`<tr>
+    <td class="td-name">${r['Nombre del colaborador']||'—'}</td>
+    <td style="font-size:11px;color:#5A7A90">${r['Rol']||'—'}</td>
+    <td style="font-size:11px">${r['Nombre del líder evaluador']||'—'}</td>
+    <td class="td-sucursal">${r['Sucursal']||'—'}</td>
+    <td style="font-size:11px;color:#5A7A90">${r['Turno']||'—'}</td>
+    <td class="td-mes">${getMes(r['Marca temporal'])}</td>
+    <td style="text-align:center">${r['Calificación Propósito']||'—'}</td>
+    <td>${pctBar(r['% Propósito'])}</td>
+    <td style="text-align:center">${r['Calificación Credo']||'—'}</td>
+    <td>${pctBar(r['% Credo'])}</td>
+    <td style="text-align:center">${r['Calificación Valores']||'—'}</td>
+    <td>${pctBar(r['% Valores'])}</td>
+    <td>${(()=>{
+      const i=parseFloat(r['Calificación Propósito']),l=parseFloat(r['Calificación Credo']),o=parseFloat(r['Calificación Valores']);
+      if(isNaN(i)&&isNaN(l)&&isNaN(o)) return '—';
+      const v=Math.round(((i||0)+(l||0)+(o||0))/17*100);
+      return pctBar(v);
+    })()}</td>
+    <td style="text-align:center">${(()=>{const v=r['¿Cómo se llama el Juego del Año?  (marcar solo si lo menciona)'];return v?(v.includes('Clubes')||v.includes('Copa')?'<span style="color:var(--verde-acento);font-weight:600">✓ 1</span>':'<span style="color:var(--rojo)">✕ 0</span>'):'—';})()}</td>
+    <td style="text-align:center">${(()=>{const v=String(r['¿Dijo correctamente el país?']||'').toLowerCase();return v==='sí'||v==='si'?'<span style="color:var(--verde-acento);font-weight:600">✓ 1</span>':v==='no'?'<span style="color:var(--rojo)">✕ 0</span>':'—';})()}</td>
+    <td style="text-align:center">${(()=>{
+      const rawInd = r['Pts. Indicadores (0-4)'] !== undefined ? r['Pts. Indicadores (0-4)'] : r['Pts. Indicadores (0-4)_2'];
+      const v = parseFloat(rawInd);
+      if(!isNaN(v)){
+        const clr=v>=3?'var(--verde-acento)':v>=2?'var(--amarillo)':'var(--rojo)';
+        return '<span style="color:'+clr+';font-weight:600">'+v+'/4</span>';
+      }
+      return '—';
+    })()}</td>
+        <td>${(()=>{
+      // % Juego del Año: usa col calculada si existe, si no calcula desde fuente
+      const direct = parseFloat(r['% Calificación Juego del Año']);
+      if(!isNaN(direct)&&direct>0) return pctBar(Math.round(direct));
+      const juegoTxt = r['¿Cómo se llama el Juego del Año?  (marcar solo si lo menciona)']||'';
+      const paisTxt  = r['¿Dijo correctamente el país?']||'';
+      const indTxt   = r['¿Cómo se obtienen los puntos?  (marcar solo si lo menciona, puede ser un sinonimo o algo similar)']||'';
+      const j = (juegoTxt.includes('Clubes')||juegoTxt.includes('Copa'))?1:0;
+      const p = (paisTxt.toLowerCase()==='sí'||paisTxt.toLowerCase()==='si')?1:0;
+      let ind=0;
+      if(indTxt.includes('Base Activa'))ind++;
+      if(indTxt.toLowerCase().includes('penal'))ind++;
+      if(indTxt.includes('1%'))ind++;
+      if(indTxt.toLowerCase().includes('país')||indTxt.toLowerCase().includes('pais'))ind++;
+      if(!juegoTxt&&!paisTxt&&!indTxt) return '—';
+      return pctBar(Math.round((j+p+ind)/6*100));
+    })()}</td>
+  </tr>`).join('');
+}
+
+// ── CERTIFICACIONES ──
+const CLUB_NOMBRES = {
+  'NAC': 'Naciones Unidas', 'VR': 'Valle Real', 'GMT': 'Gourmetería',
+  'CAÑ': 'Cañadas', 'OFC': 'Estructura y Soporte', 'AVC': 'Ávila Camacho',
+  'ALE': 'Aleira', 'EST': 'La Estancia'
+};
+function clubNombre(c) {
+  const key = String(c||'').trim().toUpperCase();
+  return CLUB_NOMBRES[key] || c || '—';
+}
+function parseFechaDDMM(val) {
+  // Esta hoja usa formato dd/mm/yyyy explícitamente, hay que priorizarlo
+  if (typeof val === 'string') {
+    const parts = val.split('/');
+    if (parts.length === 3) {
+      const d = new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+      if (!isNaN(d)) return d;
+    }
+  }
+  // fallback: objeto Date que ya viene parseado del Apps Script
+  return parseFecha(val);
+}
+function fmtFecha(d) {
+  if (!d) return '—';
+  return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+function avancePct(r) {
+  let v = r['% Avance'];
+  if (typeof v === 'string' && v.includes('%')) v = parseFloat(v);
+  else v = parseFloat(v) <= 1 ? parseFloat(v)*100 : parseFloat(v);
+  return isNaN(v) ? null : Math.round(v);
+}
+
+function renderCert() {
+  const {suc, mes} = getF();
+  let rows = DATA.cert.filter(r => {
+    if (suc) {
+      const club = clubNombre(r['Club']);
+      if (club !== suc) return false;
+    }
+    if (mes) {
+      const fIngreso = parseFechaDDMM(r['Fecha de\nInicio'] ?? r['Fecha de Inicio']);
+      if (!fIngreso || getMes(fIngreso) !== mes) return false;
+    }
+    return true;
+  });
+
+  const n = rows.length;
+  const avances = rows.map(avancePct).filter(v => v !== null);
+  const avgAvance = avances.length ? Math.round(avances.reduce((s,v)=>s+v,0)/avances.length) : null;
+  const completos = rows.filter(r => avancePct(r) === 100).length;
+  const sinIniciar = rows.filter(r => avancePct(r) === 0).length;
+
+  document.getElementById('cert-kpis').innerHTML =
+    kpiCard('Colaboradores en proceso', n, '') +
+    kpiCard('% Avance promedio', avgAvance!==null?`${avgAvance}%`:'—', '', avgAvance>=80?'green':avgAvance>=50?'yellow':'red') +
+    kpiCard('Certificados al 100%', completos, `de ${n} colaboradores`, 'green') +
+    kpiCard('Sin iniciar', sinIniciar, `de ${n} colaboradores`, sinIniciar>0?'red':'green');
+
+  // Avance por sucursal (club)
+  const bySuc = {}, bySucN = {};
+  rows.forEach(r => {
+    const s = clubNombre(r['Club']);
+    const a = avancePct(r);
+    if (a !== null) { bySuc[s]=(bySuc[s]||0)+a; bySucN[s]=(bySucN[s]||0)+1; }
+  });
+  const sucAvg = Object.fromEntries(Object.keys(bySuc).map(k=>[k, Math.round(bySuc[k]/bySucN[k])]));
+  barChart(document.getElementById('cert-by-suc'), sucAvg, true);
+
+  // Avance por área
+  const byArea = {}, byAreaN = {};
+  rows.forEach(r => {
+    const a = r['Área']||'Sin área';
+    const v = avancePct(r);
+    if (v !== null) { byArea[a]=(byArea[a]||0)+v; byAreaN[a]=(byAreaN[a]||0)+1; }
+  });
+  const areaAvg = Object.fromEntries(Object.keys(byArea).map(k=>[k, Math.round(byArea[k]/byAreaN[k])]));
+  barChart(document.getElementById('cert-by-area'), areaAvg, true);
+
+  // Tabla
+  const tbody = document.getElementById('cert-tbody');
+  if (!rows.length) { tbody.innerHTML = `<tr><td colspan="14" class="empty">Sin resultados para los filtros aplicados.</td></tr>`; return; }
+
+  const semCell = (v) => {
+    const ok = String(v||'').trim() === '✓';
+    return ok ? '<span style="color:var(--verde-acento);font-weight:700">✓</span>' : '<span style="color:#C8D8E4">—</span>';
+  };
+
+  tbody.innerHTML = rows.map(r => {
+    const fIngreso = parseFechaDDMM(r['Fecha de\nInicio'] ?? r['Fecha de Inicio']);
+    const avance = avancePct(r);
+    const colorAvance = avance===null?'#7A93A8':avance>=100?'var(--verde-acento)':avance>=50?'var(--amarillo)':'var(--rojo)';
+    return `<tr>
+      <td class="td-name">${getNombre(r)}</td>
+      <td class="td-sucursal">${clubNombre(r['Club'])}</td>
+      <td style="font-size:11px">${r['Líder']||'—'}</td>
+      <td class="td-mes">${fmtFecha(fIngreso)}</td>
+      <td style="color:#5A7A90;font-size:11px">${r['Turno']||'—'}</td>
+      <td style="font-size:11px">${r['Rol']||'—'}</td>
+      <td style="font-size:11px">${r['Área']||'—'}</td>
+      <td style="text-align:center">${semCell(r['✓\nSem 1'] ?? r['✓ Sem 1'])}</td>
+      <td style="text-align:center">${semCell(r['✓\nSem 2'] ?? r['✓ Sem 2'])}</td>
+      <td style="text-align:center">${semCell(r['✓\nSem 3'] ?? r['✓ Sem 3'])}</td>
+      <td style="text-align:center">${semCell(r['✓\nSem 4'] ?? r['✓ Sem 4'])}</td>
+      <td style="text-align:center">${r['Semanas\nCompletadas'] ?? r['Semanas Completadas'] ?? '—'}</td>
+      <td>${avance!==null?`<div class="score-cell"><div class="score-bar-bg"><div class="score-bar-fill" style="width:${avance}%;background:${colorAvance}"></div></div><span class="score-num" style="color:${colorAvance}">${avance}%</span></div>`:'—'}</td>
+      <td>${(()=>{
+        // Semáforo basado en semanas desde fecha de ingreso vs avance esperado
+        if(avance===100) return '<span style="background:#CCF0ED;color:#1A7A72;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">✓ Completado</span>';
+        const hoy = new Date();
+        const semTranscurridas = fIngreso ? Math.floor((hoy - fIngreso)/(7*24*60*60*1000)) : null;
+        if(semTranscurridas===null) return '—';
+        const avanceEsperado = Math.min(semTranscurridas * 25, 100);
+        const diferencia = avance - avanceEsperado;
+        if(diferencia >= 0) return '<span style="background:#CCF0ED;color:#1A7A72;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">● Al día</span>';
+        if(diferencia >= -25) return '<span style="background:#FEF3C7;color:#92400E;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">● Con retraso</span>';
+        return '<span style="background:#FDECEA;color:#C62828;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">● Atrasado</span>';
+      })()}</td>
+    </tr>`;
+  }).join('');
+}
+
+
+function switchTab(tab) {
+  ACTIVE = tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active', ['preonboarding','treinta','evaluacion','certificaciones'][i]===tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`panel-${tab}`).classList.add('active');
+  updateEvFilters();
+  applyFilters();
+}
+
+// ── LOAD ALL ──
+async function loadAll() {
+  // reset loaders
+  ['pre','d30','ev','cert'].forEach(k=>{
+    document.getElementById(`${k}-loading`).style.display='flex';
+    document.getElementById(`${k}-content`).style.display='none';
+    document.getElementById(`${k}-loading`).innerHTML='<div class="spinner"></div><span class="state-msg">Cargando datos…</span>';
+  });
+
+  const errMsg = (k, e) => {
+    document.getElementById(`${k}-loading`).innerHTML =
+      `<span class="state-msg" style="color:var(--rojo)">⚠ Error al cargar: ${e.message}<br><br>
+      Verifica que el Apps Script esté publicado como webapp pública.</span>`;
+  };
+
+  try {
+    const [pre, d30, ev, cert] = await Promise.all([
+      fetchSheet('Preonboarding'),
+      fetchSheet('Encuesta 30 días'),
+      fetchSheet('Evaluación'),
+      fetchSheet('Seguimiento Certificaciones'),
+    ]);
+
+    // Filtro permisivo: acepta cualquier fila que tenga algún valor en las primeras columnas
+    DATA.pre = pre.filter(r => {
+      const nombre = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
+      return nombre !== undefined;
+    });
+    DATA.d30 = d30.filter(r => {
+      const nombre = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
+      return nombre !== undefined;
+    });
+    DATA.ev  = ev.filter(r => {
+      if (!r['Nombre del colaborador'] || !r['Marca temporal']) return false;
+      // Excluir filas vacías con solo ceros
+      const pts = parseFloat(r['Calificación Propósito']) + parseFloat(r['Calificación Credo']) + parseFloat(r['Calificación Valores']);
+      if (isNaN(pts) || pts === 0) return false;
+      return true;
+    });
+    DATA.cert = cert.filter(r => {
+      const nombre = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
+      return nombre !== undefined;
+    });
+
+    document.getElementById('last-updated').textContent = '↑ ' + new Date().toLocaleTimeString('es-MX');
+    populateFilters();
+
+    ['pre','d30','ev','cert'].forEach(k=>{
+      document.getElementById(`${k}-loading`).style.display='none';
+      document.getElementById(`${k}-content`).style.display='block';
+    });
+
+    applyFilters();
+  } catch(e) {
+    ['pre','d30','ev','cert'].forEach(k => errMsg(k, e));
+  }
+}
+
+// ── MODAL DETALLE 30 DÍAS ──
+const D30_SINNO_ITEMS = [
+  { col: '  ¿Esta organización y el trabajo coinciden con lo anunciado?  ', label: '¿La organización y el trabajo coinciden con lo que se anunció?' },
+  { col: '  ¿Tomé la decisión correcta al aceptar este trabajo?  ', label: '¿Tomó la decisión correcta al aceptar este trabajo?' },
+  { col: '  ¿Me siento conectado con esta organización?  ', label: '¿Se siente conectado con la organización?' },
+  { col: '  ¿Tu líder se reunió contigo para explicarte los indicadores clave de desempeño de tu rol?', label: 'El líder explicó los indicadores clave de desempeño del rol' },
+  { col: '  ¿Recibiste por escrito tu certificación de rol?', label: 'Recibió por escrito su certificación de rol' },
+  { col: '  ¿Tu capacitación se cumplió al pie de la letra?  ', label: 'La capacitación se cumplió al pie de la letra' },
+  { col: '  ¿Alguien te dio un recorrido por la empresa y te presentó a la mayoría de los miembros del equipo?  ', label: 'Recibió recorrido y presentación con el equipo' },
+  { col: '  ¿Te hemos compartido un plan claro de tu desarrollo aquí con nosotros?  ', label: 'Se le compartió un plan claro de desarrollo' },
+  { col: '  ¿Te hemos compartido cómo será tu formación y capacitación en los próximos 12 meses con nosotros?  ', label: 'Se le compartió el plan de formación para los próximos 12 meses' },
+  { col: '  ¿Recibiste tu uniforme en tiempo y forma?  ', label: 'Recibió su uniforme en tiempo y forma' },
+  { col: '  ¿Recibiste tu gafete en tiempo y forma?  ', label: 'Recibió su gafete en tiempo y forma' },
+  { col: '  ¿Se te entregó tu tarjeta de vales a tiempo?  ', label: 'Se le entregó la tarjeta de vales a tiempo' },
+  { col: '  ¿Se te avisó a tiempo de tu tarjeta de nómina?  ', label: 'Se le avisó a tiempo de su tarjeta de nómina' },
+];
+
+const D30_SENT_ITEMS = [
+  { col: 'Equipo', label: 'Sentimiento sobre el equipo' },
+  { col: 'Incorporación', label: 'Sentimiento sobre su proceso de incorporación' },
+  { col: 'Líder', label: 'Sentimiento sobre su líder' },
+  { col: 'Pertenencia', label: 'Sentimiento de pertenencia' },
+  { col: 'Futuro', label: 'Expectativa de futuro en la empresa' },
+];
+
+const SENT_ESPERADO = '¡Wow! Realmente siento que están emocionados de que yo esté aquí.';
+
+function sentLabel(v) {
+  if (!v) return { text: '—', cls: '' };
+  const s = String(v);
+  if (s.includes('básico') || s.includes('Eso fue todo') || s.includes('No parecen') || s.includes('no tiene tiempo')) return { text: '⚠ Requiere atención', cls: 'mal' };
+  return { text: '✓ Bien', cls: 'ok' };
+}
+
+function openModal(r) {
+  document.getElementById('modal-nombre').textContent = r['Nombre'] || '—';
+  document.getElementById('modal-meta').innerHTML = [
+    r['Sucursal'], r['Rol'], r['Turno'], getMes(r['Marca temporal'])
+  ].filter(Boolean).map(v => `<span>${v}</span>`).join('');
+
+  let html = '';
+
+  // Sección Sí/No
+  html += `<div class="modal-section-label">Ítems logísticos — Respuesta esperada: Sí</div>`;
+  D30_SINNO_ITEMS.forEach(({col, label}) => {
+    const v = String(r[col]||'').trim();
+    const isOk = v.toLowerCase()==='sí' || v.toLowerCase()==='si';
+    const isNo = v.toLowerCase()==='no';
+    const esAlerta = isNo;
+    html += `<div class="modal-item ${esAlerta?'alerta':''}">
+      <span class="modal-item-label">${label}</span>
+      <div class="modal-item-vals">
+        <span class="modal-resp ${isOk?'ok':isNo?'mal':'neutro'}">${isOk?'✓ Sí':isNo?'✕ No':'—'}</span>
+        ${esAlerta?`<span class="modal-esperado">Esperado: Sí</span>`:''}
+      </div>
+    </div>`;
+  });
+
+  // Sección sentimientos
+  html += `<div class="modal-section-label">Sentimientos — Lo esperado es la respuesta positiva (¡Wow!)</div>`;
+  D30_SENT_ITEMS.forEach(({col, label}) => {
+    const v = r[col] || '';
+    const {text, cls} = sentLabel(v);
+    const esAlerta = cls === 'mal';
+    const fullText = String(v).length > 60 ? String(v).substring(0, 120) + '…' : String(v);
+    html += `<div class="modal-item ${esAlerta?'alerta':''}">
+      <div style="flex:1">
+        <div class="modal-item-label">${label}</div>
+        ${v ? `<div class="modal-sent-resp ${esAlerta?'mal':''}">"${fullText}"</div>` : ''}
+      </div>
+      <div class="modal-item-vals">
+        <span class="modal-resp ${cls}">${text}</span>
+        ${esAlerta?`<span class="modal-esperado">Esperado: ★ Excelente</span>`:''}
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeModalDirect(); });
+
+loadAll();
+</script>
+</body>
+</html>
