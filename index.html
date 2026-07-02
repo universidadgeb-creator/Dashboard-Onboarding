@@ -114,6 +114,8 @@
   .check-bar-bg { height: 3px; background: #D8E5EE; border-radius: 2px; margin-top: 6px; overflow: hidden; }
   .check-bar-fill { height: 100%; border-radius: 2px; }
 
+  canvas[id$="-trend-canvas"] { cursor: crosshair; }
+
   /* BAR CHART */
   .bar-chart { margin-bottom: 4px; }
   .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
@@ -1638,6 +1640,61 @@ function agruparEnTrimesters(dataByMes, meses) {
   return Object.fromEntries(Object.entries(byQ).map(([q, vals]) => [q, vals.length ? Math.round(vals.reduce((s,v)=>s+v,0)/vals.length) : null]));
 }
 
+// ── TOOLTIP DE LAS GRÁFICAS DE TENDENCIA ──
+let _trendTooltipEl = null;
+function getTrendTooltip() {
+  if (_trendTooltipEl) return _trendTooltipEl;
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;display:none;pointer-events:none;z-index:400;'
+    + 'background:#1E2D40;color:#fff;padding:6px 10px;border-radius:6px;'
+    + 'font-family:Inter,sans-serif;font-size:11px;line-height:1.5;'
+    + 'box-shadow:0 4px 12px rgba(30,45,64,0.3);white-space:nowrap;';
+  document.body.appendChild(el);
+  _trendTooltipEl = el;
+  return el;
+}
+
+// Muestra el nombre de la sucursal (y su valor) al pasar el cursor cerca
+// de una línea, buscando primero el período (columna) más cercano y luego
+// la serie cuya altura en esa columna esté más cerca del cursor.
+function attachTrendHover(canvas, periodos, step, PAD, cW, hoverData) {
+  const tooltip = getTrendTooltip();
+  const cols = periodos.map((p, i) => ({ x: PAD.left + (periodos.length > 1 ? i*step : cW/2), i, label: p }));
+
+  const onMove = e => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    let bestCol = null, bestColDist = Infinity;
+    cols.forEach(c => { const d = Math.abs(c.x - mx); if (d < bestColDist) { bestColDist = d; bestCol = c; } });
+    if (!bestCol || bestColDist > 24) { tooltip.style.display = 'none'; return; }
+
+    let best = null, bestDist = Infinity;
+    hoverData.forEach(s => {
+      const pt = s.pts[bestCol.i];
+      if (!pt) return;
+      const d = Math.abs(pt.y - my);
+      if (d < bestDist) { bestDist = d; best = { s, pt }; }
+    });
+    if (!best || bestDist > 22) { tooltip.style.display = 'none'; return; }
+
+    tooltip.innerHTML = `<b>${best.s.label}</b><br>${bestCol.label}: ${best.pt.v}%`;
+    tooltip.style.left = (e.clientX + 14) + 'px';
+    tooltip.style.top = (e.clientY - 12) + 'px';
+    tooltip.style.display = 'block';
+  };
+  const onLeave = () => { tooltip.style.display = 'none'; };
+
+  // Evitar acumular listeners al re-renderizar la gráfica (cambio de filtros, etc.)
+  if (canvas._trendMove) canvas.removeEventListener('mousemove', canvas._trendMove);
+  if (canvas._trendLeave) canvas.removeEventListener('mouseleave', canvas._trendLeave);
+  canvas.addEventListener('mousemove', onMove);
+  canvas.addEventListener('mouseleave', onLeave);
+  canvas._trendMove = onMove;
+  canvas._trendLeave = onLeave;
+}
+
 function buildTrendChart(canvasId, periodos, series, target, height, yMin) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
@@ -1710,6 +1767,8 @@ function buildTrendChart(canvasId, periodos, series, target, height, yMin) {
     ? [...series.filter(s => !s.highlight), ...series.filter(s => s.highlight)]
     : series;
 
+  const hoverData = []; // para el tooltip: { label, color, pts }
+
   ordered.forEach((s) => {
     const si = series.indexOf(s);
     const color = s.color || COLORS[si % COLORS.length];
@@ -1761,7 +1820,11 @@ function buildTrendChart(canvasId, periodos, series, target, height, yMin) {
         ctx.fillText(pt.v+'%', pt.x, pt.y - 10);
       }
     });
+
+    hoverData.push({ label: s.label, color, pts });
   });
+
+  attachTrendHover(canvas, periodos, step, PAD, cW, hoverData);
 
   // Legend (con salto de línea si no cabe en el ancho disponible)
   const maxX = PAD.left + cW;
