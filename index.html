@@ -1638,9 +1638,10 @@ function agruparEnTrimesters(dataByMes, meses) {
   return Object.fromEntries(Object.entries(byQ).map(([q, vals]) => [q, vals.length ? Math.round(vals.reduce((s,v)=>s+v,0)/vals.length) : null]));
 }
 
-function buildTrendChart(canvasId, periodos, series, target, height) {
+function buildTrendChart(canvasId, periodos, series, target, height, yMin) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
+  yMin = yMin || 0;
 
   // Pure Canvas chart — no external dependencies
   const dpr = window.devicePixelRatio || 1;
@@ -1659,13 +1660,22 @@ function buildTrendChart(canvasId, periodos, series, target, height) {
   const cW = W - PAD.left - PAD.right;
   const cH = H - PAD.top - PAD.bottom;
 
+  // Convierte un valor (0-100) a coordenada Y, respetando yMin: cuando el
+  // eje se "recorta" (p.ej. empieza en 75%) el rango 75-100% ocupa toda
+  // la altura del gráfico en vez de solo el 25% superior.
+  const valToY = v => PAD.top + cH - ((Math.max(v, yMin) - yMin) / (100 - yMin)) * cH;
+
   const COLORS = ['#2E9E94','#1E2D40','#F59E0B','#7A93A8','#EF5350','#4DB6AC','#92400E','#1A7A72','#BF9B45','#5A7A90'];
 
   // Grid lines
   ctx.strokeStyle = '#E0EAF0';
   ctx.lineWidth = 0.5;
-  [0,25,50,75,100].forEach(v => {
-    const y = PAD.top + cH - (v/100)*cH;
+  const gridStep = yMin >= 50 ? 5 : 25;
+  const gridVals = [];
+  for (let v = yMin; v < 100; v += gridStep) gridVals.push(Math.round(v));
+  gridVals.push(100);
+  gridVals.forEach(v => {
+    const y = valToY(v);
     ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left+cW, y); ctx.stroke();
     ctx.fillStyle = '#7A93A8'; ctx.font = '9px Inter, sans-serif'; ctx.textAlign = 'right';
     ctx.fillText(v+'%', PAD.left-4, y+3);
@@ -1680,7 +1690,7 @@ function buildTrendChart(canvasId, periodos, series, target, height) {
   });
 
   // Meta line (dashed red)
-  const metaY = PAD.top + cH - (target/100)*cH;
+  const metaY = valToY(target);
   ctx.save();
   ctx.strokeStyle = '#EF535088';
   ctx.lineWidth = 1.5;
@@ -1707,7 +1717,7 @@ function buildTrendChart(canvasId, periodos, series, target, height) {
     const pts = periodos.map((p,i) => {
       const v = s.data[p];
       if (v === null || v === undefined) return null;
-      return { x: PAD.left + (periodos.length>1?i*step:cW/2), y: PAD.top + cH - (v/100)*cH, v };
+      return { x: PAD.left + (periodos.length>1?i*step:cW/2), y: valToY(v), v };
     });
 
     // Área de relleno bajo la línea destacada
@@ -1777,7 +1787,7 @@ function isTrimestral(tab) {
   return !!document.getElementById('f-trim').value;
 }
 
-function buildMetaTable(headEl, bodyEl, meses, indicadores, target, margen, canvasId, tab, bySucMes, chartHeight) {
+function buildMetaTable(headEl, bodyEl, meses, indicadores, target, margen, canvasId, tab, bySucMes, chartHeight, chartYMin) {
   if (!headEl || !bodyEl) return;
 
   const trimestral = isTrimestral(tab);
@@ -1817,7 +1827,7 @@ function buildMetaTable(headEl, bodyEl, meses, indicadores, target, margen, canv
       const isAvg = suc === 'Promedio general';
       return { label: suc, data, color: isAvg ? '#1E2D40' : COLORS[i % COLORS.length], highlight: isAvg };
     });
-    buildTrendChart(canvasId, periodos, series, target, chartHeight);
+    buildTrendChart(canvasId, periodos, series, target, chartHeight, chartYMin);
   }
 }
 
@@ -1944,7 +1954,7 @@ function renderMetasPre(rows) {
   });
   const chartData = { ...bySucMes, 'Promedio general': indicadores[indicadores.length - 1].data };
 
-  buildMetaTable(headEl, bodyEl, meses, indicadores, 95, 5, 'pre-trend-canvas', 'pre', chartData, 290);
+  buildMetaTable(headEl, bodyEl, meses, indicadores, 95, 5, 'pre-trend-canvas', 'pre', chartData, 290, 75);
 }
 
 function renderMetasD30(rows) {
