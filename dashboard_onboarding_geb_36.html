@@ -329,6 +329,118 @@
   .meta-chip .meta-val { font-weight: 700; margin-left: 2px; }
   .meta-chip .meta-target { color: #7A93A8; font-size: 10px; margin-left: 2px; }
 
+  /* ── RUTA DEL COLABORADOR ── */
+  .estatus-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+  .estatus-activo { background: #D0EDE8; color: #1A7A72; }
+  .estatus-baja { background: #FAE0E0; color: #C62828; }
+  .estatus-desconocido { background: #E8EFF5; color: #7A93A8; }
+
+  .chk-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; padding: 2px 6px; border-radius: 5px; font-size: 10px; font-weight: 700; }
+  .chk-hecho { background: #D0EDE8; color: #1A7A72; }
+  .chk-pendiente { background: #E8EFF5; color: #7A93A8; }
+  .chk-vencido { background: #FDECEA; color: #C62828; }
+  .chk-na { background: transparent; color: #C8D8E4; }
+
+  .focos-feed { display: flex; flex-direction: column; gap: 8px; max-height: 480px; overflow-y: auto; }
+  .focos-item { background: #FDECEA; border: 1px solid #F5C6C6; border-radius: 6px; padding: 10px 14px; cursor: pointer; transition: background 0.15s; }
+  .focos-item:hover { background: #FBDFDD; }
+  .focos-item-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+  .focos-item-nombre { font-weight: 600; font-size: 12px; color: #1E2D40; }
+  .focos-item-tag { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: #C62828; color: #fff; padding: 2px 7px; border-radius: 10px; flex-shrink: 0; }
+  .focos-item-motivo { font-size: 12px; color: #8A2E2E; font-weight: 500; }
+  .focos-item-detalle { font-size: 11px; color: #8A6B6B; font-style: italic; margin-top: 2px; }
+  .focos-item-fecha { font-size: 10px; color: #A88; flex-shrink: 0; }
+  .focos-empty { padding: 24px; text-align: center; color: #7A93A8; font-size: 12px; background: #E4ECF2; border-radius: 6px; }
+
+  .ruta-note { font-size: 11px; color: #7A93A8; background: #E8EFF5; border: 1px dashed #C8D8E4; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; line-height: 1.5; }
+
+  /* ── RUTA DEL COLABORADOR · REDISEÑO (paleta validada, escopada a esta pestaña) ── */
+  .ruta-v2 {
+    --rv-surface: #ffffff;
+    --rv-text: #0b0b0b;
+    --rv-text2: #52514e;
+    --rv-muted: #898781;
+    --rv-grid: #e1e0d9;
+    --rv-border: rgba(11,11,11,0.10);
+    --rv-blue: #2a78d6;
+    --rv-orange: #eb6834;
+    --rv-good: #0ca30c;
+    --rv-warning: #fab219;
+    --rv-critical: #d03b3b;
+  }
+  .ruta-v2 .kpi-card { background: var(--rv-surface); border: 1px solid var(--rv-border); }
+  .ruta-v2 .kpi-card::before { background: var(--rv-blue); }
+  .ruta-v2 .kpi-label { color: var(--rv-muted); }
+  .ruta-v2 .kpi-value { color: var(--rv-text); }
+  .ruta-v2 .kpi-value.green { color: var(--rv-good); }
+  .ruta-v2 .kpi-value.yellow { color: var(--rv-warning); }
+  .ruta-v2 .kpi-value.red { color: var(--rv-critical); }
+  .ruta-v2 .kpi-sub { color: var(--rv-text2); }
+
+  .ruta-v2 .panel-box { background: var(--rv-surface); border: 1px solid var(--rv-border); }
+  .ruta-v2 .panel-box h4 { color: var(--rv-text); font-weight: 700; }
+
+  .ruta-v2 .bar-label { color: var(--rv-text); }
+  .ruta-v2 .bar-track { background: var(--rv-grid); height: 16px; }
+  .ruta-v2 .bar-fill { background: var(--rv-blue); }
+  .ruta-v2 .bar-count { color: var(--rv-text2); }
+  .ruta-v2 .bar-inner-label { color: #fff; }
+
+  .ruta-v2 .focos-item { background: #FDEDEC; border-color: #F3C6C2; }
+  .ruta-v2 .focos-item:hover { background: #FBE1DF; }
+  .ruta-v2 .focos-item-tag { background: var(--rv-critical); }
+  .ruta-v2 .focos-item-motivo { color: #9A2E1E; }
+  .ruta-v2 .focos-empty { background: var(--rv-surface); border: 1px solid var(--rv-border); color: var(--rv-muted); }
+
+  .ruta-v2 .estatus-badge.estatus-activo { background: #E3F6E3; color: var(--rv-good); }
+  .ruta-v2 .estatus-badge.estatus-baja { background: #FBE4E4; color: var(--rv-critical); }
+  .ruta-v2 .estatus-badge.estatus-desconocido { background: var(--rv-grid); color: var(--rv-muted); }
+
+  .ruta-v2 .table-wrapper { background: var(--rv-surface); border: 1px solid var(--rv-border); }
+  .ruta-v2 thead th { background: #F5F5F3; color: var(--rv-text2); }
+  .ruta-v2 tbody td { color: var(--rv-text); }
+  .ruta-v2 tbody tr:hover { background: #F5F5F3; }
+  .ruta-v2 .td-sucursal { color: var(--rv-blue); }
+  .ruta-v2 .td-mes { color: var(--rv-text2); }
+
+  .ruta-v2 .alerta-count { background: #FBE4E4; color: var(--rv-critical); }
+  .ruta-v2 .toggle-switch input:checked + .toggle-track { background: var(--rv-critical); border-color: var(--rv-critical); }
+
+  .ruta-v2 .ruta-note { background: #FFF7E8; border: 1px dashed #F3D9A0; color: #7A5A00; }
+
+  /* Cumplimiento de checkpoints */
+  .ruta-v2 .rv-funnel { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+  .ruta-v2 .rv-stage-card { background: var(--rv-surface); border: 1px solid var(--rv-border); border-radius: 8px; padding: 14px 16px; }
+  .ruta-v2 .rv-stage-label { font-size: 11px; color: var(--rv-text2); font-weight: 600; margin-bottom: 6px; }
+  .ruta-v2 .rv-stage-pct { font-size: 26px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+  .ruta-v2 .rv-stage-sub { font-size: 10px; color: var(--rv-muted); margin-bottom: 8px; }
+  .ruta-v2 .rv-stage-bar { height: 6px; background: var(--rv-grid); border-radius: 3px; overflow: hidden; }
+  .ruta-v2 .rv-stage-bar-fill { height: 100%; border-radius: 3px; }
+  .ruta-v2 .rv-funnel-note { font-size: 11px; color: var(--rv-muted); font-style: italic; margin-top: 12px; }
+
+  /* Modal — resumen visual */
+  .ruta-v2 .rv-modal-verdict { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 8px; font-weight: 700; font-size: 13px; margin-bottom: 14px; }
+  .ruta-v2 .rv-modal-verdict.good { background: #E3F6E3; color: #0a7a0a; }
+  .ruta-v2 .rv-modal-verdict.warning { background: #FFF3D6; color: #8a5a00; }
+  .ruta-v2 .rv-modal-verdict.critical { background: #FBE4E4; color: #b02e2e; }
+  .ruta-v2 .rv-modal-verdict-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .ruta-v2 .rv-modal-stages { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .ruta-v2 .rv-modal-stages-label { font-size: 10px; color: var(--rv-muted); text-transform: uppercase; letter-spacing: .05em; margin-right: 4px; }
+  .ruta-v2 .rv-modal-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 16px; }
+  .ruta-v2 .rv-modal-stat { background: var(--rv-surface); border: 1px solid var(--rv-border); border-radius: 8px; padding: 10px 6px; text-align: center; }
+  .ruta-v2 .rv-modal-stat .l { font-size: 9px; color: var(--rv-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+  .ruta-v2 .rv-modal-stat .v { font-size: 15px; font-weight: 700; color: var(--rv-text); }
+
+  /* Stage dots (línea de tiempo por colaborador) */
+  .ruta-v2 .rv-dot { width: 24px; height: 24px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; margin-right: 3px; }
+  .ruta-v2 .rv-dot.na { background: var(--rv-grid); color: var(--rv-muted); }
+  .ruta-v2 .rv-dot.pending { background: var(--rv-grid); color: var(--rv-text2); }
+  .ruta-v2 .rv-dot.good { background: var(--rv-good); }
+  .ruta-v2 .rv-dot.warning { background: var(--rv-warning); color: #5b3d00; }
+  .ruta-v2 .rv-dot.critical { background: var(--rv-critical); }
+  .ruta-v2 .rv-legend { display: flex; gap: 16px; font-size: 11px; color: var(--rv-text2); margin: 10px 0 14px; flex-wrap: wrap; }
+  .ruta-v2 .rv-legend .rv-lgdot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; margin-right: 5px; vertical-align: middle; }
+
   @media (max-width: 900px) {
     .panel-2col { grid-template-columns: 1fr; }
     .main { padding: 16px; }
@@ -353,6 +465,7 @@
   <button class="tab-btn" onclick="switchTab('treinta')">Encuesta 30 Días</button>
   <button class="tab-btn" onclick="switchTab('evaluacion')">Evaluación Inducción</button>
   <button class="tab-btn" onclick="switchTab('certificaciones')">Certificaciones</button>
+  <button class="tab-btn" onclick="switchTab('ruta')">Ruta del Colaborador</button>
 </div>
 
 <div class="filters-bar">
@@ -560,6 +673,73 @@
     </div>
   </div>
 
+  <!-- RUTA DEL COLABORADOR -->
+  <div class="tab-panel" id="panel-ruta">
+    <div id="ruta-loading" class="state-box"><div class="spinner"></div><span class="state-msg">Cargando datos…</span></div>
+    <div id="ruta-content" class="ruta-v2" style="display:none">
+      <div id="ruta-estatus-note"></div>
+      <div class="kpi-row" id="ruta-kpis"></div>
+
+      <div class="panel-box" style="margin-bottom:16px">
+        <h4>Cumplimiento de checkpoints — ¿se están aplicando a tiempo?</h4>
+        <div class="rv-funnel" id="ruta-funnel"></div>
+        <div class="rv-funnel-note">% de colaboradores que ya deberían tener esa encuesta (por antigüedad) y sí la tienen registrada.</div>
+      </div>
+
+      <div class="panel-2col">
+        <div class="panel-box"><h4>Rotación por sucursal</h4><div id="ruta-rotacion-suc"></div></div>
+        <div class="panel-box"><h4>Focos rojos por rol</h4><div id="ruta-focos-rol"></div></div>
+      </div>
+
+      <div class="panel-box" style="margin-bottom:24px">
+        <h4>Focos rojos — últimos 3 meses</h4>
+        <div class="focos-feed" id="ruta-focos"></div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">Colaboradores</div>
+        <div class="toggle-wrap">
+          <span class="alerta-count" id="ruta-alerta-count"></span>
+          <span class="toggle-label">Solo con focos rojos</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="ruta-toggle-alerta" onchange="renderRuta()">
+            <div class="toggle-track"></div>
+            <div class="toggle-knob"></div>
+          </label>
+        </div>
+      </div>
+      <div class="rv-legend">
+        <span><span class="rv-lgdot" style="background:var(--rv-good)"></span>En norma</span>
+        <span><span class="rv-lgdot" style="background:var(--rv-warning)"></span>Respondió con foco rojo</span>
+        <span><span class="rv-lgdot" style="background:var(--rv-critical)"></span>Vencido sin responder</span>
+        <span><span class="rv-lgdot" style="background:var(--rv-grid)"></span>Pendiente / no aplica aún</span>
+      </div>
+      <div class="table-wrapper"><div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>Nombre</th><th>Sucursal</th><th>Rol</th><th>Fecha ingreso</th><th>Antigüedad</th><th>Estatus</th>
+            <th>Camino</th><th>Focos</th>
+          </tr></thead>
+          <tbody id="ruta-tbody"></tbody>
+        </table>
+      </div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL RUTA DEL COLABORADOR -->
+<div class="modal-overlay" id="ruta-modal-overlay" onclick="closeRutaModal(event)">
+  <div class="modal-panel ruta-v2" id="ruta-modal-panel">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-nombre" id="ruta-modal-nombre">—</div>
+        <div class="modal-meta" id="ruta-modal-meta"></div>
+      </div>
+      <button class="modal-close" onclick="closeRutaModalDirect()">✕</button>
+    </div>
+    <div class="modal-body" id="ruta-modal-body"></div>
+  </div>
 </div>
 
 <!-- MODAL DETALLE 30 DÍAS -->
@@ -594,8 +774,27 @@
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbzRRcURonub1sNF9z7QOfWmtj-elYqohLAXO73M6S6I6TwvWQLCeSNhZ5SulR8BMffm/exec';
 
-let DATA = { pre: [], d30: [], ev: [], cert: [] };
+let DATA = { pre: [], d30: [], ev: [], cert: [], d60: [], d60l: [], d90: [], estatus: [] };
 let ACTIVE = 'preonboarding';
+let _estatusFuente = 'excel'; // 'sheet' cuando la hoja "Estatus Colaboradores" ya exista en vivo
+
+// Estatus tomado del Excel que compartió el usuario (Colaboradores_Encuestas_60_90_dias.xlsx),
+// mientras no exista la hoja "Estatus Colaboradores" en el Sheet en vivo.
+const ESTATUS_FALLBACK = [
+  { 'Nombre completo':'Christopher Tadeo Juárez Martínez', 'Sucursal':'Naciones Unidas', 'Rol':'Coach de estiramiento', 'Fecha de ingreso':'2026-06-08', 'Estatus':'Activo' },
+  { 'Nombre completo':'Jorge Alejandro Llamas Contreras', 'Sucursal':'Naciones Unidas', 'Rol':'ONARA', 'Fecha de ingreso':'2026-06-08', 'Estatus':'Activo' },
+  { 'Nombre completo':'Alondra Berenice Hernandez Andrade', 'Sucursal':'Naciones Unidas', 'Rol':'ONARA', 'Fecha de ingreso':'2026-06-08', 'Estatus':'Baja' },
+  { 'Nombre completo':'Brian Joshue Perez Delgado', 'Sucursal':'Naciones Unidas', 'Rol':'Tec. de orden y limpieza', 'Fecha de ingreso':'2026-06-01', 'Estatus':'Activo' },
+  { 'Nombre completo':'Israel Curiel Hernandez', 'Sucursal':'Naciones Unidas', 'Rol':'Instructor de natación', 'Fecha de ingreso':'2026-06-01', 'Estatus':'Activo' },
+  { 'Nombre completo':'Juan Jesus Esparza Suarez', 'Sucursal':'La Estancia', 'Rol':'Orden y limpieza', 'Fecha de ingreso':'2026-05-25', 'Estatus':'Baja' },
+  { 'Nombre completo':'Juan Fernando Huerta Garcia', 'Sucursal':'La Estancia', 'Rol':'Deportes', 'Fecha de ingreso':'2026-05-25', 'Estatus':'Activo' },
+  { 'Nombre completo':'Lisset Nayeli Vazquez Vazquez', 'Sucursal':'La Estancia', 'Rol':'Deportes', 'Fecha de ingreso':'2026-05-25', 'Estatus':'Activo' },
+  { 'Nombre completo':'Rocio Navarro Aguirre', 'Sucursal':'La Estancia', 'Rol':'Sport labs', 'Fecha de ingreso':'2026-05-25', 'Estatus':'Baja' },
+  { 'Nombre completo':'Rubria Irene Pinedo López', 'Sucursal':'Naciones Unidas', 'Rol':'Coach de estiramiento', 'Fecha de ingreso':'2026-05-11', 'Estatus':'Activo' },
+  { 'Nombre completo':'Jose de Jesus Castro Castro', 'Sucursal':'Cañadas', 'Rol':'Orden y limpieza', 'Fecha de ingreso':'2026-05-04', 'Estatus':'Baja' },
+  { 'Nombre completo':'Jesus Eduardo Hinojosa Perez', 'Sucursal':'', 'Rol':'Estructura y Soporte', 'Fecha de ingreso':'2026-05-04', 'Estatus':'Activo' },
+  { 'Nombre completo':'Rosa Linda Soto Rivera', 'Sucursal':'Gourmetería', 'Rol':'Tec. de orden y limpieza', 'Fecha de ingreso':'2026-04-27', 'Estatus':'Activo' },
+];
 
 // ── HELPERS DE COLUMNAS DINÁMICAS ──
 function getNombre(r) {
@@ -863,10 +1062,12 @@ function applyFilters() {
   if (ACTIVE==='treinta') renderD30();
   if (ACTIVE==='evaluacion') renderEv();
   if (ACTIVE==='certificaciones') renderCert();
+  if (ACTIVE==='ruta') renderRuta();
 }
 function populateFilters() {
   const certSucs = DATA.cert.map(r => clubNombre(r['Club']));
-  const allSuc = [...DATA.pre.map(r=>r['Sucursal']), ...DATA.d30.map(r=>r['Sucursal']), ...DATA.ev.map(r=>r['Sucursal']), ...certSucs];
+  const estatusSucs = DATA.estatus.map(r => r['Sucursal']);
+  const allSuc = [...DATA.pre.map(r=>r['Sucursal']), ...DATA.d30.map(r=>r['Sucursal']), ...DATA.ev.map(r=>r['Sucursal']), ...certSucs, ...estatusSucs];
   fillSelect('f-sucursal', uniq(allSuc), 'Todas las sucursales');
 
   const mesMap = {};
@@ -1430,10 +1631,483 @@ function renderCert() {
 }
 
 
+// ══════════════════ RUTA DEL COLABORADOR ══════════════════
+
+function normName(s) {
+  return String(s||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase()
+    .replace(/[^a-z\s]/g,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+const VENTANA_30 = { ini: 20, fin: 40 };
+const VENTANA_60 = { ini: 50, fin: 70 };
+const VENTANA_90 = { ini: 80, fin: 100 };
+
+const D60_LIKERT = [
+  'Después de 2 meses, siento que este es mi lugar. Formo parte real del equipo, no solo alguien nuevo.',
+  'Ya domino lo básico de mi puesto y me siento capaz de resolver situaciones sin depender de que alguien me diga qué hacer.',
+  'Mi líder conoce cómo voy y me ha dado seguimiento.',
+  'Tengo compañeros con quienes puedo contar.',
+  'Me veo aquí en un año. Este trabajo va en la dirección que yo esperaba.',
+];
+const D60L_LIKERT = [
+  'El colaborador ejecuta las funciones básicas de su puesto con autonomía, sin necesitar supervisión constante.',
+  'El colaborador está integrado con el equipo.',
+  'Su actitud refleja los valores de GEB (GRAACCIEE).',
+  'Ha mostrado iniciativa propia — propone, pregunta, no solo ejecuta lo que se le indica.',
+  'Cuando le doy retroalimentación, la recibe bien y la aplica.',
+];
+const D90_LIKERT = [
+  'Después de 3 meses, me siento parte de esta empresa.',
+  'Domino por completo mi rol y me siento capaz de resolver lo que se me presente sin depender de que me guíen.',
+  'Mi líder ha estado presente en mi proceso, no solo al inicio — sé en qué punto estoy con él/ella.',
+  'Tengo relaciones reales con mis compañeros, más allá de lo laboral.',
+  'Quiero quedarme aquí. Este es el trabajo en el que me veo a largo plazo.',
+  'Siento que mi esfuerzo estos 3 meses ha sido reconocido.',
+];
+
+function buildColabIndex() {
+  const map = new Map();
+  const get = (key) => { if (!map.has(key)) map.set(key, { key }); return map.get(key); };
+
+  DATA.pre.forEach(r => {
+    const nom = getNombre(r); if (nom==='—') return;
+    const c = get(normName(nom));
+    c.nombre = c.nombre || nom.trim();
+    c.sucursal = c.sucursal || r['Sucursal'];
+    c.pre = r;
+  });
+  DATA.d30.forEach(r => {
+    const nom = r['Nombre']; if (!nom) return;
+    const c = get(normName(nom));
+    c.nombre = c.nombre || nom.trim();
+    c.sucursal = c.sucursal || r['Sucursal'];
+    c.rol = c.rol || r['Rol'];
+    c.fechaIngresoSrc = c.fechaIngresoSrc || parseFecha(r['Fecha de Ingreso']);
+    c.d30 = r;
+  });
+  DATA.d60.forEach(r => {
+    const nom = r['Nombre completo']; if (!nom) return;
+    const c = get(normName(nom));
+    c.nombre = c.nombre || nom.trim();
+    c.sucursal = c.sucursal || r['Sucursal'];
+    c.rol = c.rol || r['Rol'];
+    c.d60 = r;
+  });
+  DATA.d60l.forEach(r => {
+    const nom = r['Nombre del colaborador evaluado']; if (!nom) return;
+    const c = get(normName(nom));
+    c.nombre = c.nombre || nom.trim();
+    c.d60l = r;
+  });
+  DATA.d90.forEach(r => {
+    const nom = r['Nombre completo']; if (!nom) return;
+    const c = get(normName(nom));
+    c.nombre = c.nombre || nom.trim();
+    c.sucursal = c.sucursal || r['Sucursal'];
+    c.rol = c.rol || r['Rol / puesto'];
+    c.d90 = r;
+  });
+  DATA.ev.forEach(r => {
+    const nom = r['Nombre del colaborador']; if (!nom) return;
+    const c = get(normName(nom));
+    c.nombre = c.nombre || nom.trim();
+    c.rol = c.rol || r['Rol'];
+    c.sucursal = c.sucursal || r['Sucursal'];
+    c.ev = r;
+  });
+  DATA.cert.forEach(r => {
+    const nom = getNombre(r); if (nom==='—') return;
+    const c = get(normName(nom));
+    c.nombre = c.nombre || nom.trim();
+    c.sucursal = c.sucursal || clubNombre(r['Club']);
+    c.rol = c.rol || r['Rol'];
+    c.fechaIngresoSrc = c.fechaIngresoSrc || parseFechaDDMM(r['Fecha de\nInicio'] ?? r['Fecha de Inicio']);
+    c.cert = r;
+  });
+  DATA.estatus.forEach(r => {
+    const nom = r['Nombre completo'] || r['Nombre']; if (!nom) return;
+    const c = get(normName(nom));
+    c.nombre = c.nombre || nom.trim();
+    c.sucursal = c.sucursal || r['Sucursal'];
+    c.rol = c.rol || r['Rol'];
+    c.estatusRow = r;
+    const fIng = parseFecha(r['Fecha de ingreso']) || parseFechaDDMM(r['Fecha de ingreso']);
+    if (fIng) c.fechaIngresoSrc = fIng; // la hoja de estatus es la fuente más confiable de fecha de ingreso
+  });
+
+  const hoy = new Date();
+  return [...map.values()].map(c => {
+    const fechaIngreso = c.fechaIngresoSrc || null;
+    const dias = fechaIngreso ? Math.floor((hoy - fechaIngreso) / 86400000) : null;
+    let estatus = 'desconocido', fechaBaja = null, motivoBaja = '';
+    if (c.estatusRow) {
+      const s = String(c.estatusRow['Estatus']||'').trim().toLowerCase();
+      estatus = s.includes('baja') ? 'baja' : (s.includes('activo') ? 'activo' : 'desconocido');
+      fechaBaja = parseFecha(c.estatusRow['Fecha de baja']) || parseFechaDDMM(c.estatusRow['Fecha de baja']);
+      motivoBaja = c.estatusRow['Motivo de baja'] || c.estatusRow['Motivo'] || '';
+    }
+    return { ...c, fechaIngreso, dias, estatus, fechaBaja, motivoBaja };
+  });
+}
+
+function checkBadge(existe, dias, ventana) {
+  if (existe) return '<span class="chk-badge chk-hecho">✓</span>';
+  if (dias === null) return '<span class="chk-badge chk-na">–</span>';
+  if (dias > ventana.fin) return '<span class="chk-badge chk-vencido">!</span>';
+  return '<span class="chk-badge chk-pendiente">…</span>';
+}
+
+function focosRojosDe(c) {
+  const flags = [];
+  const hace3meses = new Date(); hace3meses.setMonth(hace3meses.getMonth()-3);
+  const enVentana = (fecha) => !fecha || fecha >= hace3meses;
+
+  if (c.d30) {
+    const r = c.d30, fecha = parseFecha(r['Marca temporal']);
+    if (enVentana(fecha)) {
+      D30_SINNO_ITEMS.forEach(({col,label}) => {
+        if (String(r[col]||'').trim().toLowerCase()==='no') flags.push({ fuente:'30 días', motivo: label, detalle:'Esperado: Sí', fecha });
+      });
+      D30_SENT_ITEMS.forEach(({col,label}) => {
+        if (sentScore(r[col])===1) flags.push({ fuente:'30 días', motivo: label, detalle: `"${String(r[col]).slice(0,140)}"`, fecha });
+      });
+    }
+  }
+  if (c.d60) {
+    const r = c.d60, fecha = parseFecha(r['Marca temporal']);
+    if (enVentana(fecha)) {
+      D60_LIKERT.forEach(col => { const v=parseFloat(r[col]); if(!isNaN(v)&&v<4) flags.push({ fuente:'60 días', motivo: col, detalle:`Calificó ${v}/5`, fecha }); });
+      if (String(r['¿Tienes claro cómo se mide tu desempeño en este puesto?']||'').trim().toLowerCase()==='no') flags.push({ fuente:'60 días', motivo:'No tiene claro cómo se mide su desempeño', detalle:'', fecha });
+      if (String(r['¿Has tenido al menos una conversación 1:1 con tu líder?']||'').trim().toLowerCase()==='no') flags.push({ fuente:'60 días', motivo:'No ha tenido 1:1 con su líder', detalle:'', fecha });
+    }
+  }
+  if (c.d60l) {
+    const r = c.d60l, fecha = parseFecha(r['Marca temporal']);
+    if (enVentana(fecha)) {
+      D60L_LIKERT.forEach(col => { const v=parseFloat(r[col]); if(!isNaN(v)&&v<4) flags.push({ fuente:'60 días · líder', motivo: col, detalle:`Calificó ${v}/5`, fecha }); });
+      const riesgo = String(r['¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?']||'');
+      if (riesgo.includes('🟡') || riesgo.includes('🔴')) {
+        flags.push({ fuente:'60 días · líder', motivo:`Riesgo de rotación: ${riesgo}`, detalle: r['¿Cuál es la causa principal?']||'', fecha });
+      }
+      const faltas = String(r['¿Ha tenido faltas o retardos que preocupen en este periodo?']||'').trim().toLowerCase();
+      if (faltas==='sí' || faltas==='si') {
+        flags.push({ fuente:'60 días · líder', motivo:'Faltas o retardos que preocupan', detalle: r['¿Qué acción vas a tomar o ya tomaste?']||'', fecha });
+      }
+    }
+  }
+  if (c.d90) {
+    const r = c.d90, fecha = parseFecha(r['Marca temporal']);
+    if (enVentana(fecha)) {
+      D90_LIKERT.forEach(col => { const v=parseFloat(r[col]); if(!isNaN(v)&&v<4) flags.push({ fuente:'90 días', motivo: col, detalle:`Calificó ${v}/5`, fecha }); });
+    }
+  }
+  if (c.estatus === 'baja') {
+    flags.push({ fuente:'Estatus', motivo:'Colaborador dado de baja', detalle: c.motivoBaja || '', fecha: c.fechaBaja });
+  }
+  return flags.sort((a,b) => (b.fecha||0) - (a.fecha||0));
+}
+
+let _rutaIndex = [];
+
+function rvStageState(existe, dias, ventana, tieneFlag) {
+  if (existe) return tieneFlag ? { cls:'warning', icon:'!' } : { cls:'good', icon:'✓' };
+  if (dias === null || !ventana) return { cls:'na', icon:'–' };
+  if (dias > ventana.fin) return { cls:'critical', icon:'!' };
+  return { cls:'pending', icon:'···' };
+}
+function rvDot(state, label) {
+  return `<span class="rv-dot ${state.cls}" title="${label}">${state.icon}</span>`;
+}
+function computeStageCompletion(rows) {
+  const stages = [
+    { label:'Preonboarding', elegible: () => true, hecho: c => !!c.pre },
+    { label:'30 días', elegible: c => c.dias!==null && c.dias>=VENTANA_30.ini, hecho: c => !!c.d30 },
+    { label:'60 días', elegible: c => c.dias!==null && c.dias>=VENTANA_60.ini, hecho: c => !!c.d60 || !!c.d60l },
+    { label:'90 días', elegible: c => c.dias!==null && c.dias>=VENTANA_90.ini, hecho: c => !!c.d90 },
+  ];
+  return stages.map(s => {
+    const elig = rows.filter(s.elegible);
+    const hechos = elig.filter(s.hecho).length;
+    const pct = elig.length ? Math.round(hechos/elig.length*100) : null;
+    return { label: s.label, pct, hechos, n: elig.length };
+  });
+}
+function renderFunnel(rows) {
+  const stages = computeStageCompletion(rows);
+  const html = stages.map(s => {
+    const color = s.pct===null ? 'var(--rv-muted)' : s.pct>=90 ? 'var(--rv-good)' : s.pct>=70 ? 'var(--rv-warning)' : 'var(--rv-critical)';
+    return `<div class="rv-stage-card">
+      <div class="rv-stage-label">${s.label}</div>
+      <div class="rv-stage-pct" style="color:${color}">${s.pct===null?'—':s.pct+'%'}</div>
+      <div class="rv-stage-sub">${s.n?`${s.hechos} de ${s.n} elegibles`:'aún nadie elegible'}</div>
+      <div class="rv-stage-bar"><div class="rv-stage-bar-fill" style="width:${s.pct||0}%;background:${color}"></div></div>
+    </div>`;
+  }).join('');
+  document.getElementById('ruta-funnel').innerHTML = html;
+}
+
+function renderRuta() {
+  const { suc } = getF();
+  _rutaIndex = buildColabIndex();
+  let rows = _rutaIndex.filter(c => !suc || c.sucursal === suc);
+
+  const conEstatus = rows.filter(c => c.estatus !== 'desconocido');
+  const activos = conEstatus.filter(c => c.estatus === 'activo').length;
+  const bajas = conEstatus.filter(c => c.estatus === 'baja').length;
+  const pctRotacion = conEstatus.length ? Math.round(bajas/conEstatus.length*100) : null;
+  const pctActivos = conEstatus.length ? Math.round(activos/conEstatus.length*100) : null;
+  const enRiesgo = rows.filter(c => c.estatus !== 'baja' && c.d60l && /🟡|🔴/.test(String(c.d60l['¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?']||''))).length;
+
+  document.getElementById('ruta-kpis').innerHTML =
+    kpiCard('Colaboradores rastreados', rows.length, '') +
+    kpiCard('% Activos', pctActivos!==null?`${pctActivos}%`:'—', conEstatus.length?`${activos} de ${conEstatus.length} con estatus`:'Sin datos de estatus', pctActivos>=90?'green':pctActivos>=75?'yellow':'red') +
+    kpiCard('% Rotación', pctRotacion!==null?`${pctRotacion}%`:'—', conEstatus.length?`${bajas} baja(s)`:'Sin datos de estatus', pctRotacion===null?'':pctRotacion<=10?'green':pctRotacion<=20?'yellow':'red') +
+    kpiCard('En riesgo (líder)', enRiesgo, 'Riesgo medio/alto marcado por líder en 60 días', enRiesgo>0?'yellow':'green');
+
+  renderFunnel(rows);
+
+  const noteEl = document.getElementById('ruta-estatus-note');
+  if (_estatusFuente === 'excel') {
+    noteEl.innerHTML = `<div class="ruta-note">ℹ️ % Activos y % Rotación están usando el estatus del <b>Excel que compartiste</b> (13 colaboradores en ventana de 60–90 días) — todavía no la hoja en vivo. Cuando agregues al Sheet una hoja llamada <b>"Estatus Colaboradores"</b> con <b>todos</b> tus colaboradores (columnas: Nombre completo · Unidad de Negocio · Sucursal · Rol · Fecha de ingreso · Estatus Activo/Baja · Fecha de baja · Motivo de baja), el dashboard la detecta sola y deja de usar el Excel.</div>`;
+  } else {
+    noteEl.innerHTML = '';
+  }
+
+  // Rotación por sucursal
+  const bySuc = {}, bySucN = {};
+  conEstatus.forEach(c => {
+    const s = c.sucursal || 'Sin sucursal';
+    bySucN[s] = (bySucN[s]||0) + 1;
+    if (c.estatus === 'baja') bySuc[s] = (bySuc[s]||0) + 1;
+  });
+  const rotacionSuc = Object.fromEntries(Object.keys(bySucN).map(s => [s, Math.round((bySuc[s]||0)/bySucN[s]*100)]));
+  const elRotSuc = document.getElementById('ruta-rotacion-suc');
+  if (Object.keys(rotacionSuc).length) barChart(elRotSuc, rotacionSuc, true);
+  else elRotSuc.innerHTML = '<div class="focos-empty">Sin datos de estatus todavía.</div>';
+
+  // Focos rojos
+  const todosFocos = [];
+  rows.forEach(c => focosRojosDe(c).forEach(f => todosFocos.push({ ...f, nombre: c.nombre, key: c.key, rol: c.rol })));
+  todosFocos.sort((a,b) => (b.fecha||0) - (a.fecha||0));
+
+  // Focos rojos por rol
+  const byRol = {};
+  todosFocos.forEach(f => { const rol = f.rol || 'Sin rol'; byRol[rol] = (byRol[rol]||0) + 1; });
+  const topRol = Object.fromEntries(Object.entries(byRol).sort((a,b)=>b[1]-a[1]).slice(0,8));
+  const elFocosRol = document.getElementById('ruta-focos-rol');
+  if (Object.keys(topRol).length) barChart(elFocosRol, topRol);
+  else elFocosRol.innerHTML = '<div class="focos-empty">Sin focos rojos en los últimos 3 meses.</div>';
+
+  const elFocos = document.getElementById('ruta-focos');
+  if (!todosFocos.length) {
+    elFocos.innerHTML = '<div class="focos-empty">Sin focos rojos en los últimos 3 meses. 🎉</div>';
+  } else {
+    elFocos.innerHTML = todosFocos.slice(0, 40).map(f => `
+      <div class="focos-item" onclick="openRutaModal('${f.key.replace(/'/g,"\\'")}')">
+        <div class="focos-item-head">
+          <span class="focos-item-nombre">${f.nombre}</span>
+          <span class="focos-item-tag">${f.fuente}</span>
+        </div>
+        <div class="focos-item-motivo">${f.motivo}</div>
+        ${f.detalle?`<div class="focos-item-detalle">${f.detalle}</div>`:''}
+        <div class="focos-item-fecha">${f.fecha?fmtFecha(f.fecha):''}</div>
+      </div>`).join('');
+  }
+
+  // Tabla
+  const soloFocos = document.getElementById('ruta-toggle-alerta').checked;
+  const rowsConFocos = rows.map(c => ({ c, focos: focosRojosDe(c) }));
+  const rowsFiltradas = soloFocos ? rowsConFocos.filter(x => x.focos.length>0) : rowsConFocos;
+
+  const countEl = document.getElementById('ruta-alerta-count');
+  const totalConFocos = rowsConFocos.filter(x=>x.focos.length>0).length;
+  countEl.textContent = `${totalConFocos} con focos`;
+  countEl.classList.toggle('visible', totalConFocos>0);
+
+  const tbody = document.getElementById('ruta-tbody');
+  if (!rowsFiltradas.length) { tbody.innerHTML = `<tr><td colspan="8" class="empty">Sin resultados para los filtros aplicados.</td></tr>`; return; }
+
+  tbody.innerHTML = rowsFiltradas.map(({c, focos}) => {
+    const estClass = c.estatus==='activo'?'estatus-activo':c.estatus==='baja'?'estatus-baja':'estatus-desconocido';
+    const estLabel = c.estatus==='activo'?'Activo':c.estatus==='baja'?'Baja':'—';
+
+    const stPre = rvStageState(!!c.pre, null, null, false);
+    const st30  = rvStageState(!!c.d30, c.dias, VENTANA_30, focos.some(f=>f.fuente==='30 días'));
+    const st60  = rvStageState(!!c.d60 || !!c.d60l, c.dias, VENTANA_60, focos.some(f=>f.fuente==='60 días'||f.fuente==='60 días · líder'));
+    const st90  = rvStageState(!!c.d90, c.dias, VENTANA_90, focos.some(f=>f.fuente==='90 días'));
+
+    return `<tr onclick="openRutaModal('${c.key.replace(/'/g,"\\'")}')" style="cursor:pointer">
+      <td class="td-name">${c.nombre}</td>
+      <td class="td-sucursal">${c.sucursal||'—'}</td>
+      <td style="font-size:11px;color:var(--rv-text2)">${c.rol||'—'}</td>
+      <td class="td-mes">${c.fechaIngreso?fmtFecha(c.fechaIngreso):'—'}</td>
+      <td style="font-size:11px">${c.dias!==null?c.dias+' d':'—'}</td>
+      <td><span class="estatus-badge ${estClass}">${estLabel}</span></td>
+      <td>${rvDot(stPre,'Preonboarding')}${rvDot(st30,'30 días')}${rvDot(st60,'60 días (colaborador + líder)')}${rvDot(st90,'90 días')}</td>
+      <td style="text-align:center">${focos.length?`<span class="rv-dot critical">${focos.length}</span>`:`<span class="rv-dot good">0</span>`}</td>
+    </tr>`;
+  }).join('');
+}
+
+function modalStageBlock(sectionLabel, likertCols, record, extras) {
+  if (!record) return `<div class="modal-section-label">${sectionLabel}</div><div class="modal-item"><span class="modal-item-label" style="color:#7A93A8">Sin respuesta registrada todavía.</span></div>`;
+  const scored = likertCols.map(col => ({ col, v: parseFloat(record[col]) })).filter(x => !isNaN(x.v));
+  const bajos = scored.filter(x => x.v < 4);
+  const avgV = scored.length ? scored.reduce((s,x)=>s+x.v,0)/scored.length : null;
+
+  let html = `<div class="modal-section-label">${sectionLabel}</div>`;
+  if (!scored.length) {
+    // nada que resumir
+  } else if (!bajos.length) {
+    html += `<div class="modal-item"><span class="modal-item-label">Promedio de calificaciones (${scored.length})</span><div class="modal-item-vals"><span class="modal-resp ok">${avgV.toFixed(1)}/5 · sin problemas</span></div></div>`;
+  } else {
+    html += `<div class="modal-item alerta" style="flex-direction:column;align-items:flex-start;gap:6px">
+      <div class="modal-item-label" style="font-weight:600;color:#C62828">${bajos.length} de ${scored.length} calificaciones bajas (promedio ${avgV.toFixed(1)}/5)</div>
+      <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px">
+        ${bajos.map(x=>`<li style="font-size:12px;color:#3D5A70">${x.col} — <b>${x.v}/5</b></li>`).join('')}
+      </ul>
+    </div>`;
+  }
+  (extras||[]).forEach(({label, value, alerta}) => {
+    if (value === undefined || value === null || value === '') return;
+    html += `<div class="modal-item ${alerta?'alerta':''}">
+      <div style="flex:1"><div class="modal-item-label">${label}</div><div class="modal-sent-resp ${alerta?'mal':''}">${value}</div></div>
+    </div>`;
+  });
+  return html;
+}
+
+function openRutaModal(key) {
+  const c = _rutaIndex.find(x => x.key === key);
+  if (!c) return;
+
+  document.getElementById('ruta-modal-nombre').textContent = c.nombre;
+  document.getElementById('ruta-modal-meta').innerHTML = [
+    c.sucursal, c.rol, c.fechaIngreso?`Ingresó ${fmtFecha(c.fechaIngreso)}`:null, c.dias!==null?`${c.dias} días`:null
+  ].filter(Boolean).map(v=>`<span>${v}</span>`).join('');
+
+  const focos = focosRojosDe(c);
+  const stPre = rvStageState(!!c.pre, null, null, false);
+  const st30  = rvStageState(!!c.d30, c.dias, VENTANA_30, focos.some(f=>f.fuente==='30 días'));
+  const st60  = rvStageState(!!c.d60 || !!c.d60l, c.dias, VENTANA_60, focos.some(f=>f.fuente==='60 días'||f.fuente==='60 días · líder'));
+  const st90  = rvStageState(!!c.d90, c.dias, VENTANA_90, focos.some(f=>f.fuente==='90 días'));
+
+  const riesgoTxtResumen = c.d60l ? String(c.d60l['¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?']||'') : '';
+  let verdict = { cls:'good', text:'Va bien — sin focos rojos' };
+  if (c.estatus === 'baja') verdict = { cls:'critical', text:'Dado de baja' };
+  else if (/🔴/.test(riesgoTxtResumen)) verdict = { cls:'critical', text:'Riesgo alto marcado por el líder' };
+  else if (/🟡/.test(riesgoTxtResumen) || focos.length >= 3) verdict = { cls:'warning', text:`Requiere atención — ${focos.length} foco(s) rojo(s)` };
+  else if (focos.length > 0) verdict = { cls:'warning', text:`${focos.length} foco(s) rojo(s), sin riesgo mayor` };
+
+  const nps = c.pre ? c.pre['Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  '] : null;
+  const fil = c.ev ? parseFloat(c.ev['% Calificación Filosofía']) : NaN;
+  const av = c.cert ? avancePct(c.cert) : null;
+  const riesgoCorto = riesgoTxtResumen ? riesgoTxtResumen.split('—')[0].trim() : '—';
+
+  let html = '';
+
+  html += `<div class="rv-modal-verdict ${verdict.cls}"><span class="rv-modal-verdict-dot"></span><span>${verdict.text}</span></div>`;
+  html += `<div class="rv-modal-stages">
+    <span class="rv-modal-stages-label">Camino</span>
+    ${rvDot(stPre,'Preonboarding')}${rvDot(st30,'30 días')}${rvDot(st60,'60 días')}${rvDot(st90,'90 días')}
+  </div>`;
+  html += `<div class="rv-modal-stats">
+    <div class="rv-modal-stat"><div class="l">NPS</div><div class="v">${nps!==null&&nps!==undefined&&nps!==''?nps+'/10':'—'}</div></div>
+    <div class="rv-modal-stat"><div class="l">% Filosofía</div><div class="v">${!isNaN(fil)&&fil>0?fil+'%':'—'}</div></div>
+    <div class="rv-modal-stat"><div class="l">% Certificación</div><div class="v">${av!==null?av+'%':'—'}</div></div>
+    <div class="rv-modal-stat"><div class="l">Riesgo líder</div><div class="v" style="font-size:12px">${riesgoCorto}</div></div>
+  </div>`;
+
+  html += `<div class="modal-section-label">Estatus</div>`;
+  html += `<div class="modal-item ${c.estatus==='baja'?'alerta':''}">
+    <div style="flex:1">
+      <div class="modal-item-label">${c.estatus==='activo'?'Activo':c.estatus==='baja'?'Dado de baja':'Sin dato de estatus'}</div>
+      ${c.estatus==='baja'?`<div class="modal-sent-resp mal">${c.fechaBaja?fmtFecha(c.fechaBaja)+' · ':''}${c.motivoBaja||'Sin motivo registrado'}</div>`:''}
+    </div>
+  </div>`;
+
+  html += `<div class="modal-section-label">Preonboarding</div>`;
+  if (c.pre) {
+    const nps = c.pre['Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  '];
+    html += `<div class="modal-item"><span class="modal-item-label">Respondió preonboarding</span><div class="modal-item-vals"><span class="modal-resp ok">✓</span></div></div>`;
+    if (nps!==undefined && nps!=='') html += `<div class="modal-item"><span class="modal-item-label">NPS que dio</span><div class="modal-item-vals"><span class="modal-resp">${nps}/10</span></div></div>`;
+  } else {
+    html += `<div class="modal-item"><span class="modal-item-label" style="color:#7A93A8">Sin respuesta registrada todavía.</span></div>`;
+  }
+
+  html += `<div class="modal-section-label">30 días</div>`;
+  if (c.d30) {
+    const fallasSN = D30_SINNO_ITEMS.filter(({col}) => String(c.d30[col]||'').trim().toLowerCase()==='no');
+    const fallasSent = D30_SENT_ITEMS.filter(({col}) => sentScore(c.d30[col])===1);
+    if (fallasSN.length || fallasSent.length) {
+      html += `<div class="modal-item alerta" style="flex-direction:column;align-items:flex-start;gap:6px">
+        <div class="modal-item-label" style="font-weight:600;color:#C62828">${fallasSN.length+fallasSent.length} punto(s) fuera de norma</div>
+        <ul style="margin:0;padding-left:18px">${[...fallasSN.map(f=>f.label),...fallasSent.map(f=>f.label)].map(l=>`<li style="font-size:12px;color:#3D5A70">${l}</li>`).join('')}</ul>
+      </div>`;
+    } else {
+      html += `<div class="modal-item"><span class="modal-item-label">Sin alertas en 30 días</span><div class="modal-item-vals"><span class="modal-resp ok">✓</span></div></div>`;
+    }
+  } else {
+    html += `<div class="modal-item"><span class="modal-item-label" style="color:#7A93A8">Sin respuesta registrada todavía.</span></div>`;
+  }
+
+  html += modalStageBlock('60 días · colaborador', D60_LIKERT, c.d60, c.d60 ? [
+    { label: '¿Tiene claro cómo se mide su desempeño?', value: c.d60['¿Tienes claro cómo se mide tu desempeño en este puesto?'], alerta: String(c.d60['¿Tienes claro cómo se mide tu desempeño en este puesto?']||'').toLowerCase()==='no' },
+    { label: '¿Ha tenido 1:1 con su líder?', value: c.d60['¿Has tenido al menos una conversación 1:1 con tu líder?'], alerta: String(c.d60['¿Has tenido al menos una conversación 1:1 con tu líder?']||'').toLowerCase()==='no' },
+    { label: 'Qué está pesando en su adaptación', value: c.d60['¿Qué es lo que más está pesando en tu adaptación? ('], alerta: false },
+  ] : []);
+
+  const riesgoTxt = c.d60l ? String(c.d60l['¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?']||'') : '';
+  html += modalStageBlock('60 días · opinión del líder', D60L_LIKERT, c.d60l, c.d60l ? [
+    { label: 'Riesgo de rotación (según líder)', value: riesgoTxt, alerta: /🟡|🔴/.test(riesgoTxt) },
+    { label: 'Causa principal', value: c.d60l['¿Cuál es la causa principal?'], alerta: /🟡|🔴/.test(riesgoTxt) },
+    { label: '¿Faltas o retardos que preocupen?', value: c.d60l['¿Ha tenido faltas o retardos que preocupen en este periodo?'], alerta: String(c.d60l['¿Ha tenido faltas o retardos que preocupen en este periodo?']||'').toLowerCase()==='sí' },
+    { label: 'Acción tomada o por tomar', value: c.d60l['¿Qué acción vas a tomar o ya tomaste?'], alerta: false },
+  ] : []);
+
+  html += modalStageBlock('90 días', D90_LIKERT, c.d90, c.d90 ? [
+    { label: 'Qué está pesando en su experiencia', value: c.d90['¿Qué es lo que más está pesando en tu experiencia? (elige hasta 2)'], alerta: false },
+    { label: 'Qué cambiaría', value: c.d90['Si pudieras cambiar una sola cosa de tu experiencia en GEB, ¿cuál sería?'], alerta: false },
+    { label: 'Algo que quiera que su líder o GEB sepa', value: c.d90['¿Algo que quieras que tu líder o GEB sepa?'], alerta: false },
+  ] : []);
+
+  html += `<div class="modal-section-label">Evaluación de inducción</div>`;
+  if (c.ev) {
+    const fil = parseFloat(c.ev['% Calificación Filosofía']) || null;
+    html += `<div class="modal-item"><span class="modal-item-label">% Filosofía</span><div class="modal-item-vals"><span class="modal-resp ${fil>=80?'ok':fil>=60?'neutro':'mal'}">${fil!==null?fil+'%':'—'}</span></div></div>`;
+  } else {
+    html += `<div class="modal-item"><span class="modal-item-label" style="color:#7A93A8">Sin evaluación registrada todavía.</span></div>`;
+  }
+
+  html += `<div class="modal-section-label">Certificación de rol</div>`;
+  if (c.cert) {
+    const av = avancePct(c.cert);
+    html += `<div class="modal-item"><span class="modal-item-label">% Avance</span><div class="modal-item-vals"><span class="modal-resp ${av>=80?'ok':av>=50?'neutro':'mal'}">${av!==null?av+'%':'—'}</span></div></div>`;
+  } else {
+    html += `<div class="modal-item"><span class="modal-item-label" style="color:#7A93A8">Sin certificación registrada todavía.</span></div>`;
+  }
+
+  document.getElementById('ruta-modal-body').innerHTML = html;
+  document.getElementById('ruta-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeRutaModal(e) {
+  if (e.target === document.getElementById('ruta-modal-overlay')) closeRutaModalDirect();
+}
+function closeRutaModalDirect() {
+  document.getElementById('ruta-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeRutaModalDirect(); });
+
 function switchTab(tab) {
   ACTIVE = tab;
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
-    b.classList.toggle('active', ['preonboarding','treinta','evaluacion','certificaciones'][i]===tab);
+    b.classList.toggle('active', ['preonboarding','treinta','evaluacion','certificaciones','ruta'][i]===tab);
   });
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById(`panel-${tab}`).classList.add('active');
@@ -1444,7 +2118,7 @@ function switchTab(tab) {
 // ── LOAD ALL ──
 async function loadAll() {
   // reset loaders
-  ['pre','d30','ev','cert'].forEach(k=>{
+  ['pre','d30','ev','cert','ruta'].forEach(k=>{
     document.getElementById(`${k}-loading`).style.display='flex';
     document.getElementById(`${k}-content`).style.display='none';
     document.getElementById(`${k}-loading`).innerHTML='<div class="spinner"></div><span class="state-msg">Cargando datos…</span>';
@@ -1457,12 +2131,30 @@ async function loadAll() {
   };
 
   try {
-    const [pre, d30, ev, cert] = await Promise.all([
+    const [pre, d30, ev, cert, d60, d60l, d90] = await Promise.all([
       fetchSheet('Preonboarding'),
       fetchSheet('Encuesta 30 días'),
       fetchSheet('Evaluación'),
       fetchSheet('Seguimiento Certificaciones'),
+      fetchSheet('60 días'),
+      fetchSheet('60 días líder'),
+      fetchSheet('90 días'),
     ]);
+
+    // Hoja de estatus/rotación es opcional — aún no existe hasta que se cree en el Sheet.
+    // Se carga aparte para que su ausencia no tumbe el resto del dashboard.
+    try {
+      const estatus = await fetchSheet('Estatus Colaboradores');
+      const filtrados = Array.isArray(estatus) ? estatus.filter(r => {
+        const nombre = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
+        return nombre !== undefined;
+      }) : [];
+      if (filtrados.length) { DATA.estatus = filtrados; _estatusFuente = 'sheet'; }
+      else { DATA.estatus = ESTATUS_FALLBACK; _estatusFuente = 'excel'; }
+    } catch (eEstatus) {
+      DATA.estatus = ESTATUS_FALLBACK;
+      _estatusFuente = 'excel';
+    }
 
     // Filtro permisivo: acepta cualquier fila que tenga algún valor en las primeras columnas
     DATA.pre = pre.filter(r => {
@@ -1488,11 +2180,23 @@ async function loadAll() {
       if (String(nombre[1]).trim().toUpperCase().includes('COLABORADORES')) return false;
       return true;
     });
+    DATA.d60 = d60.filter(r => {
+      const nombre = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
+      return nombre !== undefined;
+    });
+    DATA.d60l = d60l.filter(r => {
+      const nombre = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
+      return nombre !== undefined;
+    });
+    DATA.d90 = d90.filter(r => {
+      const nombre = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
+      return nombre !== undefined;
+    });
 
     document.getElementById('last-updated').textContent = '↑ ' + new Date().toLocaleTimeString('es-MX');
     populateFilters();
 
-    ['pre','d30','ev','cert'].forEach(k=>{
+    ['pre','d30','ev','cert','ruta'].forEach(k=>{
       document.getElementById(`${k}-loading`).style.display='none';
       document.getElementById(`${k}-content`).style.display='block';
     });
@@ -1500,7 +2204,7 @@ async function loadAll() {
     applyFilters();
     updateMetas();
   } catch(e) {
-    ['pre','d30','ev','cert'].forEach(k => errMsg(k, e));
+    ['pre','d30','ev','cert','ruta'].forEach(k => errMsg(k, e));
   }
 }
 
