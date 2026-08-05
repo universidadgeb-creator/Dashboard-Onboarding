@@ -435,6 +435,14 @@
 
   .rv-narr { font-size: 12.5px; line-height: 1.65; color: var(--rv-text2); background: var(--rv-surface); border: 1px solid var(--rv-border); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
 
+  .rv-resumen-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+  .rv-resumen-label.good { color: #15803D; }
+  .rv-resumen-label.bad { color: #9A2E1E; }
+  .rv-resumen-item { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 6px; margin-bottom: 6px; font-size: 12px; }
+  .rv-resumen-item.good { background: #DCFCE7; color: #15803D; }
+  .rv-resumen-item.bad { background: #FDEDEC; color: #9A2E1E; }
+  .rv-resumen-item .n { font-weight: 700; flex-shrink: 0; }
+
   .ruta-v2 .estatus-badge.estatus-activo { background: #E3F6E3; color: var(--rv-good); }
   .ruta-v2 .estatus-badge.estatus-baja { background: #FBE4E4; color: var(--rv-critical); }
   .ruta-v2 .estatus-badge.estatus-desconocido { background: var(--rv-grid); color: var(--rv-muted); }
@@ -741,6 +749,25 @@
       </div>
 
       <div class="panel-box" style="margin-bottom:24px">
+        <h4>Motivos de baja más comunes</h4>
+        <div id="ruta-motivos-baja"></div>
+      </div>
+
+      <div class="panel-box" id="ruta-resumen-box" style="margin-bottom:24px">
+        <h4>Resumen — ¿qué estamos haciendo bien y qué mal?</h4>
+        <div class="panel-2col" style="margin-bottom:0">
+          <div>
+            <div class="rv-resumen-label good">✓ Focos verdes más comunes</div>
+            <div id="ruta-focos-verdes-resumen"></div>
+          </div>
+          <div>
+            <div class="rv-resumen-label bad">⚠ Focos rojos más comunes</div>
+            <div id="ruta-focos-rojos-resumen"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-box" style="margin-bottom:24px">
         <h4>Buscar colaborador</h4>
         <div class="rv-suc-chips" id="ruta-focos-chips"></div>
         <div class="rv-search-row">
@@ -756,10 +783,9 @@
           </div>
         </div>
         <div class="rv-legend">
-          <span><span class="rv-lgdot" style="background:var(--rv-good)"></span>En norma</span>
-          <span><span class="rv-lgdot" style="background:var(--rv-warning)"></span>Respondió con foco rojo</span>
-          <span><span class="rv-lgdot" style="background:var(--rv-critical)"></span>Vencido sin responder</span>
-          <span><span class="rv-lgdot" style="background:var(--rv-grid)"></span>Pendiente / no aplica aún</span>
+          <span><span class="rv-lgdot" style="background:var(--rv-good)"></span>Contestó, sin problema</span>
+          <span><span class="rv-lgdot" style="background:var(--rv-warning)"></span>Contestó, con foco rojo</span>
+          <span><span class="rv-lgdot" style="background:var(--rv-grid)"></span>Sin respuesta (pendiente o vencida) — no es un foco</span>
         </div>
         <div class="rv-colab-grid" id="ruta-colab-grid"></div>
       </div>
@@ -1725,7 +1751,7 @@ function avatarColor(nombre) {
 
 const VENTANA_30 = { ini: 20, fin: 40 };
 const VENTANA_60 = { ini: 50, fin: 70 };
-const VENTANA_90 = { ini: 80, fin: 100 };
+const VENTANA_90 = { ini: 80, fin: 91 };
 
 const D60_LIKERT = [
   'Después de 2 meses, siento que este es mi lugar. Formo parte real del equipo, no solo alguien nuevo.',
@@ -1905,14 +1931,55 @@ function focosRojosDe(c) {
   return flags.sort((a,b) => (b.fecha||0) - (a.fecha||0));
 }
 
+function focosVerdesDe(c) {
+  const flags = [];
+  const hace3meses = new Date(); hace3meses.setMonth(hace3meses.getMonth()-3);
+  const enVentana = (fecha) => !fecha || fecha >= hace3meses;
+
+  if (c.d30) {
+    const r = c.d30, fecha = parseFecha(r['Marca temporal']);
+    if (enVentana(fecha)) {
+      D30_SINNO_ITEMS.forEach(({col,label}) => {
+        if (isSi(r[col])) flags.push({ fuente:'30 días', motivo: label, fecha });
+      });
+      D30_SENT_ITEMS.forEach(({col,label}) => {
+        if (sentScore(r[col])===2) flags.push({ fuente:'30 días', motivo: label, fecha });
+      });
+    }
+  }
+  if (c.d60) {
+    const r = c.d60, fecha = parseFecha(r['Marca temporal']);
+    if (enVentana(fecha)) {
+      D60_LIKERT.forEach(col => { const v=parseFloat(r[col]); if(!isNaN(v)&&v>=4) flags.push({ fuente:'60 días', motivo: col, fecha }); });
+    }
+  }
+  if (c.d60l) {
+    const r = c.d60l, fecha = parseFecha(r['Marca temporal']);
+    if (enVentana(fecha)) {
+      D60L_LIKERT.forEach(col => { const v=parseFloat(r[col]); if(!isNaN(v)&&v>=4) flags.push({ fuente:'60 días · líder', motivo: col, fecha }); });
+      const riesgo = String(r['¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?']||'');
+      if (riesgo.includes('🟢')) flags.push({ fuente:'60 días · líder', motivo:'Riesgo de rotación bajo', fecha });
+    }
+  }
+  if (c.d90) {
+    const r = c.d90, fecha = parseFecha(r['Marca temporal']);
+    if (enVentana(fecha)) {
+      D90_LIKERT.forEach(col => { const v=parseFloat(r[col]); if(!isNaN(v)&&v>=4) flags.push({ fuente:'90 días', motivo: col, fecha }); });
+    }
+  }
+  return flags.sort((a,b) => (b.fecha||0) - (a.fecha||0));
+}
+
 let _rutaIndex = [];
 let _rutaFocosSuc = null; // sucursal seleccionada (con botón) en el buscador de colaboradores; null = todas
 let _rutaRowsConFocos = []; // [{c, focos}] de la última corrida de renderRuta(), para el buscador
 
 function rvStageState(existe, dias, ventana, tieneFlag) {
+  // El color SOLO refleja lo que contestó la encuesta. Sin respuesta = siempre gris,
+  // sin importar si ya se venció el plazo — eso no es un foco, es falta de información.
   if (existe) return tieneFlag ? { cls:'warning', icon:'!' } : { cls:'good', icon:'✓' };
   if (dias === null || !ventana) return { cls:'na', icon:'–' };
-  if (dias > ventana.fin) return { cls:'critical', icon:'!' };
+  if (dias > ventana.fin) return { cls:'na', icon:'?' };
   return { cls:'pending', icon:'···' };
 }
 function rvDot(state, label) {
@@ -1958,7 +2025,7 @@ function renderRuta() {
       if (rol==='limpieza' && !esLimpieza) return false;
       if (rol==='operacion' && esLimpieza) return false;
     }
-    if (c.dias === null || c.dias > 100) return false; // solo ventana de onboarding: 0–100 días
+    if (c.dias === null || c.dias > 91) return false; // solo ventana de onboarding: 0–91 días
     return true;
   });
   _rutaFocosSuc = null;
@@ -1971,7 +2038,7 @@ function renderRuta() {
   const enRiesgo = rows.filter(c => c.estatus !== 'baja' && c.d60l && /🟡|🔴/.test(String(c.d60l['¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?']||''))).length;
 
   document.getElementById('ruta-kpis').innerHTML =
-    kpiCard('Colaboradores rastreados', rows.length, 'en ventana de 0–100 días') +
+    kpiCard('Colaboradores rastreados', rows.length, 'en ventana de 0–91 días') +
     kpiCard('% Activos', pctActivos!==null?`${pctActivos}%`:'—', conEstatus.length?`${activos} de ${conEstatus.length} con estatus`:'Sin datos de estatus', pctActivos>=90?'green':pctActivos>=75?'yellow':'red') +
     kpiCard('% Rotación', pctRotacion!==null?`${pctRotacion}%`:'—', conEstatus.length?`${bajas} baja(s)`:'Sin datos de estatus', pctRotacion===null?'':pctRotacion<=10?'green':pctRotacion<=20?'yellow':'red') +
     kpiCard('En riesgo (líder)', enRiesgo, 'Riesgo medio/alto marcado por líder en 60 días', enRiesgo>0?'yellow':'green');
@@ -1996,6 +2063,8 @@ function renderRuta() {
   else elRotSuc.innerHTML = '<div class="focos-empty">Sin datos de estatus todavía.</div>';
 
   renderBajasTrend(rows);
+  renderMotivosBaja(rows);
+  renderResumenFocos(rows);
 
   // Focos rojos (para la gráfica "por rol")
   const rowsConFocos = rows.map(c => ({ c, focos: focosRojosDe(c) }));
@@ -2538,6 +2607,45 @@ function renderBajasTrend(rows) {
     ...topSucs.map(s => ({ label: s, data: porSucPorBucket[s] })),
   ];
   buildCountTrendChart('ruta-bajas-canvas', buckets, series);
+}
+
+function renderMotivosBaja(rows) {
+  const el = document.getElementById('ruta-motivos-baja');
+  if (!el) return;
+  const conteo = {};
+  rows.forEach(c => {
+    if (c.estatus !== 'baja') return;
+    const m = String(c.motivoBaja||'').trim();
+    if (!m) return;
+    conteo[m] = (conteo[m]||0) + 1;
+  });
+  if (!Object.keys(conteo).length) {
+    el.innerHTML = '<div class="focos-empty">Sin motivos de baja registrados todavía.</div>';
+    return;
+  }
+  barChart(el, conteo);
+}
+
+function renderResumenFocos(rows) {
+  const elVerdes = document.getElementById('ruta-focos-verdes-resumen');
+  const elRojos = document.getElementById('ruta-focos-rojos-resumen');
+  if (!elVerdes || !elRojos) return;
+
+  const contarPorMotivo = (flagsFn) => {
+    const conteo = {};
+    rows.forEach(c => flagsFn(c).forEach(f => { conteo[f.motivo] = (conteo[f.motivo]||0) + 1; }));
+    return Object.entries(conteo).sort((a,b) => b[1]-a[1]).slice(0, 8);
+  };
+
+  const verdes = contarPorMotivo(focosVerdesDe);
+  const rojos = contarPorMotivo(focosRojosDe);
+
+  const renderLista = (items, cls) => items.length
+    ? items.map(([motivo, n]) => `<div class="rv-resumen-item ${cls}"><span>${motivo}</span><span class="n">${n}</span></div>`).join('')
+    : '<div class="focos-empty">Sin datos suficientes todavía.</div>';
+
+  elVerdes.innerHTML = renderLista(verdes, 'good');
+  elRojos.innerHTML = renderLista(rojos, 'bad');
 }
 
 function buildCountTrendChart(canvasId, periodos, series) {
