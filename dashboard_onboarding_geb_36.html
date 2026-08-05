@@ -349,6 +349,10 @@
   .focos-item-tag { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background: #B91C1C; color: #fff; padding: 2px 7px; border-radius: 10px; flex-shrink: 0; }
   .focos-item-motivo { font-size: 12px; color: #B91C1C; font-weight: 500; }
   .focos-item-detalle { font-size: 11px; color: #94A3B8; font-style: italic; margin-top: 2px; }
+  .focos-item-list { margin: 6px 0 0; padding-left: 16px; display: flex; flex-direction: column; gap: 3px; }
+  .focos-item-list li { font-size: 11.5px; color: #B91C1C; line-height: 1.4; }
+  .focos-item-list li b { font-weight: 700; }
+  .focos-item-list .focos-item-mas { font-style: italic; opacity: 0.8; list-style: none; margin-left: -16px; }
   .focos-item-fecha { font-size: 10px; color: #A88; flex-shrink: 0; }
   .focos-empty { padding: 24px; text-align: center; color: #64748B; font-size: 12px; background: #FFFFFF; border-radius: 6px; }
   .focos-suc-group { margin-bottom: 14px; }
@@ -396,6 +400,7 @@
   .ruta-v2 .focos-item:hover { background: #FBE1DF; }
   .ruta-v2 .focos-item-tag { background: var(--rv-critical); }
   .ruta-v2 .focos-item-motivo { color: #9A2E1E; }
+  .ruta-v2 .focos-item-list li { color: #9A2E1E; }
   .ruta-v2 .focos-empty { background: var(--rv-surface); border: 1px solid var(--rv-border); color: var(--rv-muted); }
   .ruta-v2 .focos-suc-head { color: var(--rv-text); border-bottom: 1px solid var(--rv-border); }
   .ruta-v2 .focos-suc-count { background: var(--rv-grid); color: var(--rv-text); }
@@ -1974,29 +1979,47 @@ function renderFocosFeed() {
   const chipsEl = document.getElementById('ruta-focos-chips');
   const elFocos = document.getElementById('ruta-focos');
 
+  // Un resumen por colaborador (no una tarjeta por cada foco individual)
+  const porColab = {};
+  todosFocos.forEach(f => {
+    if (!porColab[f.key]) porColab[f.key] = { key: f.key, nombre: f.nombre, sucursal: f.sucursal, items: [] };
+    porColab[f.key].items.push(f);
+  });
+  const colabList = Object.values(porColab).map(c => {
+    c.items.sort((a,b) => (b.fecha||0) - (a.fecha||0));
+    c.fechaReciente = c.items[0] ? c.items[0].fecha : null;
+    return c;
+  }).sort((a,b) => b.items.length - a.items.length || (b.fechaReciente||0) - (a.fechaReciente||0));
+
   const bySuc = {};
-  todosFocos.forEach(f => { const s = f.sucursal || 'Sin sucursal'; bySuc[s] = (bySuc[s]||0) + 1; });
+  colabList.forEach(c => { const s = c.sucursal || 'Sin sucursal'; bySuc[s] = (bySuc[s]||0) + 1; });
   const sucList = Object.entries(bySuc).sort((a,b) => b[1]-a[1]);
 
-  chipsEl.innerHTML = `<button class="rv-suc-chip ${!_rutaFocosSuc?'active':''}" onclick="selectFocosSuc(null)">Todas <span class="rv-suc-chip-n">${todosFocos.length}</span></button>` +
+  chipsEl.innerHTML = `<button class="rv-suc-chip ${!_rutaFocosSuc?'active':''}" onclick="selectFocosSuc(null)">Todas <span class="rv-suc-chip-n">${colabList.length}</span></button>` +
     sucList.map(([s,n]) => `<button class="rv-suc-chip ${_rutaFocosSuc===s?'active':''}" onclick="selectFocosSuc('${s.replace(/'/g,"\\'")}')">${s} <span class="rv-suc-chip-n">${n}</span></button>`).join('');
 
-  const filtrados = _rutaFocosSuc ? todosFocos.filter(f => (f.sucursal||'Sin sucursal') === _rutaFocosSuc) : todosFocos;
+  const filtrados = _rutaFocosSuc ? colabList.filter(c => (c.sucursal||'Sin sucursal') === _rutaFocosSuc) : colabList;
 
   if (!filtrados.length) {
     elFocos.innerHTML = `<div class="focos-empty">${_rutaFocosSuc ? 'Sin focos rojos en ' + _rutaFocosSuc + ' en los últimos 3 meses.' : 'Sin focos rojos en los últimos 3 meses. 🎉'}</div>`;
     return;
   }
-  elFocos.innerHTML = filtrados.slice(0, 60).map(f => `
-    <div class="focos-item" onclick="openRutaModal('${f.key.replace(/'/g,"\\'")}')">
+  elFocos.innerHTML = filtrados.slice(0, 60).map(c => {
+    const maxShow = 4;
+    const shown = c.items.slice(0, maxShow);
+    const resto = c.items.length - shown.length;
+    return `<div class="focos-item" onclick="openRutaModal('${c.key.replace(/'/g,"\\'")}')">
       <div class="focos-item-head">
-        <span class="focos-item-nombre">${f.nombre}</span>
-        <span class="focos-item-tag">${f.fuente}</span>
+        <span class="focos-item-nombre">${c.nombre}</span>
+        <span class="focos-item-tag">${c.items.length} foco${c.items.length>1?'s':''}</span>
       </div>
-      <div class="focos-item-motivo">${f.motivo}</div>
-      ${f.detalle?`<div class="focos-item-detalle">${f.detalle}</div>`:''}
-      <div class="focos-item-fecha">${f.fecha?fmtFecha(f.fecha):''}</div>
-    </div>`).join('');
+      <ul class="focos-item-list">
+        ${shown.map(f => `<li><b>${f.fuente}:</b> ${f.motivo}</li>`).join('')}
+        ${resto>0?`<li class="focos-item-mas">y ${resto} más…</li>`:''}
+      </ul>
+      <div class="focos-item-fecha">Más reciente: ${c.fechaReciente?fmtFecha(c.fechaReciente):'—'}</div>
+    </div>`;
+  }).join('');
 }
 function selectFocosSuc(s) {
   _rutaFocosSuc = s;
