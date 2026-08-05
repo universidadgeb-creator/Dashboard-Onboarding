@@ -1814,10 +1814,17 @@ function buildColabIndex() {
     if (c.estatusRow) {
       const s = String(c.estatusRow['Estatus']||'').trim().toLowerCase();
       estatus = s.includes('baja') ? 'baja' : (s.includes('activo') ? 'activo' : 'desconocido');
-      fechaBaja = parseFecha(c.estatusRow['Fecha de baja']) || parseFechaDDMM(c.estatusRow['Fecha de baja']);
+      // Busca la columna de fecha de baja tolerando errores de dedo (ej. "Fehca de Baja")
+      const fechaBajaKey = Object.keys(c.estatusRow).find(k => {
+        const kl = k.toLowerCase();
+        return kl.includes('baja') && !kl.includes('motivo');
+      });
+      const fechaBajaRaw = fechaBajaKey ? c.estatusRow[fechaBajaKey] : null;
+      fechaBaja = parseFecha(fechaBajaRaw) || parseFechaDDMM(fechaBajaRaw);
       motivoBaja = c.estatusRow['Motivo de baja'] || c.estatusRow['Motivo'] || '';
     }
-    return { ...c, fechaIngreso, dias, estatus, fechaBaja, motivoBaja };
+    const diasDuro = (fechaBaja && fechaIngreso) ? Math.floor((fechaBaja - fechaIngreso) / 86400000) : null;
+    return { ...c, fechaIngreso, dias, estatus, fechaBaja, motivoBaja, diasDuro };
   });
 }
 
@@ -2029,6 +2036,7 @@ function renderColabList() {
         <div class="rv-colab-name">${c.nombre}</div>
         <div class="rv-colab-meta">${metaBits||'—'}<span class="estatus-badge ${estClass}">${estLabel}</span></div>
         ${c.lider?`<div class="rv-colab-meta" style="margin-top:-4px">Líder: ${c.lider}</div>`:''}
+        ${c.estatus==='baja'&&c.diasDuro!==null?`<div class="rv-colab-meta" style="margin-top:-4px">Duró ${c.diasDuro} día(s)${c.fechaBaja?' · bajó '+fmtFecha(c.fechaBaja):''}</div>`:''}
         <div class="rv-colab-dots">${rvDot(stPre,'Preonboarding')}${rvDot(st30,'30 días')}${rvDot(st60,'60 días')}${rvDot(st90,'90 días')}</div>
         <div class="rv-colab-teaser ${focos.length?'':'ok'}">${teaser}</div>
       </div>
@@ -2136,7 +2144,10 @@ function openRutaModal(key) {
 
   document.getElementById('ruta-modal-nombre').textContent = c.nombre;
   document.getElementById('ruta-modal-meta').innerHTML = [
-    c.sucursal, c.rol, c.turno, c.lider?`Líder: ${c.lider}`:null, c.fechaIngreso?`Ingresó ${fmtFecha(c.fechaIngreso)}`:null, c.dias!==null?`${c.dias} días`:null
+    c.sucursal, c.rol, c.turno, c.lider?`Líder: ${c.lider}`:null, c.fechaIngreso?`Ingresó ${fmtFecha(c.fechaIngreso)}`:null,
+    c.estatus==='baja'
+      ? (c.diasDuro!==null ? `Duró ${c.diasDuro} días` : null)
+      : (c.dias!==null ? `${c.dias} días` : null)
   ].filter(Boolean).map(v=>`<span>${v}</span>`).join('');
   document.getElementById('ruta-modal-avatar').innerHTML = avatarHtml(c, 'rv-avatar-lg');
 
@@ -2176,7 +2187,7 @@ function openRutaModal(key) {
   html += `<div class="modal-item ${c.estatus==='baja'?'alerta':''}">
     <div style="flex:1">
       <div class="modal-item-label">${c.estatus==='activo'?'Activo':c.estatus==='baja'?'Dado de baja':'Sin dato de estatus'}</div>
-      ${c.estatus==='baja'?`<div class="modal-sent-resp mal">${c.fechaBaja?fmtFecha(c.fechaBaja)+' · ':''}${c.motivoBaja||'Sin motivo registrado'}</div>`:''}
+      ${c.estatus==='baja'?`<div class="modal-sent-resp mal">${c.fechaBaja?'Bajó el '+fmtFecha(c.fechaBaja)+' · ':''}${c.diasDuro!==null?`Duró ${c.diasDuro} día(s) con nosotros · `:''}${c.motivoBaja||'Sin motivo registrado'}</div>`:''}
     </div>
   </div>`;
 
