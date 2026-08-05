@@ -1781,7 +1781,11 @@ function similarNames(a, b) {
     const tol = wa.length <= 3 ? 0 : wa.length <= 6 ? 1 : 2;
     if (bestIdx !== -1 && bestDist <= tol) { matched++; usedB.add(bestIdx); }
   }
-  return matched >= minLen;
+  // Con nombres de 3+ palabras toleramos que una no coincida (apodo tipo "Tona"/"Tonatiuh",
+  // o que a una encuesta le falte un apellido). Con nombres de 2 palabras exigimos ambas,
+  // para no confundir a dos personas distintas que comparten solo un nombre o apellido.
+  const requerido = minLen >= 3 ? minLen - 1 : minLen;
+  return matched >= requerido;
 }
 
 // No hay fotos de colaboradores en ninguna hoja del Sheet \u2014 avatar con iniciales como respaldo.
