@@ -732,6 +732,11 @@
       </div>
 
       <div class="panel-box" style="margin-bottom:24px">
+        <h4>¿Cuándo se nos está yendo la gente? — bajas por mes</h4>
+        <div id="ruta-bajas-wrap"></div>
+      </div>
+
+      <div class="panel-box" style="margin-bottom:24px">
         <h4>Buscar colaborador</h4>
         <div class="rv-suc-chips" id="ruta-focos-chips"></div>
         <div class="rv-search-row">
@@ -1975,6 +1980,8 @@ function renderRuta() {
   if (Object.keys(rotacionSuc).length) barChart(elRotSuc, rotacionSuc, true);
   else elRotSuc.innerHTML = '<div class="focos-empty">Sin datos de estatus todavía.</div>';
 
+  renderBajasTrend(rows);
+
   // Focos rojos (para la gráfica "por rol")
   const rowsConFocos = rows.map(c => ({ c, focos: focosRojosDe(c) }));
   const todosFocos = [];
@@ -2476,6 +2483,130 @@ function agruparEnTrimesters(dataByMes, meses) {
     if (dataByMes[m] !== undefined && dataByMes[m] !== null) byQ[q].push(dataByMes[m]);
   });
   return Object.fromEntries(Object.entries(byQ).map(([q, vals]) => [q, vals.length ? Math.round(vals.reduce((s,v)=>s+v,0)/vals.length) : null]));
+}
+
+// ── BAJAS POR MES (Ruta del Colaborador) ──
+function renderBajasTrend(rows) {
+  const wrap = document.getElementById('ruta-bajas-wrap');
+  if (!wrap) return;
+  const bajas = rows.filter(c => c.estatus === 'baja' && c.fechaBaja);
+  if (!bajas.length) {
+    wrap.innerHTML = '<div class="focos-empty">Sin bajas registradas todavía en esta ventana.</div>';
+    return;
+  }
+  wrap.innerHTML = '<canvas id="ruta-bajas-canvas" height="140"></canvas>';
+
+  const mesLabelPorClave = {};
+  const totalPorMes = {};
+  const porSucPorMes = {};
+  bajas.forEach(c => {
+    const clave = getMesSort(c.fechaBaja);
+    const label = getMes(c.fechaBaja);
+    if (!clave || label === '—') return;
+    mesLabelPorClave[clave] = label;
+    totalPorMes[label] = (totalPorMes[label]||0) + 1;
+    const s = c.sucursal || 'Sin sucursal';
+    porSucPorMes[s] = porSucPorMes[s] || {};
+    porSucPorMes[s][label] = (porSucPorMes[s][label]||0) + 1;
+  });
+  const periodos = Object.keys(mesLabelPorClave).sort().map(k => mesLabelPorClave[k]);
+
+  const sucTotales = Object.entries(porSucPorMes)
+    .map(([s, obj]) => [s, Object.values(obj).reduce((a,b)=>a+b,0)])
+    .sort((a,b) => b[1]-a[1]);
+  const topSucs = sucTotales.slice(0, 6).map(([s]) => s);
+
+  const series = [
+    { label: 'Total', data: totalPorMes, color: '#101828', bold: true },
+    ...topSucs.map(s => ({ label: s, data: porSucPorMes[s] })),
+  ];
+  buildCountTrendChart('ruta-bajas-canvas', periodos, series);
+}
+
+function buildCountTrendChart(canvasId, periodos, series) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.parentElement.clientWidth || 600;
+  const H = 200;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+
+  const PAD = { top: 20, right: 20, bottom: 50, left: 30 };
+  const cW = W - PAD.left - PAD.right;
+  const cH = H - PAD.top - PAD.bottom;
+
+  const COLORS = ['#DC2626','#7C3AED','#F59E0B','#0D9488','#64748B','#A78BFA','#92400E'];
+
+  const maxRaw = Math.max(1, ...series.flatMap(s => periodos.map(p => s.data[p]||0)));
+  const niceMax = (() => {
+    if (maxRaw <= 5) return 5;
+    const mag = Math.pow(10, Math.floor(Math.log10(maxRaw)));
+    const norm = maxRaw / mag;
+    const step = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10;
+    return Math.ceil(maxRaw / (step*mag)) * (step*mag);
+  })();
+
+  ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const v = Math.round(niceMax * i / 4);
+    const y = PAD.top + cH - (v/niceMax)*cH;
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left+cW, y); ctx.stroke();
+    ctx.fillStyle = '#64748B'; ctx.font = '9px Inter, sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(String(v), PAD.left-4, y+3);
+  }
+
+  const step = periodos.length > 1 ? cW/(periodos.length-1) : cW;
+  ctx.fillStyle = '#64748B'; ctx.font = '9px Inter, sans-serif'; ctx.textAlign = 'center';
+  periodos.forEach((p,i) => {
+    const x = PAD.left + (periodos.length>1 ? i*step : cW/2);
+    ctx.fillText(p, x, H - PAD.bottom + 14);
+  });
+
+  series.forEach((s, si) => {
+    const color = s.color || COLORS[si % COLORS.length];
+    const pts = periodos.map((p,i) => {
+      const v = s.data[p];
+      if (v === undefined || v === null) return null;
+      return { x: PAD.left + (periodos.length>1 ? i*step : cW/2), y: PAD.top + cH - (v/niceMax)*cH, v };
+    });
+    ctx.strokeStyle = color; ctx.lineWidth = s.bold ? 2.5 : 1.5; ctx.setLineDash([]);
+    ctx.beginPath();
+    let started = false;
+    pts.forEach(pt => {
+      if (!pt) { started = false; return; }
+      if (!started) { ctx.moveTo(pt.x, pt.y); started = true; }
+      else ctx.lineTo(pt.x, pt.y);
+    });
+    ctx.stroke();
+    pts.forEach(pt => {
+      if (!pt) return;
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(pt.x, pt.y, s.bold?3.5:2.5, 0, Math.PI*2); ctx.fill();
+      if (s.bold) {
+        ctx.font = 'bold 9px Inter,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(String(pt.v), pt.x, pt.y - 7);
+      }
+    });
+  });
+
+  const legendY = H - 12;
+  let legendX = PAD.left;
+  series.forEach((s, si) => {
+    const color = s.color || COLORS[si % COLORS.length];
+    ctx.fillStyle = color;
+    ctx.fillRect(legendX, legendY-6, 10, s.bold?4:3);
+    ctx.fillStyle = '#475569'; ctx.font = (s.bold?'bold ':'')+'9px Inter,sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(s.label, legendX+13, legendY);
+    legendX += ctx.measureText(s.label).width + 22;
+  });
 }
 
 function buildTrendChart(canvasId, periodos, series, target) {
