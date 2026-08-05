@@ -410,6 +410,25 @@
   .rv-suc-chip.active { background: var(--rv-blue); border-color: var(--rv-blue); color: #fff; }
   .rv-suc-chip-n { font-size: 10px; opacity: 0.85; }
 
+  .rv-search-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .rv-search-input { flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid var(--rv-border); border-radius: 6px; font-size: 12px; font-family: 'Inter', sans-serif; color: var(--rv-text); background: var(--rv-surface); }
+  .rv-search-input:focus { outline: none; border-color: var(--rv-blue); }
+
+  .rv-colab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 10px; }
+  .rv-colab-card { background: var(--rv-surface); border: 1px solid var(--rv-border); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: box-shadow .15s, border-color .15s; display: flex; gap: 10px; align-items: flex-start; }
+  .rv-colab-card:hover { border-color: var(--rv-blue); box-shadow: 0 2px 10px rgba(0,0,0,.07); }
+  .rv-colab-body { flex: 1; min-width: 0; }
+  .rv-colab-name { font-size: 13px; font-weight: 700; color: var(--rv-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rv-colab-meta { font-size: 11px; color: var(--rv-text2); margin: 2px 0 7px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .rv-colab-dots { display: flex; gap: 4px; margin-bottom: 7px; }
+  .rv-colab-teaser { font-size: 11px; color: #9A2E1E; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rv-colab-teaser.ok { color: var(--rv-good); }
+
+  .rv-avatar { width: 38px; height: 38px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+  .rv-avatar-lg { width: 52px; height: 52px; font-size: 18px; }
+
+  .rv-narr { font-size: 12.5px; line-height: 1.65; color: var(--rv-text2); background: var(--rv-surface); border: 1px solid var(--rv-border); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
+
   .ruta-v2 .estatus-badge.estatus-activo { background: #E3F6E3; color: var(--rv-good); }
   .ruta-v2 .estatus-badge.estatus-baja { background: #FBE4E4; color: var(--rv-critical); }
   .ruta-v2 .estatus-badge.estatus-desconocido { background: var(--rv-grid); color: var(--rv-muted); }
@@ -710,38 +729,28 @@
       </div>
 
       <div class="panel-box" style="margin-bottom:24px">
-        <h4>Focos rojos — últimos 3 meses, por sucursal</h4>
+        <h4>Buscar colaborador</h4>
         <div class="rv-suc-chips" id="ruta-focos-chips"></div>
-        <div class="focos-feed" id="ruta-focos"></div>
-      </div>
-
-      <div class="section-header">
-        <div class="section-title">Colaboradores</div>
-        <div class="toggle-wrap">
-          <span class="alerta-count" id="ruta-alerta-count"></span>
-          <span class="toggle-label">Solo con focos rojos</span>
-          <label class="toggle-switch">
-            <input type="checkbox" id="ruta-toggle-alerta" onchange="renderRuta()">
-            <div class="toggle-track"></div>
-            <div class="toggle-knob"></div>
-          </label>
+        <div class="rv-search-row">
+          <input type="text" class="rv-search-input" id="ruta-buscar" placeholder="Buscar por nombre…" oninput="renderColabList()">
+          <div class="toggle-wrap">
+            <span class="alerta-count" id="ruta-alerta-count"></span>
+            <span class="toggle-label">Solo con focos rojos</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="ruta-toggle-alerta" onchange="renderColabList()">
+              <div class="toggle-track"></div>
+              <div class="toggle-knob"></div>
+            </label>
+          </div>
         </div>
+        <div class="rv-legend">
+          <span><span class="rv-lgdot" style="background:var(--rv-good)"></span>En norma</span>
+          <span><span class="rv-lgdot" style="background:var(--rv-warning)"></span>Respondió con foco rojo</span>
+          <span><span class="rv-lgdot" style="background:var(--rv-critical)"></span>Vencido sin responder</span>
+          <span><span class="rv-lgdot" style="background:var(--rv-grid)"></span>Pendiente / no aplica aún</span>
+        </div>
+        <div class="rv-colab-grid" id="ruta-colab-grid"></div>
       </div>
-      <div class="rv-legend">
-        <span><span class="rv-lgdot" style="background:var(--rv-good)"></span>En norma</span>
-        <span><span class="rv-lgdot" style="background:var(--rv-warning)"></span>Respondió con foco rojo</span>
-        <span><span class="rv-lgdot" style="background:var(--rv-critical)"></span>Vencido sin responder</span>
-        <span><span class="rv-lgdot" style="background:var(--rv-grid)"></span>Pendiente / no aplica aún</span>
-      </div>
-      <div class="table-wrapper"><div class="table-scroll">
-        <table>
-          <thead><tr>
-            <th>Nombre</th><th>Sucursal</th><th>Rol</th><th>Fecha ingreso</th><th>Antigüedad</th><th>Estatus</th>
-            <th>Camino</th><th>Focos</th>
-          </tr></thead>
-          <tbody id="ruta-tbody"></tbody>
-        </table>
-      </div></div>
     </div>
   </div>
 
@@ -751,6 +760,7 @@
 <div class="modal-overlay" id="ruta-modal-overlay" onclick="closeRutaModal(event)">
   <div class="modal-panel ruta-v2" id="ruta-modal-panel">
     <div class="modal-header">
+      <div class="rv-avatar rv-avatar-lg" id="ruta-modal-avatar"></div>
       <div class="modal-header-info">
         <div class="modal-nombre" id="ruta-modal-nombre">—</div>
         <div class="modal-meta" id="ruta-modal-meta"></div>
@@ -1664,6 +1674,22 @@ function normName(s) {
     .trim();
 }
 
+// No hay fotos de colaboradores en ninguna hoja del Sheet \u2014 avatar con iniciales como respaldo.
+const AVATAR_PALETTE = ['#7C3AED','#2563EB','#0D9488','#D97706','#DB2777','#059669','#4F46E5'];
+function initials(nombre) {
+  const parts = String(nombre||'').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  const first = parts[0][0] || '';
+  const last = parts.length > 1 ? parts[parts.length-1][0] : '';
+  return (first + last).toUpperCase();
+}
+function avatarColor(nombre) {
+  let hash = 0;
+  const s = String(nombre||'');
+  for (let i=0; i<s.length; i++) hash = (hash*31 + s.charCodeAt(i)) >>> 0;
+  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
+}
+
 const VENTANA_30 = { ini: 20, fin: 40 };
 const VENTANA_60 = { ini: 50, fin: 70 };
 const VENTANA_90 = { ini: 80, fin: 100 };
@@ -1834,8 +1860,8 @@ function focosRojosDe(c) {
 }
 
 let _rutaIndex = [];
-let _rutaFocosSuc = null; // sucursal seleccionada (con botón) en el feed de focos rojos; null = todas
-let _rutaTodosFocos = [];
+let _rutaFocosSuc = null; // sucursal seleccionada (con botón) en el buscador de colaboradores; null = todas
+let _rutaRowsConFocos = []; // [{c, focos}] de la última corrida de renderRuta(), para el buscador
 
 function rvStageState(existe, dias, ventana, tieneFlag) {
   if (existe) return tieneFlag ? { cls:'warning', icon:'!' } : { cls:'good', icon:'✓' };
@@ -1923,12 +1949,11 @@ function renderRuta() {
   if (Object.keys(rotacionSuc).length) barChart(elRotSuc, rotacionSuc, true);
   else elRotSuc.innerHTML = '<div class="focos-empty">Sin datos de estatus todavía.</div>';
 
-  // Focos rojos
+  // Focos rojos (para la gráfica "por rol")
+  const rowsConFocos = rows.map(c => ({ c, focos: focosRojosDe(c) }));
   const todosFocos = [];
-  rows.forEach(c => focosRojosDe(c).forEach(f => todosFocos.push({ ...f, nombre: c.nombre, key: c.key, rol: c.rol, sucursal: c.sucursal })));
-  todosFocos.sort((a,b) => (b.fecha||0) - (a.fecha||0));
+  rowsConFocos.forEach(({c, focos}) => focos.forEach(f => todosFocos.push({ ...f, nombre: c.nombre, key: c.key, rol: c.rol, sucursal: c.sucursal })));
 
-  // Focos rojos por rol
   const byRol = {};
   todosFocos.forEach(f => { const rol = f.rol || 'Sin rol'; byRol[rol] = (byRol[rol]||0) + 1; });
   const topRol = Object.fromEntries(Object.entries(byRol).sort((a,b)=>b[1]-a[1]).slice(0,8));
@@ -1936,122 +1961,152 @@ function renderRuta() {
   if (Object.keys(topRol).length) barChart(elFocosRol, topRol);
   else elFocosRol.innerHTML = '<div class="focos-empty">Sin focos rojos en los últimos 3 meses.</div>';
 
-  _rutaTodosFocos = todosFocos;
-  renderFocosFeed();
+  _rutaRowsConFocos = rowsConFocos;
+  renderColabBrowser();
+}
 
-  // Tabla
+function renderColabBrowser() {
+  const chipsEl = document.getElementById('ruta-focos-chips');
+  const bySuc = {};
+  _rutaRowsConFocos.forEach(({c}) => { const s = c.sucursal || 'Sin sucursal'; bySuc[s] = (bySuc[s]||0) + 1; });
+  const sucList = Object.entries(bySuc).sort((a,b) => b[1]-a[1]);
+
+  chipsEl.innerHTML = `<button class="rv-suc-chip ${!_rutaFocosSuc?'active':''}" onclick="selectFocosSuc(null)">Todas <span class="rv-suc-chip-n">${_rutaRowsConFocos.length}</span></button>` +
+    sucList.map(([s,n]) => `<button class="rv-suc-chip ${_rutaFocosSuc===s?'active':''}" onclick="selectFocosSuc('${s.replace(/'/g,"\\'")}')">${s} <span class="rv-suc-chip-n">${n}</span></button>`).join('');
+
+  renderColabList();
+}
+
+function renderColabList() {
   const soloFocos = document.getElementById('ruta-toggle-alerta').checked;
-  const rowsConFocos = rows.map(c => ({ c, focos: focosRojosDe(c) }));
-  const rowsFiltradas = soloFocos ? rowsConFocos.filter(x => x.focos.length>0) : rowsConFocos;
+  const busq = normName(document.getElementById('ruta-buscar').value);
+
+  let lista = _rutaRowsConFocos;
+  if (_rutaFocosSuc) lista = lista.filter(({c}) => (c.sucursal||'Sin sucursal') === _rutaFocosSuc);
+  if (soloFocos) lista = lista.filter(({focos}) => focos.length > 0);
+  if (busq) lista = lista.filter(({c}) => normName(c.nombre).includes(busq));
+  lista = [...lista].sort((a,b) => b.focos.length - a.focos.length);
 
   const countEl = document.getElementById('ruta-alerta-count');
-  const totalConFocos = rowsConFocos.filter(x=>x.focos.length>0).length;
+  const totalConFocos = _rutaRowsConFocos.filter(x=>x.focos.length>0).length;
   countEl.textContent = `${totalConFocos} con focos`;
   countEl.classList.toggle('visible', totalConFocos>0);
 
-  const tbody = document.getElementById('ruta-tbody');
-  if (!rowsFiltradas.length) { tbody.innerHTML = `<tr><td colspan="8" class="empty">Sin resultados para los filtros aplicados.</td></tr>`; return; }
+  const grid = document.getElementById('ruta-colab-grid');
+  if (!lista.length) { grid.innerHTML = `<div class="focos-empty" style="grid-column:1/-1">Sin colaboradores para estos filtros.</div>`; return; }
 
-  tbody.innerHTML = rowsFiltradas.map(({c, focos}) => {
+  grid.innerHTML = lista.map(({c, focos}) => {
     const estClass = c.estatus==='activo'?'estatus-activo':c.estatus==='baja'?'estatus-baja':'estatus-desconocido';
     const estLabel = c.estatus==='activo'?'Activo':c.estatus==='baja'?'Baja':'—';
-
     const stPre = rvStageState(!!c.pre, null, null, false);
     const st30  = rvStageState(!!c.d30, c.dias, VENTANA_30, focos.some(f=>f.fuente==='30 días'));
     const st60  = rvStageState(!!c.d60 || !!c.d60l, c.dias, VENTANA_60, focos.some(f=>f.fuente==='60 días'||f.fuente==='60 días · líder'));
     const st90  = rvStageState(!!c.d90, c.dias, VENTANA_90, focos.some(f=>f.fuente==='90 días'));
-
-    return `<tr onclick="openRutaModal('${c.key.replace(/'/g,"\\'")}')" style="cursor:pointer">
-      <td class="td-name">${c.nombre}</td>
-      <td class="td-sucursal">${c.sucursal||'—'}</td>
-      <td style="font-size:11px;color:var(--rv-text2)">${c.rol||'—'}</td>
-      <td class="td-mes">${c.fechaIngreso?fmtFecha(c.fechaIngreso):'—'}</td>
-      <td style="font-size:11px">${c.dias!==null?c.dias+' d':'—'}</td>
-      <td><span class="estatus-badge ${estClass}">${estLabel}</span></td>
-      <td>${rvDot(stPre,'Preonboarding')}${rvDot(st30,'30 días')}${rvDot(st60,'60 días (colaborador + líder)')}${rvDot(st90,'90 días')}</td>
-      <td style="text-align:center">${focos.length?`<span class="rv-dot critical">${focos.length}</span>`:`<span class="rv-dot good">0</span>`}</td>
-    </tr>`;
-  }).join('');
-}
-
-function renderFocosFeed() {
-  const todosFocos = _rutaTodosFocos;
-  const chipsEl = document.getElementById('ruta-focos-chips');
-  const elFocos = document.getElementById('ruta-focos');
-
-  // Un resumen por colaborador (no una tarjeta por cada foco individual)
-  const porColab = {};
-  todosFocos.forEach(f => {
-    if (!porColab[f.key]) porColab[f.key] = { key: f.key, nombre: f.nombre, sucursal: f.sucursal, items: [] };
-    porColab[f.key].items.push(f);
-  });
-  const colabList = Object.values(porColab).map(c => {
-    c.items.sort((a,b) => (b.fecha||0) - (a.fecha||0));
-    c.fechaReciente = c.items[0] ? c.items[0].fecha : null;
-    return c;
-  }).sort((a,b) => b.items.length - a.items.length || (b.fechaReciente||0) - (a.fechaReciente||0));
-
-  const bySuc = {};
-  colabList.forEach(c => { const s = c.sucursal || 'Sin sucursal'; bySuc[s] = (bySuc[s]||0) + 1; });
-  const sucList = Object.entries(bySuc).sort((a,b) => b[1]-a[1]);
-
-  chipsEl.innerHTML = `<button class="rv-suc-chip ${!_rutaFocosSuc?'active':''}" onclick="selectFocosSuc(null)">Todas <span class="rv-suc-chip-n">${colabList.length}</span></button>` +
-    sucList.map(([s,n]) => `<button class="rv-suc-chip ${_rutaFocosSuc===s?'active':''}" onclick="selectFocosSuc('${s.replace(/'/g,"\\'")}')">${s} <span class="rv-suc-chip-n">${n}</span></button>`).join('');
-
-  const filtrados = _rutaFocosSuc ? colabList.filter(c => (c.sucursal||'Sin sucursal') === _rutaFocosSuc) : colabList;
-
-  if (!filtrados.length) {
-    elFocos.innerHTML = `<div class="focos-empty">${_rutaFocosSuc ? 'Sin focos rojos en ' + _rutaFocosSuc + ' en los últimos 3 meses.' : 'Sin focos rojos en los últimos 3 meses. 🎉'}</div>`;
-    return;
-  }
-  elFocos.innerHTML = filtrados.slice(0, 60).map(c => {
-    const maxShow = 4;
-    const shown = c.items.slice(0, maxShow);
-    const resto = c.items.length - shown.length;
-    return `<div class="focos-item" onclick="openRutaModal('${c.key.replace(/'/g,"\\'")}')">
-      <div class="focos-item-head">
-        <span class="focos-item-nombre">${c.nombre}</span>
-        <span class="focos-item-tag">${c.items.length} foco${c.items.length>1?'s':''}</span>
+    const teaser = focos.length ? `⚠ ${focos[0].motivo}` : '✓ Sin focos rojos';
+    return `<div class="rv-colab-card" onclick="openRutaModal('${c.key.replace(/'/g,"\\'")}')">
+      <div class="rv-avatar" style="background:${avatarColor(c.nombre)}">${initials(c.nombre)}</div>
+      <div class="rv-colab-body">
+        <div class="rv-colab-name">${c.nombre}</div>
+        <div class="rv-colab-meta">${c.sucursal||'—'} · ${c.rol||'—'}<span class="estatus-badge ${estClass}">${estLabel}</span></div>
+        <div class="rv-colab-dots">${rvDot(stPre,'Preonboarding')}${rvDot(st30,'30 días')}${rvDot(st60,'60 días')}${rvDot(st90,'90 días')}</div>
+        <div class="rv-colab-teaser ${focos.length?'':'ok'}">${teaser}</div>
       </div>
-      <ul class="focos-item-list">
-        ${shown.map(f => `<li><b>${f.fuente}:</b> ${f.motivo}</li>`).join('')}
-        ${resto>0?`<li class="focos-item-mas">y ${resto} más…</li>`:''}
-      </ul>
-      <div class="focos-item-fecha">Más reciente: ${c.fechaReciente?fmtFecha(c.fechaReciente):'—'}</div>
     </div>`;
   }).join('');
 }
+
 function selectFocosSuc(s) {
   _rutaFocosSuc = s;
-  renderFocosFeed();
+  renderColabBrowser();
 }
 
-function modalStageBlock(sectionLabel, likertCols, record, extras) {
-  if (!record) return `<div class="modal-section-label">${sectionLabel}</div><div class="modal-item"><span class="modal-item-label" style="color:#64748B">Sin respuesta registrada todavía.</span></div>`;
-  const scored = likertCols.map(col => ({ col, v: parseFloat(record[col]) })).filter(x => !isNaN(x.v));
-  const bajos = scored.filter(x => x.v < 4);
-  const avgV = scored.length ? scored.reduce((s,x)=>s+x.v,0)/scored.length : null;
+function modalNarrBlock(label, text) {
+  return `<div class="modal-section-label">${label}</div><div class="rv-narr">${text}</div>`;
+}
+function avgLikert(record, cols) {
+  const vals = cols.map(c => parseFloat(record[c])).filter(v => !isNaN(v));
+  return vals.length ? (vals.reduce((s,v)=>s+v,0)/vals.length) : null;
+}
+function truncar(t, n) {
+  t = String(t||'').trim();
+  return t.length > n ? t.slice(0,n).trim() + '…' : t;
+}
 
-  let html = `<div class="modal-section-label">${sectionLabel}</div>`;
-  if (!scored.length) {
-    // nada que resumir
-  } else if (!bajos.length) {
-    html += `<div class="modal-item"><span class="modal-item-label">Promedio de calificaciones (${scored.length})</span><div class="modal-item-vals"><span class="modal-resp ok">${avgV.toFixed(1)}/5 · sin problemas</span></div></div>`;
+function narrPre(c) {
+  if (!c.pre) return 'Todavía no responde la encuesta de preonboarding.';
+  const r = c.pre;
+  const nps = r['Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  '];
+  const trato = parseFloat(r['El trato del equipo de reclutamiento fue amable.  ']);
+  const claridad = parseFloat(r['Me explicaron claramente el rol y expectativas. ']);
+  const partes = [];
+  if (nps!==undefined && nps!=='') partes.push(`le dio un ${nps}/10 de recomendación a su proceso de ingreso`);
+  if (!isNaN(trato) && trato>0) partes.push(`calificó el trato del equipo de reclutamiento con ${trato}/5`);
+  if (!isNaN(claridad) && claridad>0 && claridad<4) partes.push('sintió que no le explicaron con claridad el rol y las expectativas');
+  if (!partes.length) return 'Respondió la encuesta de preonboarding, sin datos numéricos adicionales.';
+  return 'En preonboarding, ' + partes.join('; ') + '.';
+}
+
+function narr30(c) {
+  if (!c.d30) return 'Todavía no responde la encuesta de 30 días.';
+  const r = c.d30;
+  const noItems = D30_SINNO_ITEMS.filter(({col}) => String(r[col]||'').trim().toLowerCase()==='no');
+  const sentFallas = D30_SENT_ITEMS.filter(({col}) => sentScore(r[col])===1);
+  let frase = 'A los 30 días, ';
+  frase += noItems.length === 0
+    ? 'cumplió con todos los puntos logísticos esperados (uniforme, gafete, certificación de rol, plan de formación, etc.)'
+    : `le faltaron ${noItems.length} punto(s) logístico(s): ${noItems.map(i=>i.label.toLowerCase()).join(', ')}`;
+  frase += '. ';
+  frase += sentFallas.length === 0
+    ? 'Su sentimiento sobre el equipo, la incorporación y el líder fue positivo.'
+    : `Mostró señales de alerta en: ${sentFallas.map(i=>i.label.toLowerCase()).join(', ')}.`;
+  return frase;
+}
+
+function narr60(c) {
+  const tieneColab = !!c.d60, tieneLider = !!c.d60l;
+  if (!tieneColab && !tieneLider) return 'Todavía no hay encuesta de 60 días, ni del colaborador ni del líder.';
+  let frase = '';
+  if (tieneColab) {
+    const r = c.d60;
+    const claro = String(r['¿Tienes claro cómo se mide tu desempeño en este puesto?']||'').toLowerCase();
+    const uno1 = String(r['¿Has tenido al menos una conversación 1:1 con tu líder?']||'').toLowerCase();
+    const avgV = avgLikert(r, D60_LIKERT);
+    frase += `A los 60 días, el propio colaborador se autocalifica en promedio ${avgV!==null?avgV.toFixed(1):'—'}/5 en su adaptación`;
+    if (claro==='no') frase += ', y menciona que NO tiene claro cómo se mide su desempeño';
+    if (uno1==='no') frase += ', además de no haber tenido todavía una conversación 1:1 con su líder';
+    frase += '. ';
   } else {
-    html += `<div class="modal-item alerta" style="flex-direction:column;align-items:flex-start;gap:6px">
-      <div class="modal-item-label" style="font-weight:600;color:#B91C1C">${bajos.length} de ${scored.length} calificaciones bajas (promedio ${avgV.toFixed(1)}/5)</div>
-      <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px">
-        ${bajos.map(x=>`<li style="font-size:12px;color:#475569">${x.col} — <b>${x.v}/5</b></li>`).join('')}
-      </ul>
-    </div>`;
+    frase += 'El colaborador todavía no responde su encuesta de 60 días. ';
   }
-  (extras||[]).forEach(({label, value, alerta}) => {
-    if (value === undefined || value === null || value === '') return;
-    html += `<div class="modal-item ${alerta?'alerta':''}">
-      <div style="flex:1"><div class="modal-item-label">${label}</div><div class="modal-sent-resp ${alerta?'mal':''}">${value}</div></div>
-    </div>`;
-  });
-  return html;
+  if (tieneLider) {
+    const r = c.d60l;
+    const riesgo = String(r['¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?']||'');
+    const causa = r['¿Cuál es la causa principal?'] || '';
+    const accion = r['¿Qué acción vas a tomar o ya tomaste?'] || '';
+    const faltas = String(r['¿Ha tenido faltas o retardos que preocupen en este periodo?']||'').toLowerCase();
+    const avgV = avgLikert(r, D60L_LIKERT);
+    frase += `Su líder (${r['Nombre del líder']||'—'}) lo calificó en promedio ${avgV!==null?avgV.toFixed(1):'—'}/5`;
+    if (riesgo) frase += ` y marca su riesgo de rotación como "${riesgo}"`;
+    if (causa) frase += `, con causa principal: "${truncar(causa,140)}"`;
+    if (faltas==='sí' || faltas==='si') frase += '. Señala que ha tenido faltas o retardos que preocupan';
+    if (accion) frase += `. Acción del líder: "${truncar(accion,140)}"`;
+    frase += '.';
+  } else {
+    frase += 'El líder todavía no responde su evaluación de 60 días.';
+  }
+  return frase;
+}
+
+function narr90(c) {
+  if (!c.d90) return 'Todavía no responde la encuesta de 90 días.';
+  const r = c.d90;
+  const avgV = avgLikert(r, D90_LIKERT);
+  const cambio = r['Si pudieras cambiar una sola cosa de tu experiencia en GEB, ¿cuál sería?'] || '';
+  const algo = r['¿Algo que quieras que tu líder o GEB sepa?'] || '';
+  let frase = `A los 90 días, calificó en promedio ${avgV!==null?avgV.toFixed(1):'—'}/5 su experiencia general. `;
+  if (cambio) frase += `Sobre qué cambiaría, comentó: "${truncar(cambio,160)}". `;
+  if (algo) frase += `Además dijo: "${truncar(algo,160)}"`;
+  return frase.trim();
 }
 
 function openRutaModal(key) {
@@ -2062,6 +2117,9 @@ function openRutaModal(key) {
   document.getElementById('ruta-modal-meta').innerHTML = [
     c.sucursal, c.rol, c.fechaIngreso?`Ingresó ${fmtFecha(c.fechaIngreso)}`:null, c.dias!==null?`${c.dias} días`:null
   ].filter(Boolean).map(v=>`<span>${v}</span>`).join('');
+  const avatarEl = document.getElementById('ruta-modal-avatar');
+  avatarEl.textContent = initials(c.nombre);
+  avatarEl.style.background = avatarColor(c.nombre);
 
   const focos = focosRojosDe(c);
   const stPre = rvStageState(!!c.pre, null, null, false);
@@ -2103,50 +2161,10 @@ function openRutaModal(key) {
     </div>
   </div>`;
 
-  html += `<div class="modal-section-label">Preonboarding</div>`;
-  if (c.pre) {
-    const nps = c.pre['Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  '];
-    html += `<div class="modal-item"><span class="modal-item-label">Respondió preonboarding</span><div class="modal-item-vals"><span class="modal-resp ok">✓</span></div></div>`;
-    if (nps!==undefined && nps!=='') html += `<div class="modal-item"><span class="modal-item-label">NPS que dio</span><div class="modal-item-vals"><span class="modal-resp">${nps}/10</span></div></div>`;
-  } else {
-    html += `<div class="modal-item"><span class="modal-item-label" style="color:#64748B">Sin respuesta registrada todavía.</span></div>`;
-  }
-
-  html += `<div class="modal-section-label">30 días</div>`;
-  if (c.d30) {
-    const fallasSN = D30_SINNO_ITEMS.filter(({col}) => String(c.d30[col]||'').trim().toLowerCase()==='no');
-    const fallasSent = D30_SENT_ITEMS.filter(({col}) => sentScore(c.d30[col])===1);
-    if (fallasSN.length || fallasSent.length) {
-      html += `<div class="modal-item alerta" style="flex-direction:column;align-items:flex-start;gap:6px">
-        <div class="modal-item-label" style="font-weight:600;color:#B91C1C">${fallasSN.length+fallasSent.length} punto(s) fuera de norma</div>
-        <ul style="margin:0;padding-left:18px">${[...fallasSN.map(f=>f.label),...fallasSent.map(f=>f.label)].map(l=>`<li style="font-size:12px;color:#475569">${l}</li>`).join('')}</ul>
-      </div>`;
-    } else {
-      html += `<div class="modal-item"><span class="modal-item-label">Sin alertas en 30 días</span><div class="modal-item-vals"><span class="modal-resp ok">✓</span></div></div>`;
-    }
-  } else {
-    html += `<div class="modal-item"><span class="modal-item-label" style="color:#64748B">Sin respuesta registrada todavía.</span></div>`;
-  }
-
-  html += modalStageBlock('60 días · colaborador', D60_LIKERT, c.d60, c.d60 ? [
-    { label: '¿Tiene claro cómo se mide su desempeño?', value: c.d60['¿Tienes claro cómo se mide tu desempeño en este puesto?'], alerta: String(c.d60['¿Tienes claro cómo se mide tu desempeño en este puesto?']||'').toLowerCase()==='no' },
-    { label: '¿Ha tenido 1:1 con su líder?', value: c.d60['¿Has tenido al menos una conversación 1:1 con tu líder?'], alerta: String(c.d60['¿Has tenido al menos una conversación 1:1 con tu líder?']||'').toLowerCase()==='no' },
-    { label: 'Qué está pesando en su adaptación', value: c.d60['¿Qué es lo que más está pesando en tu adaptación? ('], alerta: false },
-  ] : []);
-
-  const riesgoTxt = c.d60l ? String(c.d60l['¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?']||'') : '';
-  html += modalStageBlock('60 días · opinión del líder', D60L_LIKERT, c.d60l, c.d60l ? [
-    { label: 'Riesgo de rotación (según líder)', value: riesgoTxt, alerta: /🟡|🔴/.test(riesgoTxt) },
-    { label: 'Causa principal', value: c.d60l['¿Cuál es la causa principal?'], alerta: /🟡|🔴/.test(riesgoTxt) },
-    { label: '¿Faltas o retardos que preocupen?', value: c.d60l['¿Ha tenido faltas o retardos que preocupen en este periodo?'], alerta: String(c.d60l['¿Ha tenido faltas o retardos que preocupen en este periodo?']||'').toLowerCase()==='sí' },
-    { label: 'Acción tomada o por tomar', value: c.d60l['¿Qué acción vas a tomar o ya tomaste?'], alerta: false },
-  ] : []);
-
-  html += modalStageBlock('90 días', D90_LIKERT, c.d90, c.d90 ? [
-    { label: 'Qué está pesando en su experiencia', value: c.d90['¿Qué es lo que más está pesando en tu experiencia? (elige hasta 2)'], alerta: false },
-    { label: 'Qué cambiaría', value: c.d90['Si pudieras cambiar una sola cosa de tu experiencia en GEB, ¿cuál sería?'], alerta: false },
-    { label: 'Algo que quiera que su líder o GEB sepa', value: c.d90['¿Algo que quieras que tu líder o GEB sepa?'], alerta: false },
-  ] : []);
+  html += modalNarrBlock('Preonboarding', narrPre(c));
+  html += modalNarrBlock('30 días', narr30(c));
+  html += modalNarrBlock('60 días — colaborador y líder', narr60(c));
+  html += modalNarrBlock('90 días', narr90(c));
 
   html += `<div class="modal-section-label">Evaluación de inducción</div>`;
   if (c.ev) {
