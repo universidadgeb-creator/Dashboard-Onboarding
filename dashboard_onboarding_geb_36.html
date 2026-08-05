@@ -2192,7 +2192,7 @@ function renderColabList() {
     const st30  = rvStageState(!!c.d30, c.dias, VENTANA_30, focos.some(f=>f.fuente==='30 días'));
     const st60  = rvStageState(!!c.d60 || !!c.d60l, c.dias, VENTANA_60, focos.some(f=>f.fuente==='60 días'||f.fuente==='60 días · líder'));
     const st90  = rvStageState(!!c.d90, c.dias, VENTANA_90, focos.some(f=>f.fuente==='90 días'));
-    const teaser = focos.length ? `⚠ ${focos[0].motivo}` : '✓ Sin focos rojos';
+    const teaser = focos.length ? `⚠ ${focos[0].motivo}` : (c.estatus==='baja' ? '' : '✓ Sin focos rojos');
     const metaBits = [c.sucursal, c.rol, c.turno].filter(Boolean).join(' · ');
     return `<div class="rv-colab-card" onclick="openRutaModal('${c.key.replace(/'/g,"\\'")}')">
       ${avatarHtml(c)}
@@ -2203,7 +2203,7 @@ function renderColabList() {
         ${c.estatus==='baja'&&c.diasDuro!==null?`<div class="rv-colab-meta" style="margin-top:-4px">Duró ${c.diasDuro} día(s)${c.fechaBaja?' · bajó '+fmtFecha(c.fechaBaja):''}</div>`:''}
         ${c.estatus==='activo'&&c.dias!==null?`<div class="rv-colab-meta" style="margin-top:-4px">${c.dias} día(s) activo</div>`:''}
         <div class="rv-colab-dots">${rvDot(stPre,'Preonboarding')}${rvDot(st30,'30 días')}${rvDot(st60,'60 días')}${rvDot(st90,'90 días')}</div>
-        <div class="rv-colab-teaser ${focos.length?'':'ok'}">${teaser}</div>
+        ${teaser?`<div class="rv-colab-teaser ${focos.length?'':'ok'}">${teaser}</div>`:''}
       </div>
     </div>`;
   }).join('');
