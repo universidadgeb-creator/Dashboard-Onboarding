@@ -753,6 +753,11 @@
         <div id="ruta-motivos-baja"></div>
       </div>
 
+      <div class="panel-box" style="margin-bottom:24px">
+        <h4>Promedio de días hasta la baja, por sucursal</h4>
+        <div id="ruta-promedio-dias-baja"></div>
+      </div>
+
       <div class="panel-box" id="ruta-resumen-box" style="margin-bottom:24px">
         <h4>Resumen — ¿qué estamos haciendo bien y qué mal?</h4>
         <div class="panel-2col" style="margin-bottom:0">
@@ -1071,8 +1076,10 @@ function barChart(el, data, max100, invert) {
         ? (v<=10?'#16A34A':v<=20?'#F59E0B':'#DC2626')
         : (v>=80?'#16A34A':v>=50?'#F59E0B':'#DC2626');
     } else {
-      // Conteos sin meta: por posición dentro del ranking (ya viene ordenado desc)
-      color = i < n/3 ? '#DC2626' : i < (2*n/3) ? '#F59E0B' : '#16A34A';
+      // Conteos sin meta: por posición dentro del ranking (ya viene ordenado desc).
+      // Con invert, el valor más BAJO es el peor (ej. días hasta la baja: menos días = peor).
+      const pos = invert ? (n-1-i) : i;
+      color = pos < n/3 ? '#DC2626' : pos < (2*n/3) ? '#F59E0B' : '#16A34A';
     }
     return `<div class="bar-row">
       <span class="bar-label" title="${k}">${k}</span>
@@ -2063,6 +2070,7 @@ function renderRuta() {
 
   renderBajasTrend(rows);
   renderMotivosBaja(rows);
+  renderPromedioDiasBaja(rows);
   renderResumenFocos(rows);
 
   // Focos rojos (para la gráfica "por rol")
@@ -2621,6 +2629,26 @@ function renderMotivosBaja(rows) {
     return;
   }
   barChart(el, conteo);
+}
+
+function renderPromedioDiasBaja(rows) {
+  const el = document.getElementById('ruta-promedio-dias-baja');
+  if (!el) return;
+  const bajas = rows.filter(c => c.estatus === 'baja' && c.diasDuro !== null);
+  if (!bajas.length) {
+    el.innerHTML = '<div class="focos-empty">Sin bajas con fecha registrada todavía.</div>';
+    return;
+  }
+  const sumPorSuc = {}, nPorSuc = {};
+  bajas.forEach(c => {
+    const s = c.sucursal || 'Sin sucursal';
+    sumPorSuc[s] = (sumPorSuc[s]||0) + c.diasDuro;
+    nPorSuc[s] = (nPorSuc[s]||0) + 1;
+  });
+  const promedio = Object.fromEntries(Object.keys(sumPorSuc).map(s =>
+    [`${s} (${nPorSuc[s]})`, Math.round(sumPorSuc[s]/nPorSuc[s])]
+  ));
+  barChart(el, promedio, false, true);
 }
 
 function renderResumenFocos(rows) {
