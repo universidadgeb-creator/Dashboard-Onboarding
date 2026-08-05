@@ -738,7 +738,7 @@
       <div class="kpi-row" id="ruta-kpis"></div>
 
       <div class="panel-2col">
-        <div class="panel-box"><h4>Rotación por sucursal</h4><div id="ruta-rotacion-suc"></div></div>
+        <div class="panel-box"><h4>Rotación Temprana por sucursal</h4><div id="ruta-rotacion-suc"></div></div>
         <div class="panel-box"><h4>Focos rojos por rol</h4><div id="ruta-focos-rol"></div></div>
       </div>
 
@@ -2111,8 +2111,8 @@ function renderRuta() {
 
   document.getElementById('ruta-kpis').innerHTML =
     kpiCard('Colaboradores rastreados', rows.length, 'en ventana de 0–91 días') +
-    kpiCard('% Activos', pctActivos!==null?`${pctActivos}%`:'—', conEstatus.length?`${activos} de ${conEstatus.length} con estatus`:'Sin datos de estatus', pctActivos>=90?'green':pctActivos>=75?'yellow':'red') +
-    kpiCard('% Rotación', pctRotacion!==null?`${pctRotacion}%`:'—', conEstatus.length?`${bajas} baja(s)`:'Sin datos de estatus', pctRotacion===null?'':pctRotacion<=10?'green':pctRotacion<=20?'yellow':'red') +
+    kpiCard('% Activos', pctActivos!==null?`${pctActivos}%`:'—', conEstatus.length?`${activos} de ${conEstatus.length} con estatus · meta 90%`:'Sin datos de estatus', pctActivos===null?'':pctActivos>=90?'green':pctActivos>=85?'yellow':'red') +
+    kpiCard('% Rotación Temprana', pctRotacion!==null?`${pctRotacion}%`:'—', conEstatus.length?`${bajas} baja(s)`:'Sin datos de estatus', pctRotacion===null?'':pctRotacion<=10?'green':pctRotacion<=20?'yellow':'red') +
     kpiCard('En riesgo (líder)', enRiesgo, 'Riesgo medio/alto marcado por líder en 60 días', enRiesgo>0?'yellow':'green');
 
   const noteEl = document.getElementById('ruta-estatus-note');
@@ -2201,6 +2201,7 @@ function renderColabList() {
         <div class="rv-colab-meta">${metaBits||'—'}<span class="estatus-badge ${estClass}">${estLabel}</span></div>
         ${c.lider?`<div class="rv-colab-meta" style="margin-top:-4px">Líder: ${c.lider}</div>`:''}
         ${c.estatus==='baja'&&c.diasDuro!==null?`<div class="rv-colab-meta" style="margin-top:-4px">Duró ${c.diasDuro} día(s)${c.fechaBaja?' · bajó '+fmtFecha(c.fechaBaja):''}</div>`:''}
+        ${c.estatus==='activo'&&c.dias!==null?`<div class="rv-colab-meta" style="margin-top:-4px">${c.dias} día(s) activo</div>`:''}
         <div class="rv-colab-dots">${rvDot(stPre,'Preonboarding')}${rvDot(st30,'30 días')}${rvDot(st60,'60 días')}${rvDot(st90,'90 días')}</div>
         <div class="rv-colab-teaser ${focos.length?'':'ok'}">${teaser}</div>
       </div>
