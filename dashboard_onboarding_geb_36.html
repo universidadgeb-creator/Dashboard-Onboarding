@@ -1793,8 +1793,10 @@ function buildColabIndex() {
     const nom = getNombre(r); if (nom === '—') return;
     const c = get(normName(nom));
     c.nombre = c.nombre || nom.trim();
-    c.sucursal = c.sucursal || clubNombre(r['Sucursal']);
-    c.rol = c.rol || r['Rol'];
+    // "Datos Generales" es la hoja que el usuario mantiene al día a mano — gana sobre lo que
+    // hayan traído las encuestas, en vez de solo rellenar cuando esté vacío.
+    c.sucursal = clubNombre(r['Sucursal']) || c.sucursal;
+    c.rol = r['Rol'] || c.rol;
     c.turno = c.turno || r['Turno'];
     c.lider = c.lider || r['Líder'];
     c.foto = c.foto || r['Foto'];
