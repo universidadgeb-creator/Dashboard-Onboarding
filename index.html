@@ -19,6 +19,9 @@
     --negro: #101828;
     --amarillo: #F59E0B;
     --rojo: #DC2626;
+    --verde-ok: #16A34A; /* verde real para estados/datos "bien" — distinto del acento de marca */
+    --verde-ok-bg: #DCFCE7;
+    --verde-ok-txt: #15803D;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: var(--verde-oscuro); color: var(--blanco); min-height: 100vh; }
@@ -62,7 +65,7 @@
   .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--verde-acento); }
   .kpi-label { font-size: 10px; color: var(--gris-texto); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
   .kpi-value { font-family: 'Space Grotesk', sans-serif; font-size: 32px; font-weight: 700; color: #101828; line-height: 1; }
-  .kpi-value.green { color: var(--verde-acento); }
+  .kpi-value.green { color: var(--verde-ok); }
   .kpi-value.yellow { color: var(--amarillo); }
   .kpi-value.red { color: var(--rojo); }
   .kpi-sub { font-size: 11px; color: var(--gris-texto); margin-top: 4px; }
@@ -85,7 +88,7 @@
 
   /* BADGE */
   .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; }
-  .badge-si { background: #FAE8FF; color: var(--verde-acento); }
+  .badge-si { background: var(--verde-ok-bg); color: var(--verde-ok); }
   .badge-no { background: #FEE2E2; color: #DC2626; }
 
   /* SCORE BAR */
@@ -93,8 +96,8 @@
   .score-bar-bg { flex: 1; height: 4px; background: #F1F5F9; border-radius: 2px; overflow: hidden; min-width: 44px; }
   .score-bar-fill { height: 100%; border-radius: 2px; }
   .score-num { font-weight: 600; font-size: 12px; min-width: 36px; text-align: right; }
-  .score-green .score-bar-fill { background: var(--verde-acento); }
-  .score-green .score-num { color: var(--verde-acento); }
+  .score-green .score-bar-fill { background: var(--verde-ok); }
+  .score-green .score-num { color: var(--verde-ok); }
   .score-yellow .score-bar-fill { background: var(--amarillo); }
   .score-yellow .score-num { color: var(--amarillo); }
   .score-red .score-bar-fill { background: var(--rojo); }
@@ -125,7 +128,7 @@
 
   /* NPS */
   .nps-badge { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; font-weight: 700; font-size: 11px; }
-  .nps-promotor { background: #FAE8FF; color: var(--verde-acento); }
+  .nps-promotor { background: var(--verde-ok-bg); color: var(--verde-ok); }
   .nps-pasivo { background: #FEF3C7; color: var(--amarillo); }
   .nps-detractor { background: #FEE2E2; color: var(--rojo); }
 
@@ -212,7 +215,7 @@
   .modal-item-label { font-size: 12px; color: #475569; line-height: 1.4; flex: 1; }
   .modal-item-vals { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
   .modal-resp { font-size: 12px; font-weight: 600; }
-  .modal-resp.ok { color: var(--verde-acento); }
+  .modal-resp.ok { color: var(--verde-ok); }
   .modal-resp.mal { color: var(--rojo); }
   .modal-resp.neutro { color: var(--amarillo); }
   .modal-esperado { font-size: 10px; color: #64748B; }
@@ -280,7 +283,7 @@
     display: inline-flex; align-items: center; gap: 5px;
     padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
   }
-  .mes-chip.green { background: #FAE8FF; color: #86198F; }
+  .mes-chip.green { background: #DCFCE7; color: #15803D; }
   .mes-chip.yellow { background: #FEF3C7; color: #92400E; }
   .mes-chip.red { background: #FEE2E2; color: #B91C1C; }
   .mes-chip.na { background: #F1F5F9; color: #64748B; font-weight: 500; }
@@ -323,7 +326,7 @@
     border-radius: 50%;
     flex-shrink: 0;
   }
-  .meta-dot.green { background: #A21CAF; }
+  .meta-dot.green { background: #16A34A; }
   .meta-dot.yellow { background: #F59E0B; }
   .meta-dot.red { background: #DC2626; }
   .meta-chip .meta-val { font-weight: 700; margin-left: 2px; }
@@ -331,12 +334,12 @@
 
   /* ── RUTA DEL COLABORADOR ── */
   .estatus-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; }
-  .estatus-activo { background: #FAE8FF; color: #86198F; }
+  .estatus-activo { background: #DCFCE7; color: #15803D; }
   .estatus-baja { background: #FEE2E2; color: #B91C1C; }
   .estatus-desconocido { background: #F1F5F9; color: #64748B; }
 
   .chk-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; padding: 2px 6px; border-radius: 5px; font-size: 10px; font-weight: 700; }
-  .chk-hecho { background: #FAE8FF; color: #86198F; }
+  .chk-hecho { background: #DCFCE7; color: #15803D; }
   .chk-pendiente { background: #F1F5F9; color: #64748B; }
   .chk-vencido { background: #FEE2E2; color: #B91C1C; }
   .chk-na { background: transparent; color: #E2E8F0; }
@@ -733,6 +736,7 @@
 
       <div class="panel-box" style="margin-bottom:24px">
         <h4>Tiempo de Baja</h4>
+        <div class="rv-funnel-note" style="margin:-6px 0 10px">Días de antigüedad que tenía cada colaborador al momento de irse (1–90). Muestra en qué tramo se está yendo la gente, no en qué mes.</div>
         <div id="ruta-bajas-wrap"></div>
       </div>
 
@@ -1028,14 +1032,25 @@ function txt(t) {
 function uniq(arr) { return [...new Set(arr.filter(Boolean))].sort(); }
 function avg(arr) { const a = arr.filter(n=>!isNaN(n)&&n!==''&&n!==null); return a.length ? a.reduce((s,v)=>s+parseFloat(v),0)/a.length : null; }
 
-function barChart(el, data, max100) {
+function barChart(el, data, max100, invert) {
   const entries = Object.entries(data).sort((a,b)=>b[1]-a[1]);
   const maxVal = max100 ? 100 : Math.max(...entries.map(e=>e[1]), 1);
-  el.innerHTML = entries.map(([k,v]) => {
+  const n = entries.length;
+  el.innerHTML = entries.map(([k,v], i) => {
     const w = Math.round(v/maxVal*100);
+    let color;
+    if (max100) {
+      // Umbral absoluto: por default más alto = mejor; con invert, más alto = peor (ej. rotación)
+      color = invert
+        ? (v<=10?'#16A34A':v<=20?'#F59E0B':'#DC2626')
+        : (v>=80?'#16A34A':v>=50?'#F59E0B':'#DC2626');
+    } else {
+      // Conteos sin meta: por posición dentro del ranking (ya viene ordenado desc)
+      color = i < n/3 ? '#DC2626' : i < (2*n/3) ? '#F59E0B' : '#16A34A';
+    }
     return `<div class="bar-row">
       <span class="bar-label" title="${k}">${k}</span>
-      <div class="bar-track"><div class="bar-fill" style="width:${w}%">
+      <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color}">
         ${w>18?`<span class="bar-inner-label">${max100?v+'%':v}</span>`:''}
       </div></div>
       <span class="bar-count" style="color:#475569">${w<=18?(max100?v+'%':v):''}</span>
@@ -1286,7 +1301,7 @@ function renderD30() {
   cl.innerHTML = CHECK_ITEMS.map(([col,label]) => {
     const cnt = rows.filter(r=>isSi(r[col])).length;
     const p = n ? Math.round(cnt/n*100) : 0;
-    const color = p>=80?'var(--verde-acento)':p>=60?'var(--amarillo)':'var(--rojo)';
+    const color = p>=80?'var(--verde-ok)':p>=60?'var(--amarillo)':'var(--rojo)';
     return `<div class="check-item">
       <div class="check-item-label">${label}</div>
       <div class="check-item-pct" style="color:${color}">${p}%</div>
@@ -1304,7 +1319,7 @@ function renderD30() {
   rows.forEach(r=>{ const s=sentScore(r['Incorporación']); if(s) sent[s]++; });
   const sentEl = document.getElementById('d30-sentimiento');
   const sentLabels={2:'✓ Respuesta positiva',1:'⚠ Requiere atención'};
-  const sentColors={2:'var(--verde-acento)',1:'var(--rojo)'};
+  const sentColors={2:'var(--verde-ok)',1:'var(--rojo)'};
   sentEl.innerHTML = [2,1].map(k=>{
     const p=n?Math.round(sent[k]/n*100):0;
     return `<div class="bar-row">
@@ -1355,7 +1370,7 @@ function renderD30() {
 
   const sentTag = v => {
     const s = sentScore(v);
-    if (s===2) return '<span style="color:var(--verde-acento);font-size:11px">✓ Bien</span>';
+    if (s===2) return '<span style="color:var(--verde-ok);font-size:11px">✓ Bien</span>';
     if (s===1) return '<span style="color:var(--rojo);font-size:11px;font-weight:600">⚠ Atención</span>';
     return '<span style="color:#64748B">—</span>';
   };
@@ -1512,13 +1527,13 @@ function renderEv() {
       const v=Math.round(((i||0)+(l||0)+(o||0))/17*100);
       return pctBar(v);
     })()}</td>
-    <td style="text-align:center">${(()=>{const v=r['¿Cómo se llama el Juego del Año?  (marcar solo si lo menciona)'];return v?(v.includes('Clubes')||v.includes('Copa')?'<span style="color:var(--verde-acento);font-weight:600">✓ 1</span>':'<span style="color:var(--rojo)">✕ 0</span>'):'—';})()}</td>
-    <td style="text-align:center">${(()=>{const v=String(r['¿Dijo correctamente el país?']||'').toLowerCase();return v==='sí'||v==='si'?'<span style="color:var(--verde-acento);font-weight:600">✓ 1</span>':v==='no'?'<span style="color:var(--rojo)">✕ 0</span>':'—';})()}</td>
+    <td style="text-align:center">${(()=>{const v=r['¿Cómo se llama el Juego del Año?  (marcar solo si lo menciona)'];return v?(v.includes('Clubes')||v.includes('Copa')?'<span style="color:var(--verde-ok);font-weight:600">✓ 1</span>':'<span style="color:var(--rojo)">✕ 0</span>'):'—';})()}</td>
+    <td style="text-align:center">${(()=>{const v=String(r['¿Dijo correctamente el país?']||'').toLowerCase();return v==='sí'||v==='si'?'<span style="color:var(--verde-ok);font-weight:600">✓ 1</span>':v==='no'?'<span style="color:var(--rojo)">✕ 0</span>':'—';})()}</td>
     <td style="text-align:center">${(()=>{
       const rawInd = r['Pts. Indicadores (0-4)'] !== undefined ? r['Pts. Indicadores (0-4)'] : r['Pts. Indicadores (0-4)_2'];
       const v = parseFloat(rawInd);
       if(!isNaN(v)){
-        const clr=v>=3?'var(--verde-acento)':v>=2?'var(--amarillo)':'var(--rojo)';
+        const clr=v>=3?'var(--verde-ok)':v>=2?'var(--amarillo)':'var(--rojo)';
         return '<span style="color:'+clr+';font-weight:600">'+v+'/4</span>';
       }
       return '—';
@@ -1633,13 +1648,13 @@ function renderCert() {
 
   const semCell = (v) => {
     const ok = String(v||'').trim() === '✓';
-    return ok ? '<span style="color:var(--verde-acento);font-weight:700">✓</span>' : '<span style="color:#E2E8F0">—</span>';
+    return ok ? '<span style="color:var(--verde-ok);font-weight:700">✓</span>' : '<span style="color:#E2E8F0">—</span>';
   };
 
   tbody.innerHTML = rows.map(r => {
     const fIngreso = parseFechaDDMM(r['Fecha de\nInicio'] ?? r['Fecha de Inicio']);
     const avance = avancePct(r);
-    const colorAvance = avance===null?'#64748B':avance>=100?'var(--verde-acento)':avance>=50?'var(--amarillo)':'var(--rojo)';
+    const colorAvance = avance===null?'#64748B':avance>=100?'var(--verde-ok)':avance>=50?'var(--amarillo)':'var(--rojo)';
     return `<tr>
       <td class="td-name">${getNombre(r)}</td>
       <td class="td-sucursal">${clubNombre(r['Club'])}</td>
@@ -1656,13 +1671,13 @@ function renderCert() {
       <td>${avance!==null?`<div class="score-cell"><div class="score-bar-bg"><div class="score-bar-fill" style="width:${avance}%;background:${colorAvance}"></div></div><span class="score-num" style="color:${colorAvance}">${avance}%</span></div>`:'—'}</td>
       <td>${(()=>{
         // Semáforo basado en semanas desde fecha de ingreso vs avance esperado
-        if(avance===100) return '<span style="background:#FAE8FF;color:#86198F;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">✓ Completado</span>';
+        if(avance===100) return '<span style="background:#DCFCE7;color:#15803D;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">✓ Completado</span>';
         const hoy = new Date();
         const semTranscurridas = fIngreso ? Math.floor((hoy - fIngreso)/(7*24*60*60*1000)) : null;
         if(semTranscurridas===null) return '—';
         const avanceEsperado = Math.min(semTranscurridas * 25, 100);
         const diferencia = avance - avanceEsperado;
-        if(diferencia >= 0) return '<span style="background:#FAE8FF;color:#86198F;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">● Al día</span>';
+        if(diferencia >= 0) return '<span style="background:#DCFCE7;color:#15803D;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">● Al día</span>';
         if(diferencia >= -25) return '<span style="background:#FEF3C7;color:#92400E;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">● Con retraso</span>';
         return '<span style="background:#FEE2E2;color:#B91C1C;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">● Atrasado</span>';
       })()}</td>
@@ -1977,7 +1992,7 @@ function renderRuta() {
   });
   const rotacionSuc = Object.fromEntries(Object.keys(bySucN).map(s => [s, Math.round((bySuc[s]||0)/bySucN[s]*100)]));
   const elRotSuc = document.getElementById('ruta-rotacion-suc');
-  if (Object.keys(rotacionSuc).length) barChart(elRotSuc, rotacionSuc, true);
+  if (Object.keys(rotacionSuc).length) barChart(elRotSuc, rotacionSuc, true, true);
   else elRotSuc.innerHTML = '<div class="focos-empty">Sin datos de estatus todavía.</div>';
 
   renderBajasTrend(rows);
@@ -2489,38 +2504,40 @@ function agruparEnTrimesters(dataByMes, meses) {
 function renderBajasTrend(rows) {
   const wrap = document.getElementById('ruta-bajas-wrap');
   if (!wrap) return;
-  const bajas = rows.filter(c => c.estatus === 'baja' && c.fechaBaja);
+  const bajas = rows.filter(c => c.estatus === 'baja' && c.diasDuro !== null && c.diasDuro >= 1 && c.diasDuro <= 90);
   if (!bajas.length) {
-    wrap.innerHTML = '<div class="focos-empty">Sin bajas registradas todavía en esta ventana.</div>';
+    wrap.innerHTML = '<div class="focos-empty">Sin bajas con fecha registrada dentro de los primeros 90 días.</div>';
     return;
   }
   wrap.innerHTML = '<canvas id="ruta-bajas-canvas" height="140"></canvas>';
 
-  const mesLabelPorClave = {};
-  const totalPorMes = {};
-  const porSucPorMes = {};
-  bajas.forEach(c => {
-    const clave = getMesSort(c.fechaBaja);
-    const label = getMes(c.fechaBaja);
-    if (!clave || label === '—') return;
-    mesLabelPorClave[clave] = label;
-    totalPorMes[label] = (totalPorMes[label]||0) + 1;
-    const s = c.sucursal || 'Sin sucursal';
-    porSucPorMes[s] = porSucPorMes[s] || {};
-    porSucPorMes[s][label] = (porSucPorMes[s][label]||0) + 1;
-  });
-  const periodos = Object.keys(mesLabelPorClave).sort().map(k => mesLabelPorClave[k]);
+  // Escala fija de 1 a 90 días, en bloques de 10, para ver en qué tramo de su
+  // antigüedad se está yendo la gente (no por mes calendario).
+  const BUCKET = 10;
+  const buckets = [];
+  for (let start = 1; start <= 90; start += BUCKET) buckets.push(`${start}-${Math.min(start+BUCKET-1, 90)}`);
+  const bucketOf = (dias) => buckets[Math.min(Math.floor((dias-1)/BUCKET), buckets.length-1)];
 
-  const sucTotales = Object.entries(porSucPorMes)
+  const totalPorBucket = {};
+  const porSucPorBucket = {};
+  bajas.forEach(c => {
+    const b = bucketOf(c.diasDuro);
+    totalPorBucket[b] = (totalPorBucket[b]||0) + 1;
+    const s = c.sucursal || 'Sin sucursal';
+    porSucPorBucket[s] = porSucPorBucket[s] || {};
+    porSucPorBucket[s][b] = (porSucPorBucket[s][b]||0) + 1;
+  });
+
+  const sucTotales = Object.entries(porSucPorBucket)
     .map(([s, obj]) => [s, Object.values(obj).reduce((a,b)=>a+b,0)])
     .sort((a,b) => b[1]-a[1]);
   const topSucs = sucTotales.slice(0, 6).map(([s]) => s);
 
   const series = [
-    { label: 'Total', data: totalPorMes, color: '#DC2626', bold: true },
-    ...topSucs.map(s => ({ label: s, data: porSucPorMes[s] })),
+    { label: 'Total', data: totalPorBucket, color: '#DC2626', bold: true },
+    ...topSucs.map(s => ({ label: s, data: porSucPorBucket[s] })),
   ];
-  buildCountTrendChart('ruta-bajas-canvas', periodos, series);
+  buildCountTrendChart('ruta-bajas-canvas', buckets, series);
 }
 
 function buildCountTrendChart(canvasId, periodos, series) {
@@ -2630,7 +2647,7 @@ function buildTrendChart(canvasId, periodos, series, target) {
   const cW = W - PAD.left - PAD.right;
   const cH = H - PAD.top - PAD.bottom;
 
-  const COLORS = ['#A21CAF','#101828','#F59E0B','#64748B','#DC2626','#E879F9','#92400E','#86198F','#BF9B45','#475569'];
+  const COLORS = ['#16A34A','#F59E0B','#DC2626','#15803D','#D97706','#B91C1C','#0D9488','#92400E','#65A30D','#475569'];
 
   // Grid lines
   ctx.strokeStyle = '#E2E8F0';
@@ -2741,7 +2758,7 @@ function buildMetaTable(headEl, bodyEl, meses, indicadores, target, margen, canv
 
   // Gráfica: una línea por sucursal + línea de meta
   if (canvasId && bySucMes) {
-    const COLORS = ['#A21CAF','#101828','#F59E0B','#64748B','#DC2626','#E879F9','#92400E','#86198F','#475569','#BF9B45'];
+    const COLORS = ['#16A34A','#F59E0B','#DC2626','#15803D','#D97706','#B91C1C','#0D9488','#92400E','#475569','#65A30D'];
     const series = Object.entries(bySucMes).map(([suc, byMes], i) => {
       let data = byMes;
       if (trimestral) data = agruparEnTrimesters(byMes, meses);
@@ -2881,7 +2898,7 @@ function agruparPorMesSuc(rows, fechaFn, sucFn, valorFn) {
 }
 
 function seriesPorSucursal(bySucMes, meses, periodos, trimestral) {
-  const COLORS = ['#A21CAF','#101828','#F59E0B','#64748B','#DC2626','#E879F9','#92400E','#86198F'];
+  const COLORS = ['#16A34A','#F59E0B','#DC2626','#15803D','#D97706','#B91C1C','#0D9488','#92400E'];
   return Object.entries(bySucMes).map(([suc, byMes], i) => {
     let data = byMes;
     if (trimestral) data = agruparEnTrimesters(byMes, meses);
