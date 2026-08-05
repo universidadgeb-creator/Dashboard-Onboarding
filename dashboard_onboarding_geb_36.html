@@ -1627,6 +1627,17 @@ function avancePct(r) {
   return isNaN(v) ? null : Math.round(v);
 }
 
+// La hoja "Evaluación" ya no trae una columna "% Calificación Filosofía" directa;
+// se reconstruye desde los puntos crudos de Propósito/Credo/Valores (máx. 3+5+9=17 pts).
+function filosofiaPct(r) {
+  if (!r) return null;
+  let v = parseFloat(r['% Calificación Filosofía']);
+  if (!isNaN(v) && v > 0) return Math.round(v);
+  const i = parseFloat(r['Calificación Propósito']), l = parseFloat(r['Calificación Credo']), o = parseFloat(r['Calificación Valores']);
+  if (!isNaN(i) || !isNaN(l) || !isNaN(o)) return Math.round(((i||0)+(l||0)+(o||0))/17*100);
+  return null;
+}
+
 function renderCert() {
   const {suc, mes, trim} = getF();
   let rows = DATA.cert.filter(r => {
@@ -2334,7 +2345,7 @@ function openRutaModal(key) {
   else if (focos.length > 0) verdict = { cls:'warning', text:`${focos.length} foco(s) rojo(s), sin riesgo mayor` };
 
   const nps = c.pre ? c.pre['Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  '] : null;
-  const fil = c.ev ? parseFloat(c.ev['% Calificación Filosofía']) : NaN;
+  const fil = c.ev ? filosofiaPct(c.ev) : null;
   const av = c.cert ? avancePct(c.cert) : null;
   const riesgoCorto = riesgoTxtResumen ? riesgoTxtResumen.split('—')[0].trim() : '—';
 
@@ -2347,7 +2358,7 @@ function openRutaModal(key) {
   </div>`;
   html += `<div class="rv-modal-stats">
     <div class="rv-modal-stat"><div class="l">NPS</div><div class="v">${nps!==null&&nps!==undefined&&nps!==''?nps+'/10':'—'}</div></div>
-    <div class="rv-modal-stat"><div class="l">% Filosofía</div><div class="v">${!isNaN(fil)&&fil>0?fil+'%':'—'}</div></div>
+    <div class="rv-modal-stat"><div class="l">% Filosofía</div><div class="v">${fil!==null&&fil>0?fil+'%':'—'}</div></div>
     <div class="rv-modal-stat"><div class="l">% Certificación</div><div class="v">${av!==null?av+'%':'—'}</div></div>
     <div class="rv-modal-stat"><div class="l">Riesgo líder</div><div class="v" style="font-size:12px">${riesgoCorto}</div></div>
   </div>`;
@@ -2367,8 +2378,8 @@ function openRutaModal(key) {
 
   html += `<div class="modal-section-label">Evaluación de inducción</div>`;
   if (c.ev) {
-    const fil = parseFloat(c.ev['% Calificación Filosofía']) || null;
-    html += `<div class="modal-item"><span class="modal-item-label">% Filosofía</span><div class="modal-item-vals"><span class="modal-resp ${fil>=80?'ok':fil>=60?'neutro':'mal'}">${fil!==null?fil+'%':'—'}</span></div></div>`;
+    const fil = filosofiaPct(c.ev);
+    html += `<div class="modal-item"><span class="modal-item-label">% Filosofía</span><div class="modal-item-vals"><span class="modal-resp ${fil===null?'':fil>=80?'ok':fil>=60?'neutro':'mal'}">${fil!==null?fil+'%':'—'}</span></div></div>`;
   } else {
     html += `<div class="modal-item"><span class="modal-item-label" style="color:#64748B">Sin evaluación registrada todavía.</span></div>`;
   }
