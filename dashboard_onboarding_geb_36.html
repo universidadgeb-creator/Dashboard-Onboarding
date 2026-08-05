@@ -426,6 +426,9 @@
 
   .rv-avatar { width: 38px; height: 38px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
   .rv-avatar-lg { width: 52px; height: 52px; font-size: 18px; }
+  .rv-avatar-wrap { display: inline-block; flex-shrink: 0; }
+  .rv-avatar-img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; display: block; }
+  .rv-avatar-img.rv-avatar-lg { width: 52px; height: 52px; }
 
   .rv-narr { font-size: 12.5px; line-height: 1.65; color: var(--rv-text2); background: var(--rv-surface); border: 1px solid var(--rv-border); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
 
@@ -760,7 +763,7 @@
 <div class="modal-overlay" id="ruta-modal-overlay" onclick="closeRutaModal(event)">
   <div class="modal-panel ruta-v2" id="ruta-modal-panel">
     <div class="modal-header">
-      <div class="rv-avatar rv-avatar-lg" id="ruta-modal-avatar"></div>
+      <div id="ruta-modal-avatar"></div>
       <div class="modal-header-info">
         <div class="modal-nombre" id="ruta-modal-nombre">—</div>
         <div class="modal-meta" id="ruta-modal-meta"></div>
@@ -1096,7 +1099,7 @@ function applyFilters() {
 }
 function populateFilters() {
   const certSucs = DATA.cert.map(r => clubNombre(r['Club']));
-  const estatusSucs = DATA.estatus.map(r => r['Sucursal']);
+  const estatusSucs = DATA.estatus.map(r => clubNombre(r['Sucursal']));
   const allSuc = [...DATA.pre.map(r=>r['Sucursal']), ...DATA.d30.map(r=>r['Sucursal']), ...DATA.ev.map(r=>r['Sucursal']), ...certSucs, ...estatusSucs];
   fillSelect('f-sucursal', uniq(allSuc), 'Todas las sucursales');
 
@@ -1683,6 +1686,16 @@ function initials(nombre) {
   const last = parts.length > 1 ? parts[parts.length-1][0] : '';
   return (first + last).toUpperCase();
 }
+function avatarHtml(c, sizeClass) {
+  const cls = sizeClass || '';
+  const initHtml = `<div class="rv-avatar ${cls}" style="background:${avatarColor(c.nombre)}">${initials(c.nombre)}</div>`;
+  if (!c.foto) return initHtml;
+  const safeFoto = String(c.foto).replace(/"/g,'&quot;');
+  return `<span class="rv-avatar-wrap">
+    <img class="rv-avatar-img ${cls}" src="${safeFoto}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <div class="rv-avatar ${cls}" style="background:${avatarColor(c.nombre)};display:none">${initials(c.nombre)}</div>
+  </span>`;
+}
 function avatarColor(nombre) {
   let hash = 0;
   const s = String(nombre||'');
@@ -1777,14 +1790,18 @@ function buildColabIndex() {
     c.cert = r;
   });
   DATA.estatus.forEach(r => {
-    const nom = r['Nombre completo'] || r['Nombre']; if (!nom) return;
+    const nom = getNombre(r); if (nom === '—') return;
     const c = get(normName(nom));
     c.nombre = c.nombre || nom.trim();
-    c.sucursal = c.sucursal || r['Sucursal'];
+    c.sucursal = c.sucursal || clubNombre(r['Sucursal']);
     c.rol = c.rol || r['Rol'];
+    c.turno = c.turno || r['Turno'];
+    c.lider = c.lider || r['Líder'];
+    c.foto = c.foto || r['Foto'];
     c.estatusRow = r;
-    const fIng = parseFecha(r['Fecha de ingreso']) || parseFechaDDMM(r['Fecha de ingreso']);
-    if (fIng) c.fechaIngresoSrc = fIng; // la hoja de estatus es la fuente más confiable de fecha de ingreso
+    const fechaRaw = Object.entries(r).find(([k]) => k.toLowerCase().includes('fecha') && k.toLowerCase().includes('ingreso'));
+    const fIng = fechaRaw ? (parseFecha(fechaRaw[1]) || parseFechaDDMM(fechaRaw[1])) : null;
+    if (fIng) c.fechaIngresoSrc = fIng; // "Datos Generales" es la fuente más confiable de fecha de ingreso
   });
 
   const hoy = new Date();
@@ -2003,11 +2020,13 @@ function renderColabList() {
     const st60  = rvStageState(!!c.d60 || !!c.d60l, c.dias, VENTANA_60, focos.some(f=>f.fuente==='60 días'||f.fuente==='60 días · líder'));
     const st90  = rvStageState(!!c.d90, c.dias, VENTANA_90, focos.some(f=>f.fuente==='90 días'));
     const teaser = focos.length ? `⚠ ${focos[0].motivo}` : '✓ Sin focos rojos';
+    const metaBits = [c.sucursal, c.rol, c.turno].filter(Boolean).join(' · ');
     return `<div class="rv-colab-card" onclick="openRutaModal('${c.key.replace(/'/g,"\\'")}')">
-      <div class="rv-avatar" style="background:${avatarColor(c.nombre)}">${initials(c.nombre)}</div>
+      ${avatarHtml(c)}
       <div class="rv-colab-body">
         <div class="rv-colab-name">${c.nombre}</div>
-        <div class="rv-colab-meta">${c.sucursal||'—'} · ${c.rol||'—'}<span class="estatus-badge ${estClass}">${estLabel}</span></div>
+        <div class="rv-colab-meta">${metaBits||'—'}<span class="estatus-badge ${estClass}">${estLabel}</span></div>
+        ${c.lider?`<div class="rv-colab-meta" style="margin-top:-4px">Líder: ${c.lider}</div>`:''}
         <div class="rv-colab-dots">${rvDot(stPre,'Preonboarding')}${rvDot(st30,'30 días')}${rvDot(st60,'60 días')}${rvDot(st90,'90 días')}</div>
         <div class="rv-colab-teaser ${focos.length?'':'ok'}">${teaser}</div>
       </div>
@@ -2115,11 +2134,9 @@ function openRutaModal(key) {
 
   document.getElementById('ruta-modal-nombre').textContent = c.nombre;
   document.getElementById('ruta-modal-meta').innerHTML = [
-    c.sucursal, c.rol, c.fechaIngreso?`Ingresó ${fmtFecha(c.fechaIngreso)}`:null, c.dias!==null?`${c.dias} días`:null
+    c.sucursal, c.rol, c.turno, c.lider?`Líder: ${c.lider}`:null, c.fechaIngreso?`Ingresó ${fmtFecha(c.fechaIngreso)}`:null, c.dias!==null?`${c.dias} días`:null
   ].filter(Boolean).map(v=>`<span>${v}</span>`).join('');
-  const avatarEl = document.getElementById('ruta-modal-avatar');
-  avatarEl.textContent = initials(c.nombre);
-  avatarEl.style.background = avatarColor(c.nombre);
+  document.getElementById('ruta-modal-avatar').innerHTML = avatarHtml(c, 'rv-avatar-lg');
 
   const focos = focosRojosDe(c);
   const stPre = rvStageState(!!c.pre, null, null, false);
@@ -2235,7 +2252,7 @@ async function loadAll() {
     // Hoja de estatus/rotación es opcional — aún no existe hasta que se cree en el Sheet.
     // Se carga aparte para que su ausencia no tumbe el resto del dashboard.
     try {
-      const estatus = await fetchSheet('Estatus Colaboradores');
+      const estatus = await fetchSheet('Datos Generales');
       const filtrados = Array.isArray(estatus) ? estatus.filter(r => {
         const nombre = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
         return nombre !== undefined;
