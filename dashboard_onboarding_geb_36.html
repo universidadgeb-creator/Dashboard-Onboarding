@@ -1732,6 +1732,57 @@ function normName(s) {
     .replace(/\s+/g,' ')
     .trim();
 }
+// Mismas palabras en cualquier orden (ej. "Perez Delgado Brian Joshue" vs "Brian Joshue Perez Delgado")
+function tokenKey(normed) {
+  return normed.split(' ').filter(Boolean).sort().join(' ');
+}
+// Distancia de edici\u00f3n (Levenshtein) para agarrar errores de dedo tipo "Rivas" vs "Rivera"
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  if (!m) return n;
+  if (!n) return m;
+  let prev = Array.from({length: n+1}, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) {
+      cur[j] = a[i-1] === b[j-1] ? prev[j-1] : 1 + Math.min(prev[j-1], prev[j], cur[j-1]);
+    }
+    prev = cur;
+  }
+  return prev[n];
+}
+// \u00bfDos nombres ya normalizados son "la misma persona" con suficiente confianza?
+function similarNames(a, b) {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  if (tokenKey(a) === tokenKey(b)) return true; // mismas palabras, orden distinto, sin errores
+  // Muy parecidas letra por letra en general (typo simple, aprox. el mismo orden)
+  if (Math.abs(a.length - b.length) <= 3) {
+    const dist = levenshtein(a, b);
+    if (dist <= Math.max(2, Math.floor(Math.max(a.length,b.length) * 0.12))) return true;
+  }
+  // Conjunto de palabras parecido: compara palabra por palabra (sin importar el orden),
+  // tolerando un typo por palabra y que a una de las dos le falte hasta 2 palabras
+  // (ej. le falta el primer nombre, o un apellido con una letra cambiada)
+  const ta = a.split(' ').filter(Boolean);
+  const tb = b.split(' ').filter(Boolean);
+  const minLen = Math.min(ta.length, tb.length);
+  const maxLen = Math.max(ta.length, tb.length);
+  if (minLen < 2 || maxLen - minLen > 2) return false;
+  const usedB = new Set();
+  let matched = 0;
+  for (const wa of ta) {
+    let bestIdx = -1, bestDist = Infinity;
+    tb.forEach((wb, j) => {
+      if (usedB.has(j)) return;
+      const d = wa === wb ? 0 : levenshtein(wa, wb);
+      if (d < bestDist) { bestDist = d; bestIdx = j; }
+    });
+    const tol = wa.length <= 3 ? 0 : wa.length <= 6 ? 1 : 2;
+    if (bestIdx !== -1 && bestDist <= tol) { matched++; usedB.add(bestIdx); }
+  }
+  return matched >= minLen;
+}
 
 // No hay fotos de colaboradores en ninguna hoja del Sheet \u2014 avatar con iniciales como respaldo.
 const AVATAR_PALETTE = ['#A21CAF','#2563EB','#0D9488','#D97706','#DB2777','#059669','#4F46E5'];
@@ -1787,19 +1838,31 @@ const D90_LIKERT = [
 ];
 
 function buildColabIndex() {
-  const map = new Map();
-  const get = (key) => { if (!map.has(key)) map.set(key, { key }); return map.get(key); };
+  const list = [];
+  const byKey = new Map(); // cache: cada variante de nombre ya vista -> el mismo registro
+
+  function findOrCreate(nombreRaw) {
+    const key = normName(nombreRaw) || '(sin nombre)';
+    if (byKey.has(key)) return byKey.get(key);
+    let rec = list.find(r => similarNames(key, r.key));
+    if (!rec) {
+      rec = { key };
+      list.push(rec);
+    }
+    byKey.set(key, rec); // así la próxima vez que salga esta variante exacta, es O(1)
+    return rec;
+  }
 
   DATA.pre.forEach(r => {
     const nom = getNombre(r); if (nom==='—') return;
-    const c = get(normName(nom));
+    const c = findOrCreate(nom);
     c.nombre = c.nombre || nom.trim();
     c.sucursal = c.sucursal || r['Sucursal'];
     c.pre = r;
   });
   DATA.d30.forEach(r => {
     const nom = r['Nombre']; if (!nom) return;
-    const c = get(normName(nom));
+    const c = findOrCreate(nom);
     c.nombre = c.nombre || nom.trim();
     c.sucursal = c.sucursal || r['Sucursal'];
     c.rol = c.rol || r['Rol'];
@@ -1808,7 +1871,7 @@ function buildColabIndex() {
   });
   DATA.d60.forEach(r => {
     const nom = r['Nombre completo']; if (!nom) return;
-    const c = get(normName(nom));
+    const c = findOrCreate(nom);
     c.nombre = c.nombre || nom.trim();
     c.sucursal = c.sucursal || r['Sucursal'];
     c.rol = c.rol || r['Rol'];
@@ -1816,13 +1879,13 @@ function buildColabIndex() {
   });
   DATA.d60l.forEach(r => {
     const nom = r['Nombre del colaborador evaluado']; if (!nom) return;
-    const c = get(normName(nom));
+    const c = findOrCreate(nom);
     c.nombre = c.nombre || nom.trim();
     c.d60l = r;
   });
   DATA.d90.forEach(r => {
     const nom = r['Nombre completo']; if (!nom) return;
-    const c = get(normName(nom));
+    const c = findOrCreate(nom);
     c.nombre = c.nombre || nom.trim();
     c.sucursal = c.sucursal || r['Sucursal'];
     c.rol = c.rol || r['Rol / puesto'];
@@ -1830,7 +1893,7 @@ function buildColabIndex() {
   });
   DATA.ev.forEach(r => {
     const nom = r['Nombre del colaborador']; if (!nom) return;
-    const c = get(normName(nom));
+    const c = findOrCreate(nom);
     c.nombre = c.nombre || nom.trim();
     c.rol = c.rol || r['Rol'];
     c.sucursal = c.sucursal || r['Sucursal'];
@@ -1838,7 +1901,7 @@ function buildColabIndex() {
   });
   DATA.cert.forEach(r => {
     const nom = getNombre(r); if (nom==='—') return;
-    const c = get(normName(nom));
+    const c = findOrCreate(nom);
     c.nombre = c.nombre || nom.trim();
     c.sucursal = c.sucursal || clubNombre(r['Club']);
     c.rol = c.rol || r['Rol'];
@@ -1847,7 +1910,7 @@ function buildColabIndex() {
   });
   DATA.estatus.forEach(r => {
     const nom = getNombre(r); if (nom === '—') return;
-    const c = get(normName(nom));
+    const c = findOrCreate(nom);
     c.nombre = c.nombre || nom.trim();
     // "Datos Generales" es la hoja que el usuario mantiene al día a mano — gana sobre lo que
     // hayan traído las encuestas, en vez de solo rellenar cuando esté vacío.
@@ -1863,7 +1926,7 @@ function buildColabIndex() {
   });
 
   const hoy = new Date();
-  return [...map.values()].map(c => {
+  return list.map(c => {
     const fechaIngreso = c.fechaIngresoSrc || null;
     const dias = fechaIngreso ? Math.floor((hoy - fechaIngreso) / 86400000) : null;
     let estatus = 'desconocido', fechaBaja = null, motivoBaja = '';
