@@ -9,9 +9,9 @@
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap');
   :root {
     --verde-oscuro: #F4F6F9;
-    --verde-medio: #2563EB;
-    --verde-claro: #60A5FA;
-    --verde-acento: #2563EB;
+    --verde-medio: #7C3AED;
+    --verde-claro: #A78BFA;
+    --verde-acento: #7C3AED;
     --blanco: #101828;
     --gris-claro: #F1F5F9;
     --gris-medio: #64748B;
@@ -31,7 +31,7 @@
     display: flex; align-items: center; justify-content: space-between;
     height: 60px; position: sticky; top: 0; z-index: 100;
   }
-  .logo { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 0.08em; color: #60A5FA; text-transform: uppercase; }
+  .logo { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 0.08em; color: #A78BFA; text-transform: uppercase; }
   .logo span { color: #94A3B8; font-weight: 300; }
   .header-right { display: flex; align-items: center; gap: 16px; }
   #last-updated { font-size: 11px; color: #94A3B8; letter-spacing: 0.04em; }
@@ -42,7 +42,7 @@
   .tabs-bar { background: #F1F5F9; padding: 0 32px; display: flex; border-bottom: 1px solid #E2E8F0; }
   .tab-btn { padding: 14px 24px; font-size: 13px; font-weight: 500; color: #94A3B8; background: transparent; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; letter-spacing: 0.02em; }
   .tab-btn:hover { color: #ffffff; }
-  .tab-btn.active { color: #2563EB; border-bottom-color: #2563EB; }
+  .tab-btn.active { color: #7C3AED; border-bottom-color: #7C3AED; }
 
   /* FILTERS */
   .filters-bar { background: #FFFFFF; padding: 14px 32px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid #E2E8F0; }
@@ -51,7 +51,7 @@
   .filter-select:focus { outline: none; border-color: var(--verde-acento); }
   .filter-divider { width: 1px; height: 20px; background: #CBD5E1; margin: 0 4px; }
   .btn-clear { font-size: 11px; color: #64748B; background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif; text-decoration: underline; padding: 4px; }
-  .btn-clear:hover { color: #2563EB; }
+  .btn-clear:hover { color: #7C3AED; }
 
   /* MAIN */
   .main { padding: 24px 32px; max-width: 1500px; margin: 0 auto; }
@@ -68,7 +68,7 @@
   .kpi-sub { font-size: 11px; color: var(--gris-texto); margin-top: 4px; }
 
   /* SECTION TITLE */
-  .section-title { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; color: #2563EB; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .section-title { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; color: #7C3AED; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
   .section-title::after { content: ''; flex: 1; height: 1px; background: #E2E8F0; }
 
   /* TABLE */
@@ -80,12 +80,12 @@
   tbody tr:hover { background: #F1F5F9; }
   tbody td { padding: 9px 14px; color: #101828; white-space: nowrap; max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
   .td-name { font-weight: 500; min-width: 160px; }
-  .td-sucursal { color: #1D4ED8; font-weight: 600; font-size: 11px; }
+  .td-sucursal { color: #5B21B6; font-weight: 600; font-size: 11px; }
   .td-mes { color: #64748B; font-size: 11px; }
 
   /* BADGE */
   .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; }
-  .badge-si { background: #DBEAFE; color: var(--verde-acento); }
+  .badge-si { background: #EDE9FE; color: var(--verde-acento); }
   .badge-no { background: #FEE2E2; color: #DC2626; }
 
   /* SCORE BAR */
@@ -125,7 +125,7 @@
 
   /* NPS */
   .nps-badge { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; font-weight: 700; font-size: 11px; }
-  .nps-promotor { background: #DBEAFE; color: var(--verde-acento); }
+  .nps-promotor { background: #EDE9FE; color: var(--verde-acento); }
   .nps-pasivo { background: #FEF3C7; color: var(--amarillo); }
   .nps-detractor { background: #FEE2E2; color: var(--rojo); }
 
@@ -224,13 +224,13 @@
 
   /* ── SEGUIMIENTO 30 DÍAS ── */
   .seg-cell { display: flex; align-items: center; gap: 6px; min-width: 130px; }
-  .seg-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: #2563EB; flex-shrink: 0; }
+  .seg-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: #7C3AED; flex-shrink: 0; }
   .seg-info { display: flex; flex-direction: column; gap: 1px; }
   .seg-pendiente { font-size: 10px; color: #B91C1C; font-weight: 600; }
   .seg-dias { font-size: 10px; color: #64748B; }
-  .seg-resuelto { font-size: 10px; color: #1D4ED8; font-weight: 600; }
+  .seg-resuelto { font-size: 10px; color: #5B21B6; font-weight: 600; }
   .seg-detalle { font-size: 9px; color: #64748B; }
-  .seg-edit-btn { font-size: 10px; color: #2563EB; background: none; border: none; cursor: pointer; text-decoration: underline; padding: 0; }
+  .seg-edit-btn { font-size: 10px; color: #7C3AED; background: none; border: none; cursor: pointer; text-decoration: underline; padding: 0; }
 
   .seg-popover-overlay { position: fixed; inset: 0; z-index: 300; display: none; }
   .seg-popover-overlay.open { display: block; }
@@ -255,7 +255,7 @@
     flex: 1; padding: 6px; border-radius: 4px; font-size: 11px; font-weight: 600;
     cursor: pointer; border: none; font-family: 'Inter', sans-serif;
   }
-  .seg-btn-guardar { background: #2563EB; color: #fff; }
+  .seg-btn-guardar { background: #7C3AED; color: #fff; }
   .seg-btn-cancelar { background: #F1F5F9; color: #475569; }
   .seg-btn-quitar { background: #FEE2E2; color: #B91C1C; margin-top: 8px; width: 100%; padding: 6px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; font-family: 'Inter', sans-serif; }
 
@@ -265,7 +265,7 @@
   .metas-mensual { margin-bottom: 24px; }
   .metas-mensual-table { width: 100%; border-collapse: collapse; font-size: 12px; }
   .metas-mensual-table th {
-    background: #101828; color: #60A5FA; font-size: 10px; font-weight: 700;
+    background: #101828; color: #A78BFA; font-size: 10px; font-weight: 700;
     letter-spacing: 0.06em; text-transform: uppercase; padding: 8px 14px;
     text-align: center; border-bottom: 1px solid #1E293B; white-space: nowrap;
   }
@@ -280,7 +280,7 @@
     display: inline-flex; align-items: center; gap: 5px;
     padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
   }
-  .mes-chip.green { background: #DBEAFE; color: #1D4ED8; }
+  .mes-chip.green { background: #EDE9FE; color: #5B21B6; }
   .mes-chip.yellow { background: #FEF3C7; color: #92400E; }
   .mes-chip.red { background: #FEE2E2; color: #B91C1C; }
   .mes-chip.na { background: #F1F5F9; color: #64748B; font-weight: 500; }
@@ -323,7 +323,7 @@
     border-radius: 50%;
     flex-shrink: 0;
   }
-  .meta-dot.green { background: #2563EB; }
+  .meta-dot.green { background: #7C3AED; }
   .meta-dot.yellow { background: #F59E0B; }
   .meta-dot.red { background: #DC2626; }
   .meta-chip .meta-val { font-weight: 700; margin-left: 2px; }
@@ -331,12 +331,12 @@
 
   /* ── RUTA DEL COLABORADOR ── */
   .estatus-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; }
-  .estatus-activo { background: #DBEAFE; color: #1D4ED8; }
+  .estatus-activo { background: #EDE9FE; color: #5B21B6; }
   .estatus-baja { background: #FEE2E2; color: #B91C1C; }
   .estatus-desconocido { background: #F1F5F9; color: #64748B; }
 
   .chk-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; padding: 2px 6px; border-radius: 5px; font-size: 10px; font-weight: 700; }
-  .chk-hecho { background: #DBEAFE; color: #1D4ED8; }
+  .chk-hecho { background: #EDE9FE; color: #5B21B6; }
   .chk-pendiente { background: #F1F5F9; color: #64748B; }
   .chk-vencido { background: #FEE2E2; color: #B91C1C; }
   .chk-na { background: transparent; color: #E2E8F0; }
@@ -368,7 +368,7 @@
     --rv-muted: #898781;
     --rv-grid: #e1e0d9;
     --rv-border: rgba(11,11,11,0.10);
-    --rv-blue: #2a78d6;
+    --rv-blue: #7c3aed;
     --rv-orange: #eb6834;
     --rv-good: #0ca30c;
     --rv-warning: #fab219;
@@ -399,6 +399,11 @@
   .ruta-v2 .focos-empty { background: var(--rv-surface); border: 1px solid var(--rv-border); color: var(--rv-muted); }
   .ruta-v2 .focos-suc-head { color: var(--rv-text); border-bottom: 1px solid var(--rv-border); }
   .ruta-v2 .focos-suc-count { background: var(--rv-grid); color: var(--rv-text); }
+  .rv-suc-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .rv-suc-chip { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--rv-border); background: var(--rv-surface); color: var(--rv-text2); cursor: pointer; transition: all 0.15s; }
+  .rv-suc-chip:hover { border-color: var(--rv-blue); color: var(--rv-blue); }
+  .rv-suc-chip.active { background: var(--rv-blue); border-color: var(--rv-blue); color: #fff; }
+  .rv-suc-chip-n { font-size: 10px; opacity: 0.85; }
 
   .ruta-v2 .estatus-badge.estatus-activo { background: #E3F6E3; color: var(--rv-good); }
   .ruta-v2 .estatus-badge.estatus-baja { background: #FBE4E4; color: var(--rv-critical); }
@@ -701,6 +706,7 @@
 
       <div class="panel-box" style="margin-bottom:24px">
         <h4>Focos rojos — últimos 3 meses, por sucursal</h4>
+        <div class="rv-suc-chips" id="ruta-focos-chips"></div>
         <div class="focos-feed" id="ruta-focos"></div>
       </div>
 
@@ -1627,13 +1633,13 @@ function renderCert() {
       <td>${avance!==null?`<div class="score-cell"><div class="score-bar-bg"><div class="score-bar-fill" style="width:${avance}%;background:${colorAvance}"></div></div><span class="score-num" style="color:${colorAvance}">${avance}%</span></div>`:'—'}</td>
       <td>${(()=>{
         // Semáforo basado en semanas desde fecha de ingreso vs avance esperado
-        if(avance===100) return '<span style="background:#DBEAFE;color:#1D4ED8;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">✓ Completado</span>';
+        if(avance===100) return '<span style="background:#EDE9FE;color:#5B21B6;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">✓ Completado</span>';
         const hoy = new Date();
         const semTranscurridas = fIngreso ? Math.floor((hoy - fIngreso)/(7*24*60*60*1000)) : null;
         if(semTranscurridas===null) return '—';
         const avanceEsperado = Math.min(semTranscurridas * 25, 100);
         const diferencia = avance - avanceEsperado;
-        if(diferencia >= 0) return '<span style="background:#DBEAFE;color:#1D4ED8;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">● Al día</span>';
+        if(diferencia >= 0) return '<span style="background:#EDE9FE;color:#5B21B6;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">● Al día</span>';
         if(diferencia >= -25) return '<span style="background:#FEF3C7;color:#92400E;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">● Con retraso</span>';
         return '<span style="background:#FEE2E2;color:#B91C1C;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">● Atrasado</span>';
       })()}</td>
@@ -1823,6 +1829,8 @@ function focosRojosDe(c) {
 }
 
 let _rutaIndex = [];
+let _rutaFocosSuc = null; // sucursal seleccionada (con botón) en el feed de focos rojos; null = todas
+let _rutaTodosFocos = [];
 
 function rvStageState(existe, dias, ventana, tieneFlag) {
   if (existe) return tieneFlag ? { cls:'warning', icon:'!' } : { cls:'good', icon:'✓' };
@@ -1873,8 +1881,10 @@ function renderRuta() {
       if (rol==='limpieza' && !esLimpieza) return false;
       if (rol==='operacion' && esLimpieza) return false;
     }
+    if (c.dias === null || c.dias > 100) return false; // solo ventana de onboarding: 0–100 días
     return true;
   });
+  _rutaFocosSuc = null;
 
   const conEstatus = rows.filter(c => c.estatus !== 'desconocido');
   const activos = conEstatus.filter(c => c.estatus === 'activo').length;
@@ -1884,7 +1894,7 @@ function renderRuta() {
   const enRiesgo = rows.filter(c => c.estatus !== 'baja' && c.d60l && /🟡|🔴/.test(String(c.d60l['¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?']||''))).length;
 
   document.getElementById('ruta-kpis').innerHTML =
-    kpiCard('Colaboradores rastreados', rows.length, '') +
+    kpiCard('Colaboradores rastreados', rows.length, 'en ventana de 0–100 días') +
     kpiCard('% Activos', pctActivos!==null?`${pctActivos}%`:'—', conEstatus.length?`${activos} de ${conEstatus.length} con estatus`:'Sin datos de estatus', pctActivos>=90?'green':pctActivos>=75?'yellow':'red') +
     kpiCard('% Rotación', pctRotacion!==null?`${pctRotacion}%`:'—', conEstatus.length?`${bajas} baja(s)`:'Sin datos de estatus', pctRotacion===null?'':pctRotacion<=10?'green':pctRotacion<=20?'yellow':'red') +
     kpiCard('En riesgo (líder)', enRiesgo, 'Riesgo medio/alto marcado por líder en 60 días', enRiesgo>0?'yellow':'green');
@@ -1921,31 +1931,8 @@ function renderRuta() {
   if (Object.keys(topRol).length) barChart(elFocosRol, topRol);
   else elFocosRol.innerHTML = '<div class="focos-empty">Sin focos rojos en los últimos 3 meses.</div>';
 
-  const elFocos = document.getElementById('ruta-focos');
-  if (!todosFocos.length) {
-    elFocos.innerHTML = '<div class="focos-empty">Sin focos rojos en los últimos 3 meses. 🎉</div>';
-  } else {
-    const porSuc = {};
-    todosFocos.forEach(f => {
-      const s = f.sucursal || 'Sin sucursal';
-      (porSuc[s] = porSuc[s] || []).push(f);
-    });
-    const sucOrdenadas = Object.entries(porSuc).sort((a,b) => b[1].length - a[1].length);
-    elFocos.innerHTML = sucOrdenadas.map(([s, items]) => `
-      <div class="focos-suc-group">
-        <div class="focos-suc-head"><span>${s}</span><span class="focos-suc-count">${items.length}</span></div>
-        ${items.slice(0, 25).map(f => `
-          <div class="focos-item" onclick="openRutaModal('${f.key.replace(/'/g,"\\'")}')">
-            <div class="focos-item-head">
-              <span class="focos-item-nombre">${f.nombre}</span>
-              <span class="focos-item-tag">${f.fuente}</span>
-            </div>
-            <div class="focos-item-motivo">${f.motivo}</div>
-            ${f.detalle?`<div class="focos-item-detalle">${f.detalle}</div>`:''}
-            <div class="focos-item-fecha">${f.fecha?fmtFecha(f.fecha):''}</div>
-          </div>`).join('')}
-      </div>`).join('');
-  }
+  _rutaTodosFocos = todosFocos;
+  renderFocosFeed();
 
   // Tabla
   const soloFocos = document.getElementById('ruta-toggle-alerta').checked;
@@ -1980,6 +1967,40 @@ function renderRuta() {
       <td style="text-align:center">${focos.length?`<span class="rv-dot critical">${focos.length}</span>`:`<span class="rv-dot good">0</span>`}</td>
     </tr>`;
   }).join('');
+}
+
+function renderFocosFeed() {
+  const todosFocos = _rutaTodosFocos;
+  const chipsEl = document.getElementById('ruta-focos-chips');
+  const elFocos = document.getElementById('ruta-focos');
+
+  const bySuc = {};
+  todosFocos.forEach(f => { const s = f.sucursal || 'Sin sucursal'; bySuc[s] = (bySuc[s]||0) + 1; });
+  const sucList = Object.entries(bySuc).sort((a,b) => b[1]-a[1]);
+
+  chipsEl.innerHTML = `<button class="rv-suc-chip ${!_rutaFocosSuc?'active':''}" onclick="selectFocosSuc(null)">Todas <span class="rv-suc-chip-n">${todosFocos.length}</span></button>` +
+    sucList.map(([s,n]) => `<button class="rv-suc-chip ${_rutaFocosSuc===s?'active':''}" onclick="selectFocosSuc('${s.replace(/'/g,"\\'")}')">${s} <span class="rv-suc-chip-n">${n}</span></button>`).join('');
+
+  const filtrados = _rutaFocosSuc ? todosFocos.filter(f => (f.sucursal||'Sin sucursal') === _rutaFocosSuc) : todosFocos;
+
+  if (!filtrados.length) {
+    elFocos.innerHTML = `<div class="focos-empty">${_rutaFocosSuc ? 'Sin focos rojos en ' + _rutaFocosSuc + ' en los últimos 3 meses.' : 'Sin focos rojos en los últimos 3 meses. 🎉'}</div>`;
+    return;
+  }
+  elFocos.innerHTML = filtrados.slice(0, 60).map(f => `
+    <div class="focos-item" onclick="openRutaModal('${f.key.replace(/'/g,"\\'")}')">
+      <div class="focos-item-head">
+        <span class="focos-item-nombre">${f.nombre}</span>
+        <span class="focos-item-tag">${f.fuente}</span>
+      </div>
+      <div class="focos-item-motivo">${f.motivo}</div>
+      ${f.detalle?`<div class="focos-item-detalle">${f.detalle}</div>`:''}
+      <div class="focos-item-fecha">${f.fecha?fmtFecha(f.fecha):''}</div>
+    </div>`).join('');
+}
+function selectFocosSuc(s) {
+  _rutaFocosSuc = s;
+  renderFocosFeed();
 }
 
 function modalStageBlock(sectionLabel, likertCols, record, extras) {
@@ -2407,7 +2428,7 @@ function buildTrendChart(canvasId, periodos, series, target) {
   const cW = W - PAD.left - PAD.right;
   const cH = H - PAD.top - PAD.bottom;
 
-  const COLORS = ['#2563EB','#101828','#F59E0B','#64748B','#DC2626','#60A5FA','#92400E','#1D4ED8','#BF9B45','#475569'];
+  const COLORS = ['#7C3AED','#101828','#F59E0B','#64748B','#DC2626','#A78BFA','#92400E','#5B21B6','#BF9B45','#475569'];
 
   // Grid lines
   ctx.strokeStyle = '#E2E8F0';
@@ -2518,7 +2539,7 @@ function buildMetaTable(headEl, bodyEl, meses, indicadores, target, margen, canv
 
   // Gráfica: una línea por sucursal + línea de meta
   if (canvasId && bySucMes) {
-    const COLORS = ['#2563EB','#101828','#F59E0B','#64748B','#DC2626','#60A5FA','#92400E','#1D4ED8','#475569','#BF9B45'];
+    const COLORS = ['#7C3AED','#101828','#F59E0B','#64748B','#DC2626','#A78BFA','#92400E','#5B21B6','#475569','#BF9B45'];
     const series = Object.entries(bySucMes).map(([suc, byMes], i) => {
       let data = byMes;
       if (trimestral) data = agruparEnTrimesters(byMes, meses);
@@ -2658,7 +2679,7 @@ function agruparPorMesSuc(rows, fechaFn, sucFn, valorFn) {
 }
 
 function seriesPorSucursal(bySucMes, meses, periodos, trimestral) {
-  const COLORS = ['#2563EB','#101828','#F59E0B','#64748B','#DC2626','#60A5FA','#92400E','#1D4ED8'];
+  const COLORS = ['#7C3AED','#101828','#F59E0B','#64748B','#DC2626','#A78BFA','#92400E','#5B21B6'];
   return Object.entries(bySucMes).map(([suc, byMes], i) => {
     let data = byMes;
     if (trimestral) data = agruparEnTrimesters(byMes, meses);
