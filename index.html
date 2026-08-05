@@ -1925,9 +1925,8 @@ function focosRojosDe(c) {
       D90_LIKERT.forEach(col => { const v=parseFloat(r[col]); if(!isNaN(v)&&v<4) flags.push({ fuente:'90 días', motivo: col, detalle:`Calificó ${v}/5`, fecha }); });
     }
   }
-  if (c.estatus === 'baja') {
-    flags.push({ fuente:'Estatus', motivo:'Colaborador dado de baja', detalle: c.motivoBaja || '', fecha: c.fechaBaja });
-  }
+  // Nota: "dado de baja" ya no se cuenta como foco rojo aquí — es un estatus, no
+  // un motivo de encuesta, y ya se ve aparte en el badge de Estatus y en "Motivos de baja".
   return flags.sort((a,b) => (b.fecha||0) - (a.fecha||0));
 }
 
