@@ -1063,14 +1063,17 @@ function txt(t) {
 function uniq(arr) { return [...new Set(arr.filter(Boolean))].sort(); }
 function avg(arr) { const a = arr.filter(n=>!isNaN(n)&&n!==''&&n!==null); return a.length ? a.reduce((s,v)=>s+parseFloat(v),0)/a.length : null; }
 
-function barChart(el, data, max100, invert) {
+function barChart(el, data, max100, invert, fixedColor) {
   const entries = Object.entries(data).sort((a,b)=>b[1]-a[1]);
   const maxVal = max100 ? 100 : Math.max(...entries.map(e=>e[1]), 1);
   const n = entries.length;
   el.innerHTML = entries.map(([k,v], i) => {
     const w = Math.round(v/maxVal*100);
     let color;
-    if (max100) {
+    if (fixedColor) {
+      // Sin semáforo — este dato no tiene un "bien/mal", es solo descriptivo (ej. motivo, promedio).
+      color = fixedColor;
+    } else if (max100) {
       // Umbral absoluto: por default más alto = mejor; con invert, más alto = peor (ej. rotación)
       color = invert
         ? (v<=10?'#16A34A':v<=20?'#F59E0B':'#DC2626')
@@ -2609,7 +2612,8 @@ function renderBajasTrend(rows) {
     .sort((a,b) => b[1]-a[1]);
   const topSucs = sucTotales.slice(0, 6).map(([s]) => s);
 
-  const STACK_COLORS = ['#16A34A','#F59E0B','#DC2626','#15803D','#D97706','#B91C1C'];
+  // Identidad de sucursal, no severidad — a propósito nada de verde/amarillo/rojo aquí.
+  const STACK_COLORS = ['#7E22CE','#2563EB','#0D9488','#DB2777','#854D0E','#475569'];
   const series = topSucs.map((s,i) => ({ label: s, data: porSucPorBucket[s], color: STACK_COLORS[i % STACK_COLORS.length] }));
   buildStackedBarChart('ruta-bajas-canvas', buckets, series);
 }
@@ -2628,7 +2632,7 @@ function renderMotivosBaja(rows) {
     el.innerHTML = '<div class="focos-empty">Sin motivos de baja registrados todavía.</div>';
     return;
   }
-  barChart(el, conteo);
+  barChart(el, conteo, false, false, '#7E22CE');
 }
 
 function renderPromedioDiasBaja(rows) {
@@ -2648,7 +2652,7 @@ function renderPromedioDiasBaja(rows) {
   const promedio = Object.fromEntries(Object.keys(sumPorSuc).map(s =>
     [`${s} (${nPorSuc[s]})`, Math.round(sumPorSuc[s]/nPorSuc[s])]
   ));
-  barChart(el, promedio, false, true);
+  barChart(el, promedio, false, false, '#7E22CE');
 }
 
 function renderResumenFocos(rows) {
