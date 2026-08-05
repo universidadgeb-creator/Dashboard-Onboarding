@@ -2602,11 +2602,9 @@ function renderBajasTrend(rows) {
     .sort((a,b) => b[1]-a[1]);
   const topSucs = sucTotales.slice(0, 6).map(([s]) => s);
 
-  const series = [
-    { label: 'Total', data: totalPorBucket, color: '#DC2626', bold: true },
-    ...topSucs.map(s => ({ label: s, data: porSucPorBucket[s] })),
-  ];
-  buildCountTrendChart('ruta-bajas-canvas', buckets, series);
+  const STACK_COLORS = ['#16A34A','#F59E0B','#DC2626','#15803D','#D97706','#B91C1C'];
+  const series = topSucs.map((s,i) => ({ label: s, data: porSucPorBucket[s], color: STACK_COLORS[i % STACK_COLORS.length] }));
+  buildStackedBarChart('ruta-bajas-canvas', buckets, series);
 }
 
 function renderMotivosBaja(rows) {
@@ -2646,6 +2644,80 @@ function renderResumenFocos(rows) {
 
   elVerdes.innerHTML = renderLista(verdes, 'good');
   elRojos.innerHTML = renderLista(rojos, 'bad');
+}
+
+function buildStackedBarChart(canvasId, periodos, series) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.parentElement.clientWidth || 600;
+  const H = 220;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+
+  const PAD = { top: 24, right: 20, bottom: 50, left: 30 };
+  const cW = W - PAD.left - PAD.right;
+  const cH = H - PAD.top - PAD.bottom;
+
+  const totales = periodos.map(p => series.reduce((s, ser) => s + (ser.data[p]||0), 0));
+  const maxRaw = Math.max(1, ...totales);
+  const niceMax = (() => {
+    if (maxRaw <= 5) return 5;
+    const mag = Math.pow(10, Math.floor(Math.log10(maxRaw)));
+    const norm = maxRaw / mag;
+    const step = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10;
+    return Math.ceil(maxRaw / (step*mag)) * (step*mag);
+  })();
+
+  ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const v = Math.round(niceMax * i / 4);
+    const y = PAD.top + cH - (v/niceMax)*cH;
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left+cW, y); ctx.stroke();
+    ctx.fillStyle = '#64748B'; ctx.font = '9px Inter, sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(String(v), PAD.left-4, y+3);
+  }
+
+  const slot = cW / periodos.length;
+  const barGap = Math.min(10, slot*0.2);
+  const barW = slot - barGap;
+
+  ctx.fillStyle = '#64748B'; ctx.font = '9px Inter, sans-serif'; ctx.textAlign = 'center';
+  periodos.forEach((p, i) => {
+    const x = PAD.left + i*slot + barGap/2;
+    let yCursor = PAD.top + cH;
+    series.forEach(s => {
+      const v = s.data[p] || 0;
+      if (!v) return;
+      const segH = (v/niceMax) * cH;
+      yCursor -= segH;
+      ctx.fillStyle = s.color;
+      ctx.fillRect(x, yCursor, barW, Math.max(segH-1, 0));
+    });
+    if (totales[i] > 0) {
+      ctx.fillStyle = '#101828'; ctx.font = 'bold 10px Inter,sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(String(totales[i]), x + barW/2, yCursor - 5);
+    }
+    ctx.fillStyle = '#64748B'; ctx.font = '9px Inter, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(p, x + barW/2, H - PAD.bottom + 14);
+  });
+
+  const legendY = H - 12;
+  let legendX = PAD.left;
+  series.forEach(s => {
+    ctx.fillStyle = s.color;
+    ctx.fillRect(legendX, legendY-6, 10, 8);
+    ctx.fillStyle = '#475569'; ctx.font = '9px Inter,sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(s.label, legendX+13, legendY);
+    legendX += ctx.measureText(s.label).width + 22;
+  });
 }
 
 function buildCountTrendChart(canvasId, periodos, series) {
