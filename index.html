@@ -2468,9 +2468,13 @@ async function loadAll() {
     });
     DATA.ev  = ev.filter(r => {
       if (!r['Nombre del colaborador'] || !r['Marca temporal']) return false;
-      // Excluir filas vacías con solo ceros
-      const pts = parseFloat(r['Calificación Propósito']) + parseFloat(r['Calificación Credo']) + parseFloat(r['Calificación Valores']);
-      if (isNaN(pts) || pts === 0) return false;
+      // Excluir filas vacías con solo ceros — pero si el líder dejó UNA casilla en blanco
+      // (ej. no llenó Credo), eso no debe tirar toda la evaluación de la persona.
+      const p = parseFloat(r['Calificación Propósito']);
+      const c = parseFloat(r['Calificación Credo']);
+      const v = parseFloat(r['Calificación Valores']);
+      const pts = (isNaN(p)?0:p) + (isNaN(c)?0:c) + (isNaN(v)?0:v);
+      if (pts === 0) return false;
       return true;
     });
     DATA.cert = cert.filter(r => {
