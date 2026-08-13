@@ -60,17 +60,24 @@
   .alert-check:hover { border-color: var(--verde-ok); color: var(--verde-ok); background: var(--verde-ok-bg); }
 
   /* CALENDARIO DE ANIVERSARIOS */
-  .cal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-top: 16px; }
-  .cal-month { background: #fff; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 16px; }
-  .cal-month.cal-month-actual { border-color: var(--verde-acento); box-shadow: 0 0 0 1px var(--verde-acento) inset; }
-  .cal-month h5 { font-size: 13px; font-weight: 700; color: var(--verde-acento); text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 10px; }
-  .cal-empty { font-size: 12px; color: var(--gris-texto); padding: 4px 0; }
-  .cal-person { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #F1F5F9; }
-  .cal-person:last-child { border-bottom: none; }
-  .cal-person-info { flex: 1; min-width: 0; }
-  .cal-person-nombre { font-size: 12.5px; font-weight: 500; color: var(--blanco); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .cal-person-meta { font-size: 11px; color: var(--gris-texto); }
-  .cal-day { font-size: 15px; font-weight: 700; color: var(--gris-medio); width: 24px; text-align: center; flex-shrink: 0; }
+  .cal-nav { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 16px 0 12px; }
+  .cal-nav-btn { background: #fff; border: 1px solid #E2E8F0; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; font-size: 13px; color: var(--verde-acento); transition: all 0.15s; }
+  .cal-nav-btn:hover { background: var(--verde-acento); color: #fff; }
+  #cal-mes-select { font-size: 14px; font-weight: 700; color: var(--blanco); border: 1px solid #E2E8F0; border-radius: 6px; padding: 6px 10px; font-family: 'Inter', sans-serif; cursor: pointer; min-width: 140px; text-align: center; }
+  .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 6px; }
+  .cal-weekdays span { text-align: center; font-size: 11px; font-weight: 700; color: var(--gris-medio); text-transform: uppercase; letter-spacing: 0.04em; }
+  .cal-daygrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-day-cell { min-height: 84px; background: #fff; border: 1px solid #E2E8F0; border-radius: 8px; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
+  .cal-day-cell.empty { background: transparent; border-color: transparent; }
+  .cal-day-cell.hoy { border-color: var(--verde-acento); box-shadow: 0 0 0 1px var(--verde-acento) inset; }
+  .cal-day-num { font-size: 11px; font-weight: 700; color: var(--gris-medio); text-align: right; }
+  .cal-day-persona { display: flex; align-items: center; gap: 4px; }
+  .cal-day-persona-nombre { font-size: 10px; color: var(--blanco); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cal-day-mas { font-size: 10px; color: var(--gris-texto); }
+  @media (max-width: 700px) {
+    .cal-day-persona-nombre { display: none; }
+    .cal-day-cell { min-height: 46px; }
+  }
 
   /* TABS */
   .tabs-bar { background: #F1F5F9; padding: 0 32px; display: flex; border-bottom: 1px solid #E2E8F0; }
@@ -460,9 +467,11 @@
 
   .rv-avatar { width: 38px; height: 38px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
   .rv-avatar-lg { width: 52px; height: 52px; font-size: 18px; }
+  .rv-avatar-sm { width: 20px; height: 20px; font-size: 8px; }
   .rv-avatar-wrap { display: inline-block; flex-shrink: 0; }
   .rv-avatar-img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; display: block; }
   .rv-avatar-img.rv-avatar-lg { width: 52px; height: 52px; }
+  .rv-avatar-img.rv-avatar-sm { width: 20px; height: 20px; }
 
   .rv-narr { font-size: 12.5px; line-height: 1.65; color: var(--rv-text2); background: var(--rv-surface); border: 1px solid var(--rv-border); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
 
@@ -837,7 +846,13 @@
     <div id="cal-loading" class="state-box"><div class="spinner"></div><span class="state-msg">Cargando datos…</span></div>
     <div id="cal-content" style="display:none">
       <div class="section-title">Aniversarios laborales</div>
-      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="calCambiarMes(-1)">◀</button>
+        <select id="cal-mes-select" onchange="calSeleccionarMes(this.value)"></select>
+        <button class="cal-nav-btn" onclick="calCambiarMes(1)">▶</button>
+      </div>
+      <div class="cal-weekdays"><span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span></div>
+      <div class="cal-daygrid" id="cal-daygrid"></div>
     </div>
   </div>
 
@@ -2546,36 +2561,60 @@ function irAColaborador(key) {
 
 // ── CALENDARIO DE ANIVERSARIOS LABORALES ──
 const MESES_NOMBRES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+let _calMes = new Date().getMonth();
+
+function calCambiarMes(delta) {
+  _calMes = (_calMes + delta + 12) % 12;
+  renderCalendario();
+}
+function calSeleccionarMes(v) {
+  _calMes = parseInt(v, 10);
+  renderCalendario();
+}
 
 function renderCalendario() {
   const idx = buildColabIndex();
   const hoy = new Date();
   const añoActual = hoy.getFullYear();
-  const porMes = Array.from({ length: 12 }, () => []);
+
+  const porDia = {};
   idx.forEach(c => {
     if (c.estatus !== 'activo' || !c.fechaIngreso) return;
+    if (c.fechaIngreso.getMonth() !== _calMes) return;
     const años = añoActual - c.fechaIngreso.getFullYear();
     if (años < 1) return; // todavía no cumple su primer aniversario
-    porMes[c.fechaIngreso.getMonth()].push({ ...c, dia: c.fechaIngreso.getDate(), años });
+    const dia = c.fechaIngreso.getDate();
+    (porDia[dia] = porDia[dia] || []).push({ ...c, años });
   });
-  porMes.forEach(lista => lista.sort((a,b) => a.dia - b.dia));
 
-  const grid = document.getElementById('cal-grid');
-  grid.innerHTML = MESES_NOMBRES.map((mes, i) => {
-    const lista = porMes[i];
-    const esMesActual = i === hoy.getMonth();
-    const items = lista.length
-      ? lista.map(c => `
-        <div class="cal-person">
-          ${avatarHtml(c)}
-          <div class="cal-person-info">
-            <div class="cal-person-nombre">${c.nombre}</div>
-            <div class="cal-person-meta">${c.sucursal||'—'} · cumple ${c.años} año${c.años===1?'':'s'}</div>
-          </div>
-          <div class="cal-day">${c.dia}</div>
-        </div>`).join('')
-      : `<div class="cal-empty">Sin aniversarios este mes.</div>`;
-    return `<div class="cal-month${esMesActual?' cal-month-actual':''}"><h5>${mes}${esMesActual?' · hoy':''}</h5>${items}</div>`;
+  const selectEl = document.getElementById('cal-mes-select');
+  if (selectEl.options.length !== 12) {
+    selectEl.innerHTML = MESES_NOMBRES.map((m,i) => `<option value="${i}">${m}</option>`).join('');
+  }
+  selectEl.value = _calMes;
+
+  const primerDiaSemana = new Date(añoActual, _calMes, 1).getDay();
+  const diasEnMes = new Date(añoActual, _calMes + 1, 0).getDate();
+  const celdas = [];
+  for (let i = 0; i < primerDiaSemana; i++) celdas.push(null);
+  for (let d = 1; d <= diasEnMes; d++) celdas.push(d);
+  while (celdas.length % 7 !== 0) celdas.push(null);
+
+  const esMesActual = _calMes === hoy.getMonth();
+  const grid = document.getElementById('cal-daygrid');
+  grid.innerHTML = celdas.map(d => {
+    if (d === null) return `<div class="cal-day-cell empty"></div>`;
+    const esHoy = esMesActual && d === hoy.getDate();
+    const personas = porDia[d] || [];
+    const mostrar = personas.slice(0, 2);
+    const extra = personas.length - mostrar.length;
+    const items = mostrar.map(c => `
+      <div class="cal-day-persona" title="${c.nombre} · cumple ${c.años} año${c.años===1?'':'s'}">
+        ${avatarHtml(c, 'rv-avatar-sm')}
+        <span class="cal-day-persona-nombre">${c.nombre.split(' ')[0]}</span>
+      </div>`).join('');
+    const masHtml = extra > 0 ? `<div class="cal-day-mas">+${extra} más</div>` : '';
+    return `<div class="cal-day-cell${esHoy?' hoy':''}"><div class="cal-day-num">${d}</div>${items}${masHtml}</div>`;
   }).join('');
 }
 
