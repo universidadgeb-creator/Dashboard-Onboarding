@@ -51,10 +51,26 @@
   .alert-panel.open { display: block; }
   .alert-panel-empty { padding: 22px 16px; text-align: center; color: var(--gris-texto); font-size: 12.5px; }
   .alert-group-label { padding: 10px 16px 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gris-medio); }
-  .alert-item { display: flex; flex-direction: column; gap: 2px; padding: 8px 16px; cursor: pointer; border-bottom: 1px solid #F1F5F9; }
+  .alert-item { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-bottom: 1px solid #F1F5F9; }
   .alert-item:hover { background: #F8FAFC; }
+  .alert-item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
   .alert-item .n { font-size: 13px; font-weight: 500; color: var(--blanco); }
   .alert-item .m { font-size: 11px; color: var(--gris-texto); }
+  .alert-check { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #CBD5E1; background: #fff; color: #94A3B8; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .alert-check:hover { border-color: var(--verde-ok); color: var(--verde-ok); background: var(--verde-ok-bg); }
+
+  /* CALENDARIO DE ANIVERSARIOS */
+  .cal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-top: 16px; }
+  .cal-month { background: #fff; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 16px; }
+  .cal-month.cal-month-actual { border-color: var(--verde-acento); box-shadow: 0 0 0 1px var(--verde-acento) inset; }
+  .cal-month h5 { font-size: 13px; font-weight: 700; color: var(--verde-acento); text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 10px; }
+  .cal-empty { font-size: 12px; color: var(--gris-texto); padding: 4px 0; }
+  .cal-person { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #F1F5F9; }
+  .cal-person:last-child { border-bottom: none; }
+  .cal-person-info { flex: 1; min-width: 0; }
+  .cal-person-nombre { font-size: 12.5px; font-weight: 500; color: var(--blanco); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cal-person-meta { font-size: 11px; color: var(--gris-texto); }
+  .cal-day { font-size: 15px; font-weight: 700; color: var(--gris-medio); width: 24px; text-align: center; flex-shrink: 0; }
 
   /* TABS */
   .tabs-bar { background: #F1F5F9; padding: 0 32px; display: flex; border-bottom: 1px solid #E2E8F0; }
@@ -536,6 +552,7 @@
   <button class="tab-btn" onclick="switchTab('evaluacion')">Evaluación Inducción</button>
   <button class="tab-btn" onclick="switchTab('certificaciones')">Certificaciones</button>
   <button class="tab-btn" onclick="switchTab('ruta')">Ruta del Colaborador</button>
+  <button class="tab-btn" onclick="switchTab('calendario')">Aniversarios</button>
 </div>
 
 <div class="filters-bar">
@@ -813,6 +830,14 @@
         </div>
         <div class="rv-colab-grid" id="ruta-colab-grid"></div>
       </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="panel-calendario">
+    <div id="cal-loading" class="state-box"><div class="spinner"></div><span class="state-msg">Cargando datos…</span></div>
+    <div id="cal-content" style="display:none">
+      <div class="section-title">Aniversarios laborales</div>
+      <div class="cal-grid" id="cal-grid"></div>
     </div>
   </div>
 
@@ -1171,6 +1196,7 @@ function applyFilters() {
   if (ACTIVE==='evaluacion') renderEv();
   if (ACTIVE==='certificaciones') renderCert();
   if (ACTIVE==='ruta') renderRuta();
+  if (ACTIVE==='calendario') renderCalendario();
 }
 function populateFilters() {
   const certSucs = DATA.cert.map(r => clubNombre(r['Club']));
@@ -2427,7 +2453,7 @@ document.addEventListener('keydown', e => { if (e.key==='Escape') closeRutaModal
 function switchTab(tab) {
   ACTIVE = tab;
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
-    b.classList.toggle('active', ['preonboarding','treinta','evaluacion','certificaciones','ruta'][i]===tab);
+    b.classList.toggle('active', ['preonboarding','treinta','evaluacion','certificaciones','ruta','calendario'][i]===tab);
   });
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById(`panel-${tab}`).classList.add('active');
@@ -2438,15 +2464,31 @@ function switchTab(tab) {
 // ── ALERTAS: encuestas de 30/60/90 días pendientes de enviar ──
 function colaboradoresPendientesEncuesta() {
   const idx = buildColabIndex();
+  const enviadas = getEnviadas();
   const grupos = { d30: [], d60: [], d90: [] };
   idx.forEach(c => {
     if (c.estatus !== 'activo' || c.dias === null) return;
-    if (c.dias >= 30 && !c.d30) grupos.d30.push(c);
-    if (c.dias >= 60 && !c.d60) grupos.d60.push(c);
-    if (c.dias >= 90 && !c.d90) grupos.d90.push(c);
+    if (c.dias >= 30 && !c.d30 && !enviadas[`${c.key}__d30`]) grupos.d30.push(c);
+    if (c.dias >= 60 && !c.d60 && !enviadas[`${c.key}__d60`]) grupos.d60.push(c);
+    if (c.dias >= 90 && !c.d90 && !enviadas[`${c.key}__d90`]) grupos.d90.push(c);
   });
   ['d30','d60','d90'].forEach(k => grupos[k].sort((a,b) => b.dias - a.dias));
   return grupos;
+}
+
+// "Ya se la mandé" se guarda en este navegador (localStorage) — no hay backend propio
+// para escribirlo en el Sheet, así que es un recordatorio local, no compartido entre equipos.
+const ENVIADAS_KEY = 'geb_encuestas_enviadas';
+function getEnviadas() {
+  try { return JSON.parse(localStorage.getItem(ENVIADAS_KEY)) || {}; } catch(e) { return {}; }
+}
+function marcarEnviada(e, key, milestone) {
+  e.stopPropagation();
+  const enviadas = getEnviadas();
+  enviadas[`${key}__${milestone}`] = Date.now();
+  localStorage.setItem(ENVIADAS_KEY, JSON.stringify(enviadas));
+  renderAlertas();
+  document.getElementById('alert-panel').classList.add('open');
 }
 
 function renderAlertas() {
@@ -2470,11 +2512,17 @@ function renderAlertas() {
     { key: 'd90', label: 'Encuesta de 90 días pendiente' },
   ];
   const bloques = secciones.filter(s => grupos[s.key].length).map(s => {
-    const items = grupos[s.key].map(c => `
-      <div class="alert-item" onclick="irAColaborador('${c.key.replace(/'/g,"\\'")}')">
-        <span class="n">${c.nombre}</span>
-        <span class="m">${c.sucursal||'—'} · ${c.dias} día(s) · manda la encuesta</span>
-      </div>`).join('');
+    const items = grupos[s.key].map(c => {
+      const keyEsc = c.key.replace(/'/g,"\\'");
+      return `
+      <div class="alert-item">
+        <div class="alert-item-info" onclick="irAColaborador('${keyEsc}')">
+          <span class="n">${c.nombre}</span>
+          <span class="m">${c.sucursal||'—'} · ${c.dias} día(s) · manda la encuesta</span>
+        </div>
+        <button class="alert-check" onclick="marcarEnviada(event,'${keyEsc}','${s.key}')" title="Ya se la mandé">✓</button>
+      </div>`;
+    }).join('');
     return `<div class="alert-group-label">${s.label} (${grupos[s.key].length})</div>${items}`;
   }).join('');
 
@@ -2496,10 +2544,45 @@ function irAColaborador(key) {
   openRutaModal(key);
 }
 
+// ── CALENDARIO DE ANIVERSARIOS LABORALES ──
+const MESES_NOMBRES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function renderCalendario() {
+  const idx = buildColabIndex();
+  const hoy = new Date();
+  const añoActual = hoy.getFullYear();
+  const porMes = Array.from({ length: 12 }, () => []);
+  idx.forEach(c => {
+    if (c.estatus !== 'activo' || !c.fechaIngreso) return;
+    const años = añoActual - c.fechaIngreso.getFullYear();
+    if (años < 1) return; // todavía no cumple su primer aniversario
+    porMes[c.fechaIngreso.getMonth()].push({ ...c, dia: c.fechaIngreso.getDate(), años });
+  });
+  porMes.forEach(lista => lista.sort((a,b) => a.dia - b.dia));
+
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = MESES_NOMBRES.map((mes, i) => {
+    const lista = porMes[i];
+    const esMesActual = i === hoy.getMonth();
+    const items = lista.length
+      ? lista.map(c => `
+        <div class="cal-person">
+          ${avatarHtml(c)}
+          <div class="cal-person-info">
+            <div class="cal-person-nombre">${c.nombre}</div>
+            <div class="cal-person-meta">${c.sucursal||'—'} · cumple ${c.años} año${c.años===1?'':'s'}</div>
+          </div>
+          <div class="cal-day">${c.dia}</div>
+        </div>`).join('')
+      : `<div class="cal-empty">Sin aniversarios este mes.</div>`;
+    return `<div class="cal-month${esMesActual?' cal-month-actual':''}"><h5>${mes}${esMesActual?' · hoy':''}</h5>${items}</div>`;
+  }).join('');
+}
+
 // ── LOAD ALL ──
 async function loadAll() {
   // reset loaders
-  ['pre','d30','ev','cert','ruta'].forEach(k=>{
+  ['pre','d30','ev','cert','ruta','cal'].forEach(k=>{
     document.getElementById(`${k}-loading`).style.display='flex';
     document.getElementById(`${k}-content`).style.display='none';
     document.getElementById(`${k}-loading`).innerHTML='<div class="spinner"></div><span class="state-msg">Cargando datos…</span>';
@@ -2581,7 +2664,7 @@ async function loadAll() {
     document.getElementById('last-updated').textContent = '↑ ' + new Date().toLocaleTimeString('es-MX');
     populateFilters();
 
-    ['pre','d30','ev','cert','ruta'].forEach(k=>{
+    ['pre','d30','ev','cert','ruta','cal'].forEach(k=>{
       document.getElementById(`${k}-loading`).style.display='none';
       document.getElementById(`${k}-content`).style.display='block';
     });
@@ -2590,7 +2673,7 @@ async function loadAll() {
     updateMetas();
     renderAlertas();
   } catch(e) {
-    ['pre','d30','ev','cert','ruta'].forEach(k => errMsg(k, e));
+    ['pre','d30','ev','cert','ruta','cal'].forEach(k => errMsg(k, e));
   }
 }
 
