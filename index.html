@@ -1985,6 +1985,21 @@ function buildColabIndex() {
     c.fechaIngresoSrc = c.fechaIngresoSrc || parseFechaDDMM(r['Fecha de\nInicio'] ?? r['Fecha de Inicio']);
     c.cert = r;
   });
+  DATA.empleados.forEach(r => {
+    // "Empleados" es la base de colaboradores de Vivo 47 (NAC/VR/GMT/OFC) — llena huecos de
+    // sucursal/rol/turno/fecha de ingreso, pero "Datos Generales" sigue ganando si hay conflicto
+    // porque es la hoja que el usuario corrige a mano.
+    const nom = r['Nombre{']; if (!nom) return;
+    const c = findOrCreate(nom);
+    c.nombre = c.nombre || nom.trim();
+    c.sucursal = c.sucursal || clubNombre(r['Sucursal']);
+    c.rol = c.rol || r['Puesto'];
+    c.turno = c.turno || r['Turno'];
+    if (!c.fechaIngresoSrc && r['Ingreso']) {
+      const f = new Date(r['Ingreso']);
+      if (!isNaN(f)) c.fechaIngresoSrc = f;
+    }
+  });
   DATA.estatus.forEach(r => {
     const nom = getNombre(r); if (nom === '—') return;
     const c = findOrCreate(nom);
