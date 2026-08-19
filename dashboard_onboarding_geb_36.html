@@ -1917,11 +1917,13 @@ function similarNames(a, b) {
     const tol = wa.length <= 3 ? 0 : wa.length <= 6 ? 1 : 2;
     if (bestIdx !== -1 && bestDist <= tol) { matched++; usedB.add(bestIdx); }
   }
-  // Con nombres de 3+ palabras toleramos que una no coincida (apodo tipo "Tona"/"Tonatiuh",
-  // o que a una encuesta le falte un apellido). Con nombres de 2 palabras exigimos ambas,
-  // para no confundir a dos personas distintas que comparten solo un nombre o apellido.
-  const requerido = minLen >= 3 ? minLen - 1 : minLen;
-  return matched >= requerido;
+  // Exigimos que TODAS las palabras del nombre más corto encuentren pareja en el más largo.
+  // Antes tolerábamos que faltara una en nombres de 3+ palabras (para casos como apodos:
+  // "Tona"/"Tonatiuh"), pero con un roster de 250+ personas eso empezó a confundir a gente
+  // distinta que solo comparte un apellido común (ej. "Rangel Garcia Melendez" con
+  // "Miguel Angel Garcia Arana" por compartir "Garcia" + un typo suelto). Mejor perder
+  // el caso raro del apodo que mezclar el historial de dos personas reales.
+  return matched >= minLen;
 }
 
 // No hay fotos de colaboradores en ninguna hoja del Sheet \u2014 avatar con iniciales como respaldo.
@@ -2054,7 +2056,10 @@ function buildColabIndex() {
     // porque es la hoja que el usuario corrige a mano.
     const nom = r['Nombre{']; if (!nom) return;
     const c = findOrCreate(nom);
-    c.nombre = c.nombre || nom.trim();
+    // El nombre de "Empleados" gana sobre lo que haya puesto una encuesta (mejor capitalizado,
+    // acentos correctos, sin apellidos faltantes). "Datos Generales" solo lo rellena si aquí
+    // no aparece nadie con ese nombre, para no perder la limpieza de este roster.
+    c.nombre = nom.trim();
     c.sucursal = c.sucursal || clubNombre(r['Sucursal']);
     c.rol = c.rol || r['Puesto'];
     c.turno = c.turno || r['Turno'];
