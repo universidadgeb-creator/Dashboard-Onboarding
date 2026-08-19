@@ -109,6 +109,12 @@
   .tab-btn { padding: 14px 24px; font-size: 13px; font-weight: 500; color: #94A3B8; background: transparent; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; letter-spacing: 0.02em; }
   .tab-btn:hover { color: #ffffff; }
   .tab-btn.active { color: #A21CAF; border-bottom-color: #A21CAF; }
+  .tab-dropdown-wrap { position: relative; }
+  .tab-dropdown-menu { display: none; position: absolute; top: 100%; left: 0; background: #fff; border: 1px solid #E2E8F0; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.14); z-index: 200; padding: 6px; min-width: 220px; }
+  .tab-dropdown-menu.open { display: block; }
+  .tab-dropdown-menu button { display: block; width: 100%; text-align: left; padding: 9px 12px; font-size: 13px; font-weight: 500; color: var(--blanco); background: transparent; border: none; border-radius: 6px; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .tab-dropdown-menu button:hover { background: var(--gris-claro); }
+  .tab-dropdown-menu button.active { color: var(--verde-acento); background: var(--gris-claro); }
 
   /* FILTERS */
   .filters-bar { background: #FFFFFF; padding: 14px 32px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid #E2E8F0; }
@@ -579,13 +585,19 @@
 </header>
 
 <div class="tabs-bar">
-  <button class="tab-btn active" onclick="switchTab('preonboarding')">Preonboarding</button>
-  <button class="tab-btn" onclick="switchTab('treinta')">Encuesta 30 Días</button>
-  <button class="tab-btn" onclick="switchTab('evaluacion')">Evaluación Inducción</button>
-  <button class="tab-btn" onclick="switchTab('certificaciones')">Certificaciones</button>
-  <button class="tab-btn" onclick="switchTab('ruta')">Ruta del Colaborador</button>
-  <button class="tab-btn" onclick="switchTab('calendario')">Aniversarios</button>
-  <button class="tab-btn" onclick="switchTab('directorio')">Directorio</button>
+  <button class="tab-btn active" data-tab="inicio" onclick="switchTab('inicio')">Inicio</button>
+  <div class="tab-dropdown-wrap">
+    <button class="tab-btn" id="onboarding-toggle-btn" onclick="toggleOnboardingMenu(event)">Onboarding ▾</button>
+    <div class="tab-dropdown-menu" id="onboarding-menu">
+      <button data-tab="preonboarding" onclick="switchTab('preonboarding')">Preonboarding</button>
+      <button data-tab="treinta" onclick="switchTab('treinta')">Encuesta 30 Días</button>
+      <button data-tab="evaluacion" onclick="switchTab('evaluacion')">Evaluación Inducción</button>
+      <button data-tab="certificaciones" onclick="switchTab('certificaciones')">Certificaciones</button>
+      <button data-tab="ruta" onclick="switchTab('ruta')">Ruta del Colaborador</button>
+    </div>
+  </div>
+  <button class="tab-btn" data-tab="calendario" onclick="switchTab('calendario')">Aniversarios</button>
+  <button class="tab-btn" data-tab="directorio" onclick="switchTab('directorio')">Directorio</button>
 </div>
 
 <div class="filters-bar">
@@ -646,7 +658,25 @@
 <div class="main">
 
   <!-- PREONBOARDING -->
-  <div class="tab-panel active" id="panel-preonboarding">
+  <div class="tab-panel active" id="panel-inicio">
+    <div id="inicio-loading" class="state-box"><div class="spinner"></div><span class="state-msg">Cargando datos…</span></div>
+    <div id="inicio-content" style="display:none">
+      <div class="section-title">Resumen</div>
+      <div class="kpi-row" id="inicio-kpis"></div>
+      <div class="panel-2col">
+        <div class="panel-box">
+          <h4>📣 Avisos — encuestas pendientes</h4>
+          <div id="inicio-avisos"></div>
+        </div>
+        <div class="panel-box">
+          <h4>🎉 Hoy</h4>
+          <div id="inicio-hoy"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="panel-preonboarding">
     <div id="pre-loading" class="state-box"><div class="spinner"></div><span class="state-msg">Cargando datos…</span></div>
     <div id="pre-content" style="display:none">
       <div class="kpi-row" id="pre-kpis"></div>
@@ -970,7 +1000,7 @@
 const API = 'https://script.google.com/macros/s/AKfycbzRRcURonub1sNF9z7QOfWmtj-elYqohLAXO73M6S6I6TwvWQLCeSNhZ5SulR8BMffm/exec';
 
 let DATA = { pre: [], d30: [], ev: [], cert: [], d60: [], d60l: [], d90: [], estatus: [], empleados: [] };
-let ACTIVE = 'preonboarding';
+let ACTIVE = 'inicio';
 let _estatusFuente = 'excel'; // 'sheet' cuando la hoja "Estatus Colaboradores" ya exista en vivo
 
 // Estatus tomado del Excel que compartió el usuario (Colaboradores_Encuestas_60_90_dias.xlsx),
@@ -1277,6 +1307,7 @@ function applyFilters() {
   if (ACTIVE==='ruta') renderRuta();
   if (ACTIVE==='calendario') renderCalendario();
   if (ACTIVE==='directorio') renderDirectorio();
+  if (ACTIVE==='inicio') renderInicio();
 }
 function populateFilters() {
   const certSucs = DATA.cert.map(r => clubNombre(r['Club']));
@@ -2551,16 +2582,29 @@ function closeRutaModalDirect() {
 }
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeRutaModalDirect(); });
 
+const ONBOARDING_TABS = ['preonboarding','treinta','evaluacion','certificaciones','ruta'];
+
 function switchTab(tab) {
   ACTIVE = tab;
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
-    b.classList.toggle('active', ['preonboarding','treinta','evaluacion','certificaciones','ruta','calendario','directorio'][i]===tab);
+  document.querySelectorAll('[data-tab]').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
   });
+  document.getElementById('onboarding-toggle-btn').classList.toggle('active', ONBOARDING_TABS.includes(tab));
+  document.getElementById('onboarding-menu').classList.remove('open');
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById(`panel-${tab}`).classList.add('active');
   updateEvFilters();
   applyFilters();
 }
+
+function toggleOnboardingMenu(e) {
+  e.stopPropagation();
+  document.getElementById('onboarding-menu').classList.toggle('open');
+}
+document.addEventListener('click', (e) => {
+  const wrap = document.querySelector('.tab-dropdown-wrap');
+  if (wrap && !wrap.contains(e.target)) document.getElementById('onboarding-menu').classList.remove('open');
+});
 
 // ── ALERTAS: encuestas de 30/60/90 días pendientes de enviar ──
 function colaboradoresPendientesEncuesta() {
@@ -2592,21 +2636,7 @@ function marcarEnviada(e, key, milestone) {
   document.getElementById('alert-panel').classList.add('open');
 }
 
-function renderAlertas() {
-  const grupos = colaboradoresPendientesEncuesta();
-  const total = grupos.d30.length + grupos.d60.length + grupos.d90.length;
-  const badge = document.getElementById('alert-badge');
-  const bell = document.getElementById('alert-bell-btn');
-  if (total > 0) {
-    badge.textContent = total > 99 ? '99+' : total;
-    badge.style.display = 'flex';
-    bell.classList.add('has-alerts');
-  } else {
-    badge.style.display = 'none';
-    bell.classList.remove('has-alerts');
-  }
-
-  const panel = document.getElementById('alert-panel');
+function avisosHtml(grupos) {
   const secciones = [
     { key: 'd30', label: 'Encuesta de 30 días pendiente' },
     { key: 'd60', label: 'Encuesta de 60 días pendiente' },
@@ -2626,8 +2656,23 @@ function renderAlertas() {
     }).join('');
     return `<div class="alert-group-label">${s.label} (${grupos[s.key].length})</div>${items}`;
   }).join('');
+  return bloques || `<div class="alert-panel-empty">✓ Sin encuestas pendientes por ahora.</div>`;
+}
 
-  panel.innerHTML = bloques || `<div class="alert-panel-empty">✓ Sin encuestas pendientes por ahora.</div>`;
+function renderAlertas() {
+  const grupos = colaboradoresPendientesEncuesta();
+  const total = grupos.d30.length + grupos.d60.length + grupos.d90.length;
+  const badge = document.getElementById('alert-badge');
+  const bell = document.getElementById('alert-bell-btn');
+  if (total > 0) {
+    badge.textContent = total > 99 ? '99+' : total;
+    badge.style.display = 'flex';
+    bell.classList.add('has-alerts');
+  } else {
+    badge.style.display = 'none';
+    bell.classList.remove('has-alerts');
+  }
+  document.getElementById('alert-panel').innerHTML = avisosHtml(grupos);
 }
 
 function toggleAlertPanel(e) {
@@ -2805,10 +2850,53 @@ function closeDirModalDirect() {
 }
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeDirModalDirect(); });
 
+// ── INICIO ──
+function renderInicio() {
+  const hoy = new Date();
+  const grupos = colaboradoresPendientesEncuesta();
+  const totalPendientes = grupos.d30.length + grupos.d60.length + grupos.d90.length;
+
+  const hoyEventos = [];
+  (DATA.empleados || []).forEach(r => {
+    const nombre = r['Nombre{']; if (!nombre) return;
+    const mesAniv = MES_ABBR_IDX[String(r['Mes Aniversario']||'').toLowerCase().trim()];
+    const diaAniv = parseInt(r['Día'], 10);
+    if (mesAniv === hoy.getMonth() && diaAniv === hoy.getDate()) {
+      const años = hoy.getFullYear() - parseInt(r['Año'], 10);
+      if (años >= 1) hoyEventos.push({ nombre, tipo: 'aniversario', detalle: `Cumple ${años} año${años===1?'':'s'} en la empresa` });
+    }
+    const mesCumple = MES_ABBR_IDX[String(r['Mes cumpleaños']||'').toLowerCase().trim()];
+    const diaCumple = parseInt(r['Día2'], 10);
+    if (mesCumple === hoy.getMonth() && diaCumple === hoy.getDate()) {
+      hoyEventos.push({ nombre, tipo: 'cumple', detalle: 'Cumpleaños' });
+    }
+  });
+
+  const dirTotal = buildColabIndex().filter(c => c.estatus !== 'baja' && c.nombre).length;
+
+  document.getElementById('inicio-kpis').innerHTML =
+    kpiCard('Colaboradores', dirTotal, 'en el directorio') +
+    kpiCard('Encuestas pendientes', totalPendientes, 'de 30/60/90 días', totalPendientes>0?'yellow':'green') +
+    kpiCard('Hoy', hoyEventos.length, 'cumpleaños y aniversarios', hoyEventos.length>0?'green':'');
+
+  document.getElementById('inicio-avisos').innerHTML = avisosHtml(grupos);
+
+  const hoyEl = document.getElementById('inicio-hoy');
+  hoyEl.innerHTML = hoyEventos.length
+    ? hoyEventos.map(ev => `
+      <div class="alert-item">
+        <div class="alert-item-info" style="cursor:default">
+          <span class="n">${ev.tipo==='cumple'?'🎂':'🎉'} ${ev.nombre}</span>
+          <span class="m">${ev.detalle}</span>
+        </div>
+      </div>`).join('')
+    : `<div class="alert-panel-empty">Nadie cumple años ni aniversario hoy.</div>`;
+}
+
 // ── LOAD ALL ──
 async function loadAll() {
   // reset loaders
-  ['pre','d30','ev','cert','ruta','cal','dir'].forEach(k=>{
+  ['pre','d30','ev','cert','ruta','cal','dir','inicio'].forEach(k=>{
     document.getElementById(`${k}-loading`).style.display='flex';
     document.getElementById(`${k}-content`).style.display='none';
     document.getElementById(`${k}-loading`).innerHTML='<div class="spinner"></div><span class="state-msg">Cargando datos…</span>';
@@ -2899,7 +2987,7 @@ async function loadAll() {
     document.getElementById('last-updated').textContent = '↑ ' + new Date().toLocaleTimeString('es-MX');
     populateFilters();
 
-    ['pre','d30','ev','cert','ruta','cal','dir'].forEach(k=>{
+    ['pre','d30','ev','cert','ruta','cal','dir','inicio'].forEach(k=>{
       document.getElementById(`${k}-loading`).style.display='none';
       document.getElementById(`${k}-content`).style.display='block';
     });
@@ -2908,7 +2996,7 @@ async function loadAll() {
     updateMetas();
     renderAlertas();
   } catch(e) {
-    ['pre','d30','ev','cert','ruta','cal','dir'].forEach(k => errMsg(k, e));
+    ['pre','d30','ev','cert','ruta','cal','dir','inicio'].forEach(k => errMsg(k, e));
   }
 }
 
