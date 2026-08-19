@@ -145,7 +145,7 @@
   .dir-empty { padding: 30px; text-align: center; color: var(--gris-texto); font-size: 13px; }
   @media (max-width: 700px) {
     .dir-row { grid-template-columns: 2fr 1fr 0.8fr; }
-    .dir-suc { display: none; }
+    .dir-suc, .dir-col-suc { display: none; }
   }
 
   /* TABS */
@@ -711,7 +711,7 @@
           <p>Consulta a todo el equipo, sus roles, sucursales, cumpleaños y aniversarios.</p>
           <div class="home-search">
             <span class="home-search-icon">🔍</span>
-            <input type="text" id="home-buscar" placeholder="Buscar un colaborador…" oninput="renderHomeBusqueda()" onfocus="renderHomeBusqueda()" autocomplete="off">
+            <input type="text" id="home-buscar" placeholder="Buscar un colaborador…" oninput="renderHomeBusquedaDebounced()" onfocus="renderHomeBusqueda()" autocomplete="off">
             <div class="home-search-results" id="home-search-results"></div>
           </div>
         </div>
@@ -980,7 +980,7 @@
     <div id="dir-content" style="display:none">
       <div class="section-title">Directorio de colaboradores</div>
       <div class="dir-controls">
-        <input type="text" class="rv-search-input" id="dir-buscar" placeholder="Buscar por nombre…" oninput="renderDirectorio()">
+        <input type="text" class="rv-search-input" id="dir-buscar" placeholder="Buscar por nombre…" oninput="renderDirectorioDebounced()">
         <div class="dir-chips" id="dir-status-chips">
           <button class="dir-chip active" onclick="dirFiltrarEstatus('', event)">Todos</button>
           <button class="dir-chip" onclick="dirFiltrarEstatus('activo', event)">Activos</button>
@@ -1250,6 +1250,11 @@ function parseCSVGenerico(text) {
   return rows;
 }
 
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
 function tituloCase(s) {
   const str = String(s||'').trim();
   if (!str) return '';
@@ -1260,8 +1265,11 @@ function tituloCase(s) {
   }).join(' ');
 }
 
+// 'OFC' tiene que resolver igual que en CLUB_NOMBRES (más abajo) — es el mismo código de
+// sucursal usado por "Empleados"/"Seguimiento Certificaciones", solo que aquí llega desde
+// otra hoja. Si algún día cambia uno, hay que cambiar el otro.
 const HOJA5_SUCURSAL_NOMBRES = {
-  'EYS': 'Estructura y Soporte', 'OFC': 'Oficina Central', 'ESTANCIA': 'La Estancia',
+  'EYS': 'Estructura y Soporte', 'OFC': 'Estructura y Soporte', 'ESTANCIA': 'La Estancia',
   'LEON': 'León', 'CLINICA': 'Clínica',
 };
 function sucursalHoja5(codigo, uNegocio) {
@@ -1296,6 +1304,7 @@ async function fetchHoja5() {
         area: tituloCase(col(r, 'Departamento')) || null,
         turno: tituloCase(col(r, 'Turno')) || null,
         lider: tituloCase(col(r, 'Reporta a')) || null,
+        genero: col(r, 'Sexo').toUpperCase() === 'M' ? 'Hombre' : (col(r, 'Sexo').toUpperCase() === 'F' ? 'Mujer' : null),
         fechaIngreso: parseFechaDDMM(col(r, 'Fecha de alta')),
         fechaNacimiento: parseFechaDDMM(col(r, 'Fecha de nacimiento')),
       };
@@ -1613,6 +1622,28 @@ function sentScore(v) {
   if (s.includes('básico') || s.includes('No parecen') || s.includes('no tiene tiempo') || s.includes('Eso fue todo')) return 1;
   return 2;
 }
+// Antes vivían dentro de renderD30() como función/variable locales, pero renderCausasD30()
+// (una función aparte) también las necesita y tronaba con "d30HasAlert is not defined".
+const siNoAlertCols = [
+  '  ¿Esta organización y el trabajo coinciden con lo anunciado?  ',
+  '  ¿Tomé la decisión correcta al aceptar este trabajo?  ',
+  '  ¿Me siento conectado con esta organización?  ',
+  '  ¿Tu líder se reunió contigo para explicarte los indicadores clave de desempeño de tu rol?',
+  '  ¿Recibiste por escrito tu certificación de rol?',
+  '  ¿Tu capacitación se cumplió al pie de la letra?  ',
+  '  ¿Alguien te dio un recorrido por la empresa y te presentó a la mayoría de los miembros del equipo?  ',
+  '  ¿Te hemos compartido un plan claro de tu desarrollo aquí con nosotros?  ',
+  '  ¿Te hemos compartido cómo será tu formación y capacitación en los próximos 12 meses con nosotros?  ',
+  '  ¿Recibiste tu uniforme en tiempo y forma?  ',
+  '  ¿Recibiste tu gafete en tiempo y forma?  ',
+  '  ¿Se te entregó tu tarjeta de vales a tiempo?  ',
+  '  ¿Se te avisó a tiempo de tu tarjeta de nómina?  ',
+];
+function d30HasAlert(r) {
+  if (siNoAlertCols.some(c => { const v=String(r[c]||'').trim().toLowerCase(); return v==='no'; })) return true;
+  if (sentScore(r['Incorporación'])===1 || sentScore(r['Equipo'])===1 || sentScore(r['Líder'])===1) return true;
+  return false;
+}
 
 function renderD30() {
   const {suc, mes, trim} = getF();
@@ -1675,28 +1706,6 @@ function renderD30() {
   renderCausasD30(rows);
   const tbody = document.getElementById('d30-tbody');
   if (!rows.length) { tbody.innerHTML=`<tr><td colspan="22" class="empty">Sin resultados.</td></tr>`; return; }
-
-  const siNoAlertCols = [
-    '  ¿Esta organización y el trabajo coinciden con lo anunciado?  ',
-    '  ¿Tomé la decisión correcta al aceptar este trabajo?  ',
-    '  ¿Me siento conectado con esta organización?  ',
-    '  ¿Tu líder se reunió contigo para explicarte los indicadores clave de desempeño de tu rol?',
-    '  ¿Recibiste por escrito tu certificación de rol?',
-    '  ¿Tu capacitación se cumplió al pie de la letra?  ',
-    '  ¿Alguien te dio un recorrido por la empresa y te presentó a la mayoría de los miembros del equipo?  ',
-    '  ¿Te hemos compartido un plan claro de tu desarrollo aquí con nosotros?  ',
-    '  ¿Te hemos compartido cómo será tu formación y capacitación en los próximos 12 meses con nosotros?  ',
-    '  ¿Recibiste tu uniforme en tiempo y forma?  ',
-    '  ¿Recibiste tu gafete en tiempo y forma?  ',
-    '  ¿Se te entregó tu tarjeta de vales a tiempo?  ',
-    '  ¿Se te avisó a tiempo de tu tarjeta de nómina?  ',
-  ];
-
-  function d30HasAlert(r) {
-    if (siNoAlertCols.some(c => { const v=String(r[c]||'').trim().toLowerCase(); return v==='no'; })) return true;
-    if (sentScore(r['Incorporación'])===1 || sentScore(r['Equipo'])===1 || sentScore(r['Líder'])===1) return true;
-    return false;
-  }
 
   const soloAlertasD30 = document.getElementById('d30-toggle-alerta').checked;
   const alertCountD30 = rows.filter(d30HasAlert).length;
@@ -1772,13 +1781,7 @@ function renderEv() {
   });
 
   const n = rows.length;
-  const filVals = rows.map(r=>{
-    let v = parseFloat(r['% Calificación Filosofía']);
-    if(!isNaN(v)&&v>0) return v;
-    const i=parseFloat(r['Calificación Propósito']),l=parseFloat(r['Calificación Credo']),o=parseFloat(r['Calificación Valores']);
-    if(!isNaN(i)||!isNaN(l)||!isNaN(o)) return Math.round(((i||0)+(l||0)+(o||0))/17*100);
-    return NaN;
-  }).filter(v=>!isNaN(v)&&v>0);
+  const filVals = rows.map(r => filosofiaPct(r)).filter(v=>!isNaN(v)&&v>0);
   const juegoVals = rows.map(r=>{
     let v = parseFloat(r['% Calificación Juego del Año']);
     if(!isNaN(v)&&v>0) return v;
@@ -1819,11 +1822,7 @@ function renderEv() {
   const sucFil={}, sucFilN={}, sucJuego={}, sucJuegoN={};
   rows.forEach(r=>{
     const s=r['Sucursal']||'Sin sucursal';
-    let f=parseFloat(r['% Calificación Filosofía']);
-    if(isNaN(f)||f===0){
-      const i=parseFloat(r['Calificación Propósito']),l=parseFloat(r['Calificación Credo']),o=parseFloat(r['Calificación Valores']);
-      if(!isNaN(i)||!isNaN(l)||!isNaN(o)) f=Math.round(((i||0)+(l||0)+(o||0))/17*100);
-    }
+    let f=filosofiaPct(r);
     let j=parseFloat(r['% Calificación Juego del Año']);
     if(isNaN(j)||j===0){
       const jt=r['¿Cómo se llama el Juego del Año?  (marcar solo si lo menciona)']||'';
@@ -1861,10 +1860,8 @@ function renderEv() {
     <td style="text-align:center">${r['Calificación Valores']||'—'}</td>
     <td>${pctBar(r['% Valores'])}</td>
     <td>${(()=>{
-      const i=parseFloat(r['Calificación Propósito']),l=parseFloat(r['Calificación Credo']),o=parseFloat(r['Calificación Valores']);
-      if(isNaN(i)&&isNaN(l)&&isNaN(o)) return '—';
-      const v=Math.round(((i||0)+(l||0)+(o||0))/17*100);
-      return pctBar(v);
+      const v = filosofiaPct(r);
+      return v === null ? '—' : pctBar(v);
     })()}</td>
     <td style="text-align:center">${(()=>{const v=r['¿Cómo se llama el Juego del Año?  (marcar solo si lo menciona)'];return v?(v.includes('Clubes')||v.includes('Copa')?'<span style="color:var(--verde-ok);font-weight:600">✓ 1</span>':'<span style="color:var(--rojo)">✕ 0</span>'):'—';})()}</td>
     <td style="text-align:center">${(()=>{const v=String(r['¿Dijo correctamente el país?']||'').toLowerCase();return v==='sí'||v==='si'?'<span style="color:var(--verde-ok);font-weight:600">✓ 1</span>':v==='no'?'<span style="color:var(--rojo)">✕ 0</span>':'—';})()}</td>
@@ -1936,9 +1933,19 @@ function filosofiaPct(r) {
   if (!r) return null;
   let v = parseFloat(r['% Calificación Filosofía']);
   if (!isNaN(v) && v > 0) return Math.round(v);
-  const i = parseFloat(r['Calificación Propósito']), l = parseFloat(r['Calificación Credo']), o = parseFloat(r['Calificación Valores']);
-  if (!isNaN(i) || !isNaN(l) || !isNaN(o)) return Math.round(((i||0)+(l||0)+(o||0))/17*100);
-  return null;
+  // Máximo por pregunta: Propósito 3 pts, Credo 5 pts, Valores 9 pts. Antes se dividía
+  // siempre entre 17 aunque al líder se le hubiera olvidado llenar una pregunta — eso
+  // castigaba con un % bajo a una evaluación incompleta en vez de una mala. Ahora solo
+  // cuenta contra el máximo de las preguntas que sí se contestaron.
+  const partes = [
+    { val: parseFloat(r['Calificación Propósito']), max: 3 },
+    { val: parseFloat(r['Calificación Credo']), max: 5 },
+    { val: parseFloat(r['Calificación Valores']), max: 9 },
+  ].filter(p => !isNaN(p.val));
+  if (!partes.length) return null;
+  const suma = partes.reduce((s, p) => s + p.val, 0);
+  const maxPosible = partes.reduce((s, p) => s + p.max, 0);
+  return Math.round(suma / maxPosible * 100);
 }
 
 function renderCert() {
@@ -2157,6 +2164,15 @@ const D90_LIKERT = [
   'Siento que mi esfuerzo estos 3 meses ha sido reconocido.',
 ];
 
+// buildColabIndex() es un merge O(n²) (fuzzy match con Levenshtein por palabra) sobre ~10
+// hojas — caro para llamarlo en cada tecla de un buscador o en cada click. getColabIndex()
+// lo cachea y solo se invalida cuando loadAll() trae datos nuevos.
+let _colabIndexCache = null;
+function getColabIndex() {
+  if (!_colabIndexCache) _colabIndexCache = buildColabIndex();
+  return _colabIndexCache;
+}
+
 function buildColabIndex() {
   const list = [];
   const byKey = new Map(); // cache: cada variante de nombre ya vista -> el mismo registro
@@ -2243,9 +2259,14 @@ function buildColabIndex() {
     c.turno = c.turno || r['Turno'];
     c.area = c.area || r['Equipos'];
     if (!c.fechaIngresoSrc && r['Ingreso']) {
-      const f = new Date(r['Ingreso']);
-      if (!isNaN(f)) c.fechaIngresoSrc = f;
+      const f = parseFecha(r['Ingreso']);
+      if (f) c.fechaIngresoSrc = f;
     }
+    if (!c.fechaNacimiento && r['Fecha de Nacimiento']) {
+      const fn = parseFecha(r['Fecha de Nacimiento']);
+      if (fn) c.fechaNacimiento = fn;
+    }
+    c.genero = c.genero || r['Genero'];
   });
   DATA.hoja5.forEach(r => {
     // "Hoja 5" es el roster de toda la empresa (GEB, Easy Fit, ONARA, Clínica, etc.), no solo
@@ -2260,6 +2281,8 @@ function buildColabIndex() {
     c.area = c.area || r.area;
     c.lider = c.lider || r.lider;
     c.fechaIngresoSrc = c.fechaIngresoSrc || r.fechaIngreso;
+    c.fechaNacimiento = c.fechaNacimiento || r.fechaNacimiento;
+    c.genero = c.genero || r.genero;
     if (!c.estatusHoja5 && r.estatus !== 'desconocido') c.estatusHoja5 = r.estatus;
   });
   DATA.estatus.forEach(r => {
@@ -2443,7 +2466,7 @@ function renderFunnel(rows) {
 
 function renderRuta() {
   const { suc, rol, estatus } = getF();
-  _rutaIndex = buildColabIndex();
+  _rutaIndex = getColabIndex();
   let rows = _rutaIndex.filter(c => {
     if (suc && c.sucursal !== suc) return false;
     if (estatus && c.estatus !== estatus) return false;
@@ -2755,6 +2778,9 @@ function switchTab(tab) {
   });
   document.getElementById('onboarding-toggle-btn').classList.toggle('active', ONBOARDING_TABS.includes(tab));
   document.getElementById('onboarding-menu').classList.remove('open');
+  document.getElementById('alert-panel').classList.remove('open');
+  const searchResults = document.getElementById('home-search-results');
+  if (searchResults) searchResults.classList.remove('open');
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById(`panel-${tab}`).classList.add('active');
   document.getElementById('filters-bar').style.display = ONBOARDING_TABS.includes(tab) ? 'flex' : 'none';
@@ -2764,7 +2790,9 @@ function switchTab(tab) {
 }
 
 function toggleOnboardingMenu(e) {
-  e.stopPropagation();
+  // Sin stopPropagation: el listener de "click afuera" ya ignora los clics dentro de
+  // .tab-dropdown-wrap (ver más abajo), así que detener la propagación aquí solo lograba
+  // que los OTROS paneles flotantes (avisos, buscador de Inicio) se quedaran abiertos.
   document.getElementById('onboarding-menu').classList.toggle('open');
 }
 document.addEventListener('click', (e) => {
@@ -2774,11 +2802,14 @@ document.addEventListener('click', (e) => {
 
 // ── ALERTAS: encuestas de 30/60/90 días pendientes de enviar ──
 function colaboradoresPendientesEncuesta() {
-  const idx = buildColabIndex();
+  const idx = getColabIndex();
   const enviadas = getEnviadas();
   const grupos = { d30: [], d60: [], d90: [] };
   idx.forEach(c => {
-    if (c.estatus !== 'activo' || c.dias === null) return;
+    // Tope de 91 días: sin esto, cualquier veterano con estatus "activo" que venga de
+    // "Hoja 5"/"Empleados" (no solo la gente en onboarding) queda marcado como pendiente
+    // para siempre — inundando la campanita con gente que lleva años en la empresa.
+    if (c.estatus !== 'activo' || c.dias === null || c.dias > 91) return;
     if (c.dias >= 30 && !c.d30 && !enviadas[`${c.key}__d30`]) grupos.d30.push(c);
     if (c.dias >= 60 && !c.d60 && !enviadas[`${c.key}__d60`]) grupos.d60.push(c);
     if (c.dias >= 90 && !c.d90 && !enviadas[`${c.key}__d90`]) grupos.d90.push(c);
@@ -2842,7 +2873,7 @@ function renderAlertas() {
 }
 
 function toggleAlertPanel(e) {
-  if (e) e.stopPropagation();
+  // Sin stopPropagation, por la misma razón que en toggleOnboardingMenu().
   document.getElementById('alert-panel').classList.toggle('open');
 }
 document.addEventListener('click', (e) => {
@@ -2877,36 +2908,22 @@ function calToggleDia(dia) {
   renderCalendario();
 }
 
-const MES_ABBR_IDX = { ene:0, feb:1, mar:2, abr:3, may:4, jun:5, jul:6, ago:7, sep:8, oct:9, nov:10, dic:11 };
-
-// Junta cumpleaños/aniversarios de "Empleados" (Vivo 47) y "Hoja 5" (toda la empresa) en un
-// solo formato {nombre, tipo, mes(0-11), dia, detalle} para no repetir esta lógica en cada vista.
+// Junta cumpleaños/aniversarios de todos los colaboradores en un solo formato
+// {nombre, tipo, mes(0-11), dia, detalle} para no repetir esta lógica en cada vista.
+// Se arma desde getColabIndex() (ya fusionado por persona) en vez de leer DATA.empleados/
+// DATA.hoja5 crudos — así alguien que aparece en las dos hojas no sale duplicado ni con
+// fechas que no cuadran entre sí, y a la gente dada de baja no se le festeja nada.
 function todosLosEventosCumpleAniversario() {
   const añoActual = new Date().getFullYear();
   const eventos = [];
-  (DATA.empleados || []).forEach(r => {
-    const nombre = r['Nombre{'];
-    if (!nombre) return;
-    const mesAniv = MES_ABBR_IDX[String(r['Mes Aniversario']||'').toLowerCase().trim()];
-    const diaAniv = parseInt(r['Día'], 10);
-    if (mesAniv !== undefined && diaAniv) {
-      const años = añoActual - parseInt(r['Año'], 10);
-      if (años >= 1) eventos.push({ nombre, tipo: 'aniversario', mes: mesAniv, dia: diaAniv, detalle: `Cumple ${años} año${años===1?'':'s'} en la empresa` });
+  getColabIndex().forEach(c => {
+    if (!c.nombre || c.estatus === 'baja') return;
+    if (c.fechaIngreso) {
+      const años = añoActual - c.fechaIngreso.getFullYear();
+      if (años >= 1) eventos.push({ nombre: c.nombre, tipo: 'aniversario', mes: c.fechaIngreso.getMonth(), dia: c.fechaIngreso.getDate(), detalle: `Cumple ${años} año${años===1?'':'s'} en la empresa` });
     }
-    const mesCumple = MES_ABBR_IDX[String(r['Mes cumpleaños']||'').toLowerCase().trim()];
-    const diaCumple = parseInt(r['Día2'], 10);
-    if (mesCumple !== undefined && diaCumple) {
-      eventos.push({ nombre, tipo: 'cumple', mes: mesCumple, dia: diaCumple, detalle: 'Cumpleaños' });
-    }
-  });
-  (DATA.hoja5 || []).forEach(r => {
-    if (!r.nombre) return;
-    if (r.fechaIngreso) {
-      const años = añoActual - r.fechaIngreso.getFullYear();
-      if (años >= 1) eventos.push({ nombre: r.nombre, tipo: 'aniversario', mes: r.fechaIngreso.getMonth(), dia: r.fechaIngreso.getDate(), detalle: `Cumple ${años} año${años===1?'':'s'} en la empresa` });
-    }
-    if (r.fechaNacimiento) {
-      eventos.push({ nombre: r.nombre, tipo: 'cumple', mes: r.fechaNacimiento.getMonth(), dia: r.fechaNacimiento.getDate(), detalle: 'Cumpleaños' });
+    if (c.fechaNacimiento) {
+      eventos.push({ nombre: c.nombre, tipo: 'cumple', mes: c.fechaNacimiento.getMonth(), dia: c.fechaNacimiento.getDate(), detalle: 'Cumpleaños' });
     }
   });
   return eventos;
@@ -2928,7 +2945,9 @@ function renderCalendario() {
   selectEl.value = _calMes;
 
   const primerDiaSemana = new Date(añoActual, _calMes, 1).getDay();
-  const diasEnMes = new Date(añoActual, _calMes + 1, 0).getDate();
+  // Febrero siempre muestra 29 celdas, aunque el año actual no sea bisiesto — si no, a quien
+  // cumple años el 29 de febrero se le desaparece del calendario 3 de cada 4 años.
+  const diasEnMes = _calMes === 1 ? 29 : new Date(añoActual, _calMes + 1, 0).getDate();
   const celdas = [];
   for (let i = 0; i < primerDiaSemana; i++) celdas.push(null);
   for (let d = 1; d <= diasEnMes; d++) celdas.push(d);
@@ -2965,8 +2984,9 @@ function dirFiltrarEstatus(estatus, e) {
   renderDirectorio();
 }
 
+const renderDirectorioDebounced = debounce(renderDirectorio, 150);
 function renderDirectorio() {
-  let idx = buildColabIndex().filter(c => c.nombre);
+  let idx = getColabIndex().filter(c => c.nombre);
   if (_dirEstatusFiltro) idx = idx.filter(c => c.estatus === _dirEstatusFiltro);
   const busq = normName(document.getElementById('dir-buscar').value);
   const orden = document.getElementById('dir-orden').value;
@@ -3007,7 +3027,7 @@ function renderDirectorio() {
 }
 
 function openDirModal(key) {
-  const c = buildColabIndex().find(x => x.key === key);
+  const c = getColabIndex().find(x => x.key === key);
   if (!c) return;
 
   document.getElementById('dir-modal-nombre').textContent = c.nombre;
@@ -3015,10 +3035,17 @@ function openDirModal(key) {
     .filter(Boolean).map(v => `<span>${v}</span>`).join('');
   document.getElementById('dir-modal-avatar').innerHTML = avatarHtml(c, 'rv-avatar-lg');
 
-  const empleadoRow = DATA.empleados.find(e => e['Nombre{'] && similarNames(normName(e['Nombre{']), c.key));
   const item = (label, val) => `<div class="modal-item"><span class="modal-item-label">${label}</span><div class="modal-item-vals"><span>${val || '—'}</span></div></div>`;
 
   let html = '';
+  const estClass = c.estatus==='activo'?'estatus-activo':c.estatus==='baja'?'estatus-baja':'estatus-desconocido';
+  const estLabel = c.estatus==='activo'?'Activo':c.estatus==='baja'?'Inactivo':'Sin estatus';
+  html += `<div class="modal-item"><span class="modal-item-label">Estatus</span><div class="modal-item-vals"><span class="estatus-badge ${estClass}">${estLabel}</span></div></div>`;
+  if (c.estatus === 'baja') {
+    html += item('Fecha de baja', fmtFecha(c.fechaBaja));
+    html += item('Motivo de baja', c.motivoBaja);
+  }
+
   html += `<div class="modal-section-label">Información del rol</div>`;
   html += item('Rol / Puesto', c.rol);
   html += item('Sucursal', c.sucursal);
@@ -3028,13 +3055,13 @@ function openDirModal(key) {
 
   html += `<div class="modal-section-label">Información personal</div>`;
   html += item('Fecha de ingreso', fmtFecha(c.fechaIngreso));
-  const antig = c.fechaIngreso ? new Date().getFullYear() - c.fechaIngreso.getFullYear() : null;
+  // Antigüedad usa la fecha de baja si ya no está activo — de lo contrario "hasta hoy" implicaría
+  // que alguien que se fue hace años sigue siendo parte del equipo.
+  const finAntig = c.estatus === 'baja' && c.fechaBaja ? c.fechaBaja : new Date();
+  const antig = c.fechaIngreso ? finAntig.getFullYear() - c.fechaIngreso.getFullYear() : null;
   html += item('Antigüedad', antig !== null ? `${antig} año${antig===1?'':'s'}` : null);
-  if (empleadoRow) {
-    const nac = new Date(empleadoRow['Fecha de Nacimiento']);
-    html += item('Fecha de nacimiento', !isNaN(nac) ? fmtFecha(nac) : null);
-    html += item('Género', empleadoRow['Genero']);
-  }
+  html += item('Fecha de nacimiento', fmtFecha(c.fechaNacimiento));
+  html += item('Género', c.genero);
 
   document.getElementById('dir-modal-body').innerHTML = html;
   document.getElementById('dir-modal-overlay').classList.add('open');
@@ -3052,7 +3079,7 @@ document.addEventListener('keydown', e => { if (e.key==='Escape') closeDirModalD
 // ── INICIO ──
 function renderInicio() {
   const hoy = new Date();
-  const idx = buildColabIndex().filter(c => c.estatus !== 'baja' && c.nombre);
+  const idx = getColabIndex().filter(c => c.estatus !== 'baja' && c.nombre);
   const sucursales = new Set(idx.map(c => c.sucursal).filter(Boolean));
 
   const hoyEventos = todosLosEventosCumpleAniversario().filter(ev => ev.mes === hoy.getMonth() && ev.dia === hoy.getDate());
@@ -3075,12 +3102,13 @@ function renderInicio() {
   renderHomeBusqueda();
 }
 
+const renderHomeBusquedaDebounced = debounce(renderHomeBusqueda, 150);
 function renderHomeBusqueda() {
   const input = document.getElementById('home-buscar');
   const results = document.getElementById('home-search-results');
   const q = normName(input.value);
   if (!q) { results.classList.remove('open'); results.innerHTML = ''; return; }
-  const idx = buildColabIndex().filter(c => c.estatus !== 'baja' && c.nombre && normName(c.nombre).includes(q));
+  const idx = getColabIndex().filter(c => c.estatus !== 'baja' && c.nombre && normName(c.nombre).includes(q));
   results.innerHTML = idx.length
     ? idx.slice(0,8).map(c => `
       <div class="home-search-result-item" onclick="document.getElementById('home-buscar').value=''; document.getElementById('home-search-results').classList.remove('open'); openDirModal('${c.key.replace(/'/g,"\\'")}')">
@@ -3198,6 +3226,7 @@ async function loadAll() {
     });
 
     document.getElementById('last-updated').textContent = '↑ ' + new Date().toLocaleTimeString('es-MX');
+    _colabIndexCache = null; // los datos son nuevos — que el próximo getColabIndex() reconstruya
     populateFilters();
 
     ['pre','d30','ev','cert','ruta','cal','dir','inicio'].forEach(k=>{
@@ -4015,20 +4044,12 @@ function renderMetasEv(rows) {
     { label: 'Propósito %', data: agruparPorMes(rows, r=>r['Marca temporal'], r => { const v=parseFloat(r['% Propósito']); return !isNaN(v)&&v>0?Math.round(v):null; }) },
     { label: 'Credo %', data: agruparPorMes(rows, r=>r['Marca temporal'], r => { const v=parseFloat(r['% Credo']); return !isNaN(v)&&v>0?Math.round(v):null; }) },
     { label: 'Valores %', data: agruparPorMes(rows, r=>r['Marca temporal'], r => { const v=parseFloat(r['% Valores']); return !isNaN(v)&&v>0?Math.round(v):null; }) },
-    { label: '📊 % Filosofía total', data: agruparPorMes(rows, r=>r['Marca temporal'], r => {
-      let v=parseFloat(r['% Calificación Filosofía']); if(!isNaN(v)&&v>0)return Math.round(v);
-      const i=parseFloat(r['Calificación Propósito']),l=parseFloat(r['Calificación Credo']),o=parseFloat(r['Calificación Valores']);
-      if(!isNaN(i)||!isNaN(l)||!isNaN(o))return Math.round(((i||0)+(l||0)+(o||0))/17*100); return null;
-    }) },
+    { label: '📊 % Filosofía total', data: agruparPorMes(rows, r=>r['Marca temporal'], r => filosofiaPct(r)) },
     { label: 'Juego del Año %', data: agruparPorMes(rows, r=>r['Marca temporal'], r => { const v=parseFloat(r['% Calificación Juego del Año']); return !isNaN(v)&&v>0?Math.round(v):null; }) },
   ];
 
   // Series por sucursal: % Filosofía
-  const bySucMes = agruparPorMesSuc(rows, r=>r['Marca temporal'], r=>r['Sucursal']||'Sin sucursal', r => {
-    let v=parseFloat(r['% Calificación Filosofía']); if(!isNaN(v)&&v>0)return Math.round(v);
-    const i=parseFloat(r['Calificación Propósito']),l=parseFloat(r['Calificación Credo']),o=parseFloat(r['Calificación Valores']);
-    if(!isNaN(i)||!isNaN(l)||!isNaN(o))return Math.round(((i||0)+(l||0)+(o||0))/17*100); return null;
-  });
+  const bySucMes = agruparPorMesSuc(rows, r=>r['Marca temporal'], r=>r['Sucursal']||'Sin sucursal', r => filosofiaPct(r));
 
   buildMetaTable(headEl, bodyEl, meses, indicadores, 90, 5, 'ev-trend-canvas', 'ev', bySucMes);
 }
@@ -4123,13 +4144,7 @@ function updateMetas() {
   setMetaChip('pre', preAvg);
 
   // INDUCCIÓN — promedio de % Filosofía
-  const filVals2 = DATA.ev.map(r => {
-    let v = parseFloat(r['% Calificación Filosofía']);
-    if (!isNaN(v) && v > 0) return v;
-    const i=parseFloat(r['Calificación Propósito']),l=parseFloat(r['Calificación Credo']),o=parseFloat(r['Calificación Valores']);
-    if (!isNaN(i)||!isNaN(l)||!isNaN(o)) return Math.round(((i||0)+(l||0)+(o||0))/17*100);
-    return NaN;
-  }).filter(v=>!isNaN(v)&&v>0);
+  const filVals2 = DATA.ev.map(r => filosofiaPct(r)).filter(v=>!isNaN(v)&&v>0);
   const indAvg = filVals2.length ? Math.round(filVals2.reduce((s,v)=>s+v,0)/filVals2.length) : null;
   setMetaChip('ind', indAvg);
 
