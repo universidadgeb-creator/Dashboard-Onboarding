@@ -85,6 +85,25 @@
     .cal-day-cell { min-height: 46px; }
   }
 
+  /* DIRECTORIO DE COLABORADORES */
+  .dir-controls { display: flex; gap: 12px; margin: 16px 0; align-items: center; flex-wrap: wrap; }
+  .dir-controls .rv-search-input { flex: 1; min-width: 200px; }
+  #dir-orden { font-size: 13px; color: var(--blanco); border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px 12px; font-family: 'Inter', sans-serif; cursor: pointer; }
+  .dir-table { border: 1px solid #E2E8F0; border-radius: 10px; overflow: hidden; }
+  .dir-row { display: grid; grid-template-columns: 2fr 1.4fr 1fr; gap: 12px; padding: 10px 16px; align-items: center; border-bottom: 1px solid #F1F5F9; }
+  .dir-row:last-child { border-bottom: none; }
+  .dir-head { background: #F8FAFC; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gris-medio); }
+  .dir-row:not(.dir-head) { cursor: pointer; }
+  .dir-row:not(.dir-head):hover { background: #FAFAFA; }
+  .dir-nombre-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .dir-nombre-txt { font-size: 13px; font-weight: 500; color: var(--blanco); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dir-rol, .dir-suc { font-size: 12.5px; color: var(--gris-medio); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dir-empty { padding: 30px; text-align: center; color: var(--gris-texto); font-size: 13px; }
+  @media (max-width: 700px) {
+    .dir-row { grid-template-columns: 2fr 1fr; }
+    .dir-suc { display: none; }
+  }
+
   /* TABS */
   .tabs-bar { background: #F1F5F9; padding: 0 32px; display: flex; border-bottom: 1px solid #E2E8F0; }
   .tab-btn { padding: 14px 24px; font-size: 13px; font-weight: 500; color: #94A3B8; background: transparent; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; letter-spacing: 0.02em; }
@@ -566,6 +585,7 @@
   <button class="tab-btn" onclick="switchTab('certificaciones')">Certificaciones</button>
   <button class="tab-btn" onclick="switchTab('ruta')">Ruta del Colaborador</button>
   <button class="tab-btn" onclick="switchTab('calendario')">Aniversarios</button>
+  <button class="tab-btn" onclick="switchTab('directorio')">Directorio</button>
 </div>
 
 <div class="filters-bar">
@@ -858,6 +878,30 @@
       <div class="cal-legend"><span>🎂 Cumpleaños</span><span>🎉 Aniversario laboral</span></div>
       <div class="cal-weekdays"><span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span></div>
       <div class="cal-daygrid" id="cal-daygrid"></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="panel-directorio">
+    <div id="dir-loading" class="state-box"><div class="spinner"></div><span class="state-msg">Cargando datos…</span></div>
+    <div id="dir-content" style="display:none">
+      <div class="section-title">Directorio de colaboradores</div>
+      <div class="dir-controls">
+        <input type="text" class="rv-search-input" id="dir-buscar" placeholder="Buscar por nombre…" oninput="renderDirectorio()">
+        <select id="dir-orden" onchange="renderDirectorio()">
+          <option value="alfabetico">Orden alfabético</option>
+          <option value="contratacion">Fecha de contratación</option>
+          <option value="sucursal">Sucursal</option>
+          <option value="area">Área</option>
+        </select>
+      </div>
+      <div class="dir-table">
+        <div class="dir-row dir-head">
+          <div class="dir-col-nombre">Colaborador</div>
+          <div class="dir-col-rol">Rol</div>
+          <div class="dir-col-suc">Sucursal</div>
+        </div>
+        <div id="dir-list"></div>
+      </div>
     </div>
   </div>
 
@@ -1217,6 +1261,7 @@ function applyFilters() {
   if (ACTIVE==='certificaciones') renderCert();
   if (ACTIVE==='ruta') renderRuta();
   if (ACTIVE==='calendario') renderCalendario();
+  if (ACTIVE==='directorio') renderDirectorio();
 }
 function populateFilters() {
   const certSucs = DATA.cert.map(r => clubNombre(r['Club']));
@@ -1998,6 +2043,7 @@ function buildColabIndex() {
     c.sucursal = c.sucursal || clubNombre(r['Sucursal']);
     c.rol = c.rol || r['Puesto'];
     c.turno = c.turno || r['Turno'];
+    c.area = c.area || r['Equipos'];
     if (!c.fechaIngresoSrc && r['Ingreso']) {
       const f = new Date(r['Ingreso']);
       if (!isNaN(f)) c.fechaIngresoSrc = f;
@@ -2488,7 +2534,7 @@ document.addEventListener('keydown', e => { if (e.key==='Escape') closeRutaModal
 function switchTab(tab) {
   ACTIVE = tab;
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
-    b.classList.toggle('active', ['preonboarding','treinta','evaluacion','certificaciones','ruta','calendario'][i]===tab);
+    b.classList.toggle('active', ['preonboarding','treinta','evaluacion','certificaciones','ruta','calendario','directorio'][i]===tab);
   });
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById(`panel-${tab}`).classList.add('active');
@@ -2660,10 +2706,46 @@ function renderCalendario() {
   }).join('');
 }
 
+// ── DIRECTORIO DE COLABORADORES ──
+function renderDirectorio() {
+  const idx = buildColabIndex().filter(c => c.estatus !== 'baja' && c.nombre);
+  const busq = normName(document.getElementById('dir-buscar').value);
+  const orden = document.getElementById('dir-orden').value;
+  const lista = busq ? idx.filter(c => normName(c.nombre).includes(busq)) : idx.slice();
+
+  const col = (a, b) => String(a||'').localeCompare(String(b||''), 'es');
+  if (orden === 'alfabetico') {
+    lista.sort((a,b) => col(a.nombre, b.nombre));
+  } else if (orden === 'contratacion') {
+    lista.sort((a,b) => {
+      if (!a.fechaIngreso && !b.fechaIngreso) return 0;
+      if (!a.fechaIngreso) return 1;
+      if (!b.fechaIngreso) return -1;
+      return a.fechaIngreso - b.fechaIngreso;
+    });
+  } else if (orden === 'sucursal') {
+    lista.sort((a,b) => col(a.sucursal, b.sucursal) || col(a.nombre, b.nombre));
+  } else if (orden === 'area') {
+    lista.sort((a,b) => col(a.area, b.area) || col(a.nombre, b.nombre));
+  }
+
+  const list = document.getElementById('dir-list');
+  if (!lista.length) { list.innerHTML = `<div class="dir-empty">Sin colaboradores para esta búsqueda.</div>`; return; }
+  list.innerHTML = lista.map(c => `
+    <div class="dir-row" onclick="irAColaborador('${c.key.replace(/'/g,"\\'")}')">
+      <div class="dir-nombre-cell">
+        ${avatarHtml(c)}
+        <span class="dir-nombre-txt">${c.nombre}</span>
+      </div>
+      <div class="dir-rol">${c.rol||'—'}</div>
+      <div class="dir-suc">${c.sucursal||'—'}</div>
+    </div>`).join('');
+}
+
 // ── LOAD ALL ──
 async function loadAll() {
   // reset loaders
-  ['pre','d30','ev','cert','ruta','cal'].forEach(k=>{
+  ['pre','d30','ev','cert','ruta','cal','dir'].forEach(k=>{
     document.getElementById(`${k}-loading`).style.display='flex';
     document.getElementById(`${k}-content`).style.display='none';
     document.getElementById(`${k}-loading`).innerHTML='<div class="spinner"></div><span class="state-msg">Cargando datos…</span>';
@@ -2754,7 +2836,7 @@ async function loadAll() {
     document.getElementById('last-updated').textContent = '↑ ' + new Date().toLocaleTimeString('es-MX');
     populateFilters();
 
-    ['pre','d30','ev','cert','ruta','cal'].forEach(k=>{
+    ['pre','d30','ev','cert','ruta','cal','dir'].forEach(k=>{
       document.getElementById(`${k}-loading`).style.display='none';
       document.getElementById(`${k}-content`).style.display='block';
     });
@@ -2763,7 +2845,7 @@ async function loadAll() {
     updateMetas();
     renderAlertas();
   } catch(e) {
-    ['pre','d30','ev','cert','ruta','cal'].forEach(k => errMsg(k, e));
+    ['pre','d30','ev','cert','ruta','cal','dir'].forEach(k => errMsg(k, e));
   }
 }
 
