@@ -1059,7 +1059,7 @@
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbzRRcURonub1sNF9z7QOfWmtj-elYqohLAXO73M6S6I6TwvWQLCeSNhZ5SulR8BMffm/exec';
 
-let DATA = { pre: [], d30: [], ev: [], cert: [], d60: [], d60l: [], d90: [], estatus: [], empleados: [] };
+let DATA = { pre: [], d30: [], ev: [], cert: [], d60: [], d60l: [], d90: [], estatus: [], empleados: [], hoja5: [] };
 let ACTIVE = 'inicio';
 let _estatusFuente = 'excel'; // 'sheet' cuando la hoja "Estatus Colaboradores" ya exista en vivo
 
@@ -1213,6 +1213,82 @@ async function fetchSheet(name) {
   const res = await fetch(`${API}?sheet=${encodeURIComponent(name)}`);
   if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
   return await res.json();
+}
+
+// "Hoja 5" tiene encabezados corridos varias filas/columnas hacia adentro, así que el Apps
+// Script (que asume encabezados en la fila 1) no la puede leer — la traemos directo como CSV
+// público del Sheet en vez de pasar por el Apps Script.
+function parseCSVGenerico(text) {
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], next = text[i+1];
+    if (inQuotes) {
+      if (c === '"' && next === '"') { field += '"'; i++; }
+      else if (c === '"') { inQuotes = false; }
+      else { field += c; }
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\r') { /* ignorar */ }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else field += c;
+    }
+  }
+  if (field || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+function tituloCase(s) {
+  const str = String(s||'').trim();
+  if (!str) return '';
+  const minusculas = new Set(['de','del','la','las','los','y']);
+  return str.toLowerCase().split(' ').filter(Boolean).map((w, i) => {
+    if (i > 0 && minusculas.has(w)) return w;
+    return w.charAt(0).toUpperCase() + w.slice(1);
+  }).join(' ');
+}
+
+const HOJA5_SUCURSAL_NOMBRES = {
+  'EYS': 'Estructura y Soporte', 'OFC': 'Oficina Central', 'ESTANCIA': 'La Estancia',
+  'LEON': 'León', 'CLINICA': 'Clínica',
+};
+function sucursalHoja5(codigo, uNegocio) {
+  const c = String(codigo||'').trim().toUpperCase();
+  if (HOJA5_SUCURSAL_NOMBRES[c]) return HOJA5_SUCURSAL_NOMBRES[c];
+  if (c && c !== 'N/A') return tituloCase(c);
+  return tituloCase(uNegocio) || null;
+}
+
+// Solo se traen campos seguros para mostrar en un dashboard público — nunca salario,
+// teléfono, ni documentos personales, aunque la hoja completa sí los tenga.
+async function fetchHoja5() {
+  const url = `https://docs.google.com/spreadsheets/d/1wWrQq2fpIHhGZNx7GrKg6YXgylig0RNtf_umfV90kqw/export?format=csv&gid=1924991195`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
+  const text = await res.text();
+  const rows = parseCSVGenerico(text);
+  const header = rows[4] || [];
+  const idx = {};
+  header.forEach((h, i) => { idx[String(h).trim()] = i; });
+  const col = (r, name) => (idx[name] !== undefined ? String(r[idx[name]] || '').trim() : '');
+
+  return rows.slice(5)
+    .filter(r => col(r, 'Nombre Completo'))
+    .map(r => {
+      const estatusRaw = col(r, 'Estatus').toUpperCase();
+      return {
+        nombre: tituloCase(col(r, 'Nombre Completo')),
+        estatus: estatusRaw === 'ACTIVO' ? 'activo' : (estatusRaw === 'INACTIVO' ? 'baja' : 'desconocido'),
+        rol: tituloCase(col(r, 'Rol')) || null,
+        sucursal: sucursalHoja5(col(r, 'Sucursal'), col(r, 'U. Negocio')),
+        area: tituloCase(col(r, 'Departamento')) || null,
+        turno: tituloCase(col(r, 'Turno')) || null,
+        lider: tituloCase(col(r, 'Reporta a')) || null,
+        fechaIngreso: parseFechaDDMM(col(r, 'Fecha de alta')),
+        fechaNacimiento: parseFechaDDMM(col(r, 'Fecha de nacimiento')),
+      };
+    });
 }
 
 // ── HELPERS ──
@@ -2160,6 +2236,21 @@ function buildColabIndex() {
       if (!isNaN(f)) c.fechaIngresoSrc = f;
     }
   });
+  DATA.hoja5.forEach(r => {
+    // "Hoja 5" es el roster de toda la empresa (GEB, Easy Fit, ONARA, Clínica, etc.), no solo
+    // Vivo 47. Solo rellena huecos — nunca pisa el nombre limpio de "Empleados" ni el estatus
+    // que ya haya puesto "Datos Generales" a mano.
+    if (!r.nombre) return;
+    const c = findOrCreate(r.nombre);
+    c.nombre = c.nombre || r.nombre;
+    c.sucursal = c.sucursal || r.sucursal;
+    c.rol = c.rol || r.rol;
+    c.turno = c.turno || r.turno;
+    c.area = c.area || r.area;
+    c.lider = c.lider || r.lider;
+    c.fechaIngresoSrc = c.fechaIngresoSrc || r.fechaIngreso;
+    if (!c.estatusHoja5 && r.estatus !== 'desconocido') c.estatusHoja5 = r.estatus;
+  });
   DATA.estatus.forEach(r => {
     const nom = getNombre(r); if (nom === '—') return;
     const c = findOrCreate(nom);
@@ -2193,6 +2284,8 @@ function buildColabIndex() {
       const fechaBajaRaw = fechaBajaKey ? c.estatusRow[fechaBajaKey] : null;
       fechaBaja = parseFecha(fechaBajaRaw) || parseFechaDDMM(fechaBajaRaw);
       motivoBaja = c.estatusRow['Motivo de baja'] || c.estatusRow['Motivo'] || '';
+    } else if (c.estatusHoja5) {
+      estatus = c.estatusHoja5; // "Datos Generales" manda si existe; si no, usamos el estatus real de "Hoja 5"
     }
     const diasDuro = (fechaBaja && fechaIngreso) ? Math.floor((fechaBaja - fechaIngreso) / 86400000) : null;
     return { ...c, fechaIngreso, dias, estatus, fechaBaja, motivoBaja, diasDuro };
@@ -2775,27 +2868,46 @@ function calToggleDia(dia) {
 
 const MES_ABBR_IDX = { ene:0, feb:1, mar:2, abr:3, may:4, jun:5, jul:6, ago:7, sep:8, oct:9, nov:10, dic:11 };
 
-function renderCalendario() {
-  const hoy = new Date();
-  const añoActual = hoy.getFullYear();
-
-  const porDia = {};
+// Junta cumpleaños/aniversarios de "Empleados" (Vivo 47) y "Hoja 5" (toda la empresa) en un
+// solo formato {nombre, tipo, mes(0-11), dia, detalle} para no repetir esta lógica en cada vista.
+function todosLosEventosCumpleAniversario() {
+  const añoActual = new Date().getFullYear();
+  const eventos = [];
   (DATA.empleados || []).forEach(r => {
     const nombre = r['Nombre{'];
     if (!nombre) return;
     const mesAniv = MES_ABBR_IDX[String(r['Mes Aniversario']||'').toLowerCase().trim()];
     const diaAniv = parseInt(r['Día'], 10);
-    if (mesAniv === _calMes && diaAniv) {
+    if (mesAniv !== undefined && diaAniv) {
       const años = añoActual - parseInt(r['Año'], 10);
-      if (años >= 1) { // todavía no cumple su primer aniversario si es 0
-        (porDia[diaAniv] = porDia[diaAniv] || []).push({ nombre, tipo: 'aniversario', detalle: `Cumple ${años} año${años===1?'':'s'} en la empresa` });
-      }
+      if (años >= 1) eventos.push({ nombre, tipo: 'aniversario', mes: mesAniv, dia: diaAniv, detalle: `Cumple ${años} año${años===1?'':'s'} en la empresa` });
     }
     const mesCumple = MES_ABBR_IDX[String(r['Mes cumpleaños']||'').toLowerCase().trim()];
     const diaCumple = parseInt(r['Día2'], 10);
-    if (mesCumple === _calMes && diaCumple) {
-      (porDia[diaCumple] = porDia[diaCumple] || []).push({ nombre, tipo: 'cumple', detalle: 'Cumpleaños' });
+    if (mesCumple !== undefined && diaCumple) {
+      eventos.push({ nombre, tipo: 'cumple', mes: mesCumple, dia: diaCumple, detalle: 'Cumpleaños' });
     }
+  });
+  (DATA.hoja5 || []).forEach(r => {
+    if (!r.nombre) return;
+    if (r.fechaIngreso) {
+      const años = añoActual - r.fechaIngreso.getFullYear();
+      if (años >= 1) eventos.push({ nombre: r.nombre, tipo: 'aniversario', mes: r.fechaIngreso.getMonth(), dia: r.fechaIngreso.getDate(), detalle: `Cumple ${años} año${años===1?'':'s'} en la empresa` });
+    }
+    if (r.fechaNacimiento) {
+      eventos.push({ nombre: r.nombre, tipo: 'cumple', mes: r.fechaNacimiento.getMonth(), dia: r.fechaNacimiento.getDate(), detalle: 'Cumpleaños' });
+    }
+  });
+  return eventos;
+}
+
+function renderCalendario() {
+  const hoy = new Date();
+  const añoActual = hoy.getFullYear();
+
+  const porDia = {};
+  todosLosEventosCumpleAniversario().filter(ev => ev.mes === _calMes).forEach(ev => {
+    (porDia[ev.dia] = porDia[ev.dia] || []).push(ev);
   });
 
   const selectEl = document.getElementById('cal-mes-select');
@@ -2918,21 +3030,7 @@ function renderInicio() {
   const idx = buildColabIndex().filter(c => c.estatus !== 'baja' && c.nombre);
   const sucursales = new Set(idx.map(c => c.sucursal).filter(Boolean));
 
-  const hoyEventos = [];
-  (DATA.empleados || []).forEach(r => {
-    const nombre = r['Nombre{']; if (!nombre) return;
-    const mesAniv = MES_ABBR_IDX[String(r['Mes Aniversario']||'').toLowerCase().trim()];
-    const diaAniv = parseInt(r['Día'], 10);
-    if (mesAniv === hoy.getMonth() && diaAniv === hoy.getDate()) {
-      const años = hoy.getFullYear() - parseInt(r['Año'], 10);
-      if (años >= 1) hoyEventos.push({ nombre, tipo: 'aniversario', detalle: `Cumple ${años} año${años===1?'':'s'} en la empresa` });
-    }
-    const mesCumple = MES_ABBR_IDX[String(r['Mes cumpleaños']||'').toLowerCase().trim()];
-    const diaCumple = parseInt(r['Día2'], 10);
-    if (mesCumple === hoy.getMonth() && diaCumple === hoy.getDate()) {
-      hoyEventos.push({ nombre, tipo: 'cumple', detalle: 'Cumpleaños' });
-    }
-  });
+  const hoyEventos = todosLosEventosCumpleAniversario().filter(ev => ev.mes === hoy.getMonth() && ev.dia === hoy.getDate());
 
   document.getElementById('home-stats').innerHTML = [
     { num: idx.length, label: 'Colaboradores' },
@@ -3023,6 +3121,14 @@ async function loadAll() {
       DATA.empleados = Array.isArray(empleados) ? empleados.filter(r => r['Nombre{']) : [];
     } catch (eEmpleados) {
       DATA.empleados = [];
+    }
+
+    // "Hoja 5" — roster de toda la empresa (no solo Vivo 47). Opcional: si falla, seguimos
+    // con lo que ya trae "Empleados"/"Datos Generales".
+    try {
+      DATA.hoja5 = await fetchHoja5();
+    } catch (eHoja5) {
+      DATA.hoja5 = [];
     }
 
     // Filtro permisivo: acepta cualquier fila que tenga algún valor en las primeras columnas
