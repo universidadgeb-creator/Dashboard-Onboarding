@@ -922,6 +922,21 @@
   </div>
 </div>
 
+<!-- MODAL INFO PERSONAL Y DE ROL (DIRECTORIO) -->
+<div class="modal-overlay" id="dir-modal-overlay" onclick="closeDirModal(event)">
+  <div class="modal-panel" id="dir-modal-panel">
+    <div class="modal-header">
+      <div id="dir-modal-avatar"></div>
+      <div class="modal-header-info">
+        <div class="modal-nombre" id="dir-modal-nombre">—</div>
+        <div class="modal-meta" id="dir-modal-meta"></div>
+      </div>
+      <button class="modal-close" onclick="closeDirModalDirect()">✕</button>
+    </div>
+    <div class="modal-body" id="dir-modal-body"></div>
+  </div>
+</div>
+
 <!-- MODAL DETALLE 30 DÍAS -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
   <div class="modal-panel" id="modal-panel">
@@ -2732,7 +2747,7 @@ function renderDirectorio() {
   const list = document.getElementById('dir-list');
   if (!lista.length) { list.innerHTML = `<div class="dir-empty">Sin colaboradores para esta búsqueda.</div>`; return; }
   list.innerHTML = lista.map(c => `
-    <div class="dir-row" onclick="irAColaborador('${c.key.replace(/'/g,"\\'")}')">
+    <div class="dir-row" onclick="openDirModal('${c.key.replace(/'/g,"\\'")}')">
       <div class="dir-nombre-cell">
         ${avatarHtml(c)}
         <span class="dir-nombre-txt">${c.nombre}</span>
@@ -2741,6 +2756,49 @@ function renderDirectorio() {
       <div class="dir-suc">${c.sucursal||'—'}</div>
     </div>`).join('');
 }
+
+function openDirModal(key) {
+  const c = buildColabIndex().find(x => x.key === key);
+  if (!c) return;
+
+  document.getElementById('dir-modal-nombre').textContent = c.nombre;
+  document.getElementById('dir-modal-meta').innerHTML = [c.sucursal, c.rol, c.turno]
+    .filter(Boolean).map(v => `<span>${v}</span>`).join('');
+  document.getElementById('dir-modal-avatar').innerHTML = avatarHtml(c, 'rv-avatar-lg');
+
+  const empleadoRow = DATA.empleados.find(e => e['Nombre{'] && similarNames(normName(e['Nombre{']), c.key));
+  const item = (label, val) => `<div class="modal-item"><span class="modal-item-label">${label}</span><div class="modal-item-vals"><span>${val || '—'}</span></div></div>`;
+
+  let html = '';
+  html += `<div class="modal-section-label">Información del rol</div>`;
+  html += item('Rol / Puesto', c.rol);
+  html += item('Sucursal', c.sucursal);
+  html += item('Área / Equipo', c.area);
+  html += item('Turno', c.turno);
+  if (c.lider) html += item('Líder', c.lider);
+
+  html += `<div class="modal-section-label">Información personal</div>`;
+  html += item('Fecha de ingreso', fmtFecha(c.fechaIngreso));
+  const antig = c.fechaIngreso ? new Date().getFullYear() - c.fechaIngreso.getFullYear() : null;
+  html += item('Antigüedad', antig !== null ? `${antig} año${antig===1?'':'s'}` : null);
+  if (empleadoRow) {
+    const nac = new Date(empleadoRow['Fecha de Nacimiento']);
+    html += item('Fecha de nacimiento', !isNaN(nac) ? fmtFecha(nac) : null);
+    html += item('Género', empleadoRow['Genero']);
+  }
+
+  document.getElementById('dir-modal-body').innerHTML = html;
+  document.getElementById('dir-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDirModal(e) {
+  if (e.target === document.getElementById('dir-modal-overlay')) closeDirModalDirect();
+}
+function closeDirModalDirect() {
+  document.getElementById('dir-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeDirModalDirect(); });
 
 // ── LOAD ALL ──
 async function loadAll() {
