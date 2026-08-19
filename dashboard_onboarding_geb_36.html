@@ -177,6 +177,37 @@
     .dir-suc, .dir-col-suc { display: none; }
   }
 
+  /* Vista Lista / Organigrama */
+  .dir-vista-switch { display: flex; gap: 6px; margin: 14px 0 4px; background: var(--gris-claro); border-radius: 10px; padding: 4px; width: fit-content; }
+  .dir-vista-btn { font-size: 12.5px; font-weight: 600; color: var(--gris-medio); background: transparent; border: none; border-radius: 7px; padding: 7px 14px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all .15s; }
+  .dir-vista-btn.active { background: #fff; color: var(--verde-acento); box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+
+  /* ORGANIGRAMA */
+  .org-tree-outer { overflow-x: auto; padding: 10px 12px 40px; }
+  .org-tree { display: flex; gap: 40px; justify-content: center; min-width: min-content; }
+  .org-node { display: flex; flex-direction: column; align-items: center; }
+  .org-card { display: flex; flex-direction: column; align-items: center; text-align: center; width: 148px; background: #fff; border: 1px solid #F1F5F9; border-radius: 12px; padding: 14px 10px 12px; box-shadow: 0 2px 10px rgba(0,0,0,.05); cursor: pointer; transition: all .15s; }
+  .org-card:hover { box-shadow: 0 8px 22px rgba(162,28,175,.14); border-color: #F0ABFC; transform: translateY(-1px); }
+  .org-card .rv-avatar, .org-card .rv-avatar-img { margin-bottom: 8px; }
+  .org-card-nombre { font-size: 12.5px; font-weight: 700; color: var(--blanco); line-height: 1.3; }
+  .org-card-rol { font-size: 11px; color: var(--gris-medio); margin-top: 2px; line-height: 1.3; }
+  .org-card-tag { font-size: 9.5px; font-weight: 600; color: var(--verde-acento); background: #FDF4FF; border-radius: 10px; padding: 2px 8px; margin-top: 6px; }
+  .org-card-count { margin-top: 8px; font-size: 10.5px; font-weight: 700; color: var(--gris-medio); background: var(--gris-claro); border: none; border-radius: 10px; padding: 3px 9px; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 3px; }
+  .org-card-count:hover { background: #E2E8F0; }
+  .org-chevron { transition: transform .15s; font-size: 9px; }
+  .org-node.collapsed .org-children-wrap { display: none; }
+  .org-node.collapsed .org-chevron { transform: rotate(-90deg); }
+
+  .org-children-wrap { position: relative; padding-top: 20px; }
+  .org-children-wrap::before { content: ''; position: absolute; top: 0; left: 50%; width: 1px; height: 20px; background: #CBD5E1; transform: translateX(-50%); }
+  .org-children { display: flex; gap: 0; }
+  .org-child { position: relative; padding: 16px 18px 0; }
+  .org-child::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: #CBD5E1; }
+  .org-child::after { content: ''; position: absolute; top: 0; left: 50%; width: 1px; height: 16px; background: #CBD5E1; transform: translateX(-50%); }
+  .org-child:first-child::before { left: 50%; }
+  .org-child:last-child::before { right: 50%; }
+  .org-child:only-child::before { display: none; }
+
   /* APP SHELL / SIDEBAR (navegación estilo Factorial) */
   .app-shell { display: flex; align-items: flex-start; }
   .app-content { flex: 1; min-width: 0; }
@@ -1158,29 +1189,41 @@
         <div class="section-title">Directorio de colaboradores</div>
         <button class="btn-nuevo-colab" id="btn-nuevo-colab" style="display:none" onclick="abrirAltaColaborador()">+ Nuevo colaborador</button>
       </div>
-      <div class="dir-controls">
-        <input type="text" class="rv-search-input" id="dir-buscar" placeholder="Buscar por nombre…" oninput="renderDirectorioDebounced()">
-        <div class="dir-chips" id="dir-status-chips">
-          <button class="dir-chip active" onclick="dirFiltrarEstatus('', event)">Todos</button>
-          <button class="dir-chip" onclick="dirFiltrarEstatus('activo', event)">Activos</button>
-          <button class="dir-chip" onclick="dirFiltrarEstatus('baja', event)">Inactivos</button>
-          <button class="dir-chip" onclick="dirFiltrarEstatus('desconocido', event)">Sin estatus</button>
-        </div>
-        <select id="dir-orden" onchange="renderDirectorio()">
-          <option value="alfabetico">Orden alfabético</option>
-          <option value="contratacion">Fecha de contratación</option>
-          <option value="sucursal">Sucursal</option>
-          <option value="area">Área</option>
-        </select>
+      <div class="dir-vista-switch">
+        <button class="dir-vista-btn active" id="dir-vista-btn-lista" onclick="cambiarVistaDirectorio('lista')">📋 Lista</button>
+        <button class="dir-vista-btn" id="dir-vista-btn-organigrama" onclick="cambiarVistaDirectorio('organigrama')">🌳 Organigrama</button>
       </div>
-      <div class="dir-table">
-        <div class="dir-row dir-head dir-row-estatus">
-          <div class="dir-col-nombre">Colaborador</div>
-          <div class="dir-col-rol">Rol</div>
-          <div class="dir-col-suc">Sucursal</div>
-          <div class="dir-col-estatus">Estatus</div>
+
+      <div id="dir-vista-lista">
+        <div class="dir-controls">
+          <input type="text" class="rv-search-input" id="dir-buscar" placeholder="Buscar por nombre…" oninput="renderDirectorioDebounced()">
+          <div class="dir-chips" id="dir-status-chips">
+            <button class="dir-chip active" onclick="dirFiltrarEstatus('', event)">Todos</button>
+            <button class="dir-chip" onclick="dirFiltrarEstatus('activo', event)">Activos</button>
+            <button class="dir-chip" onclick="dirFiltrarEstatus('baja', event)">Inactivos</button>
+            <button class="dir-chip" onclick="dirFiltrarEstatus('desconocido', event)">Sin estatus</button>
+          </div>
+          <select id="dir-orden" onchange="renderDirectorio()">
+            <option value="alfabetico">Orden alfabético</option>
+            <option value="contratacion">Fecha de contratación</option>
+            <option value="sucursal">Sucursal</option>
+            <option value="area">Área</option>
+          </select>
         </div>
-        <div id="dir-list"></div>
+        <div class="dir-table">
+          <div class="dir-row dir-head dir-row-estatus">
+            <div class="dir-col-nombre">Colaborador</div>
+            <div class="dir-col-rol">Rol</div>
+            <div class="dir-col-suc">Sucursal</div>
+            <div class="dir-col-estatus">Estatus</div>
+          </div>
+          <div id="dir-list"></div>
+        </div>
+      </div>
+
+      <div id="dir-vista-organigrama" style="display:none">
+        <p class="bandeja-sub">Se arma a partir del campo "Líder" de cada colaborador — si alguien no aparece en su lugar, es porque ese dato viene distinto o vacío en el Sheet. Haz clic en un nombre para ver su perfil, o en el número para expandir/colapsar su equipo.</p>
+        <div id="org-chart-wrap"></div>
       </div>
     </div>
   </div>
@@ -3324,6 +3367,7 @@ function borrarDatosPreview() {
   if (!confirm('¿Borrar los colaboradores de vista previa guardados en este navegador? Esta acción no se puede deshacer.')) return;
   localStorage.removeItem(COLAB_PREVIEW_KEY);
   _colabIndexCache = null;
+  _orgChartBuilt = false;
   renderDirectorio();
   renderConfiguracion();
   alert('Se borraron los datos de vista previa de este navegador.');
@@ -3414,6 +3458,7 @@ function guardarAltaColaborador() {
   document.querySelectorAll('#alta-modal-panel input[type=text], #alta-modal-panel input[type=date], #alta-modal-panel input[type=email], #alta-modal-panel input[type=number]').forEach(i => i.value = '');
   closeAltaModalDirect();
   _colabIndexCache = null;
+  _orgChartBuilt = false;
   renderDirectorio();
   alert(`${nombre} se agregó como vista previa. Aparece marcado como "Vista previa" en el Directorio — recuerda que esto no se guardó en ningún Sheet, solo en este navegador.`);
 }
@@ -3534,6 +3579,122 @@ function renderDirectorio() {
       <div><span class="estatus-badge ${estClass}">${estLabel}</span></div>
     </div>`;
   }).join('');
+}
+
+// ── ORGANIGRAMA (a partir del campo "Líder" de cada colaborador) ──
+let _orgChartBuilt = false;
+function cambiarVistaDirectorio(vista) {
+  document.getElementById('dir-vista-btn-lista').classList.toggle('active', vista === 'lista');
+  document.getElementById('dir-vista-btn-organigrama').classList.toggle('active', vista === 'organigrama');
+  document.getElementById('dir-vista-lista').style.display = vista === 'lista' ? '' : 'none';
+  document.getElementById('dir-vista-organigrama').style.display = vista === 'organigrama' ? '' : 'none';
+  if (vista === 'organigrama' && !_orgChartBuilt) {
+    renderOrganigrama();
+    _orgChartBuilt = true;
+  }
+}
+
+function buildOrgTree() {
+  const idx = getColabIndex().filter(c => c.nombre && c.estatus !== 'baja');
+  const byKey = new Map(idx.map(c => [c.key, c]));
+  const childrenOf = new Map();
+  const hasParent = new Set();
+
+  function resolveLiderKey(liderNombre, ownKey) {
+    if (!liderNombre) return null;
+    const nk = normName(liderNombre);
+    if (!nk) return null;
+    let match = byKey.get(nk);
+    if (!match) match = idx.find(c => similarNames(nk, normName(c.nombre)));
+    if (!match || match.key === ownKey) return null;
+    return match.key;
+  }
+
+  idx.forEach(c => {
+    const pKey = resolveLiderKey(c.lider, c.key);
+    if (pKey) {
+      if (!childrenOf.has(pKey)) childrenOf.set(pKey, []);
+      childrenOf.get(pKey).push(c);
+      hasParent.add(c.key);
+    }
+  });
+
+  const tentativeRoots = idx.filter(c => !hasParent.has(c.key));
+
+  // "visited" evita ciclos (ej. datos con A reporta a B y B reporta a A):
+  // en cuanto alguien ya quedó colocado en el árbol, no se vuelve a insertar.
+  const visited = new Set();
+  function buildNode(c) {
+    if (visited.has(c.key)) return null;
+    visited.add(c.key);
+    const kids = (childrenOf.get(c.key) || []).map(buildNode).filter(Boolean);
+    const teamCount = kids.reduce((sum, k) => sum + 1 + k.teamCount, 0);
+    return { c, children: kids, teamCount };
+  }
+
+  let roots = tentativeRoots.map(buildNode).filter(Boolean);
+  // Quien haya quedado fuera (ciclo sin punto de entrada real) se muestra como raíz suelta
+  idx.forEach(c => {
+    if (!visited.has(c.key)) {
+      const n = buildNode(c);
+      if (n) roots.push(n);
+    }
+  });
+
+  const porNombre = (a, b) => String(a.c.nombre||'').localeCompare(String(b.c.nombre||''), 'es');
+  function ordenar(lista) {
+    lista.sort((a,b) => b.teamCount - a.teamCount || porNombre(a,b));
+    lista.forEach(n => ordenar(n.children));
+  }
+  ordenar(roots);
+  return roots;
+}
+
+function renderOrgNode(node, esRaiz) {
+  const c = node.c;
+  const hasKids = node.children.length > 0;
+  const rolLinea = [c.rol, c.area].filter(Boolean).join(', ');
+  return `
+  <div class="org-node">
+    <div class="org-card" onclick="openDirModal('${c.key.replace(/'/g,"\\'")}')">
+      ${avatarHtml(c, esRaiz ? 'rv-avatar-lg' : '')}
+      <div class="org-card-nombre">${escapeHtml(c.nombre)}</div>
+      ${rolLinea ? `<div class="org-card-rol">${escapeHtml(rolLinea)}</div>` : ''}
+      ${c.sucursal ? `<div class="org-card-tag">${escapeHtml(c.sucursal)}</div>` : ''}
+      ${hasKids ? `<button class="org-card-count" onclick="event.stopPropagation(); toggleOrgNode(this)">${node.teamCount} <span class="org-chevron">⌄</span></button>` : ''}
+    </div>
+    ${hasKids ? `<div class="org-children-wrap"><div class="org-children">${
+      node.children.map(ch => `<div class="org-child">${renderOrgNode(ch, false)}</div>`).join('')
+    }</div></div>` : ''}
+  </div>`;
+}
+
+function toggleOrgNode(btn) {
+  const node = btn.closest('.org-node');
+  node.classList.toggle('collapsed');
+}
+
+function renderOrganigrama() {
+  const wrap = document.getElementById('org-chart-wrap');
+  const roots = buildOrgTree();
+  if (!roots.length) {
+    wrap.innerHTML = `<div class="dir-empty">No hay datos suficientes para armar el organigrama — falta el campo "Líder" en los colaboradores activos.</div>`;
+    return;
+  }
+  // El campo "Líder"/"Reporta a" solo se llena en las encuestas de onboarding, así que
+  // la mayoría del roster (gente contratada antes de eso) no tiene jefe registrado. Mostrar
+  // los 300+ como cajitas sueltas sería puro ruido — se arman solo los equipos reales
+  // (con al menos un reporte) y el resto se resume en un aviso, no se ocultan silenciosamente.
+  const arboles = roots.filter(r => r.teamCount > 0);
+  const sueltos = roots.filter(r => r.teamCount === 0);
+  if (!arboles.length) {
+    wrap.innerHTML = `<div class="dir-empty">Ningún colaborador tiene registrado a alguien que le reporte en el campo "Líder" del Sheet, así que no hay una jerarquía que dibujar todavía.</div>`;
+    return;
+  }
+  const avisoSueltos = sueltos.length
+    ? `<div class="bandeja-sub">+ ${sueltos.length} colaboradores sin líder ni equipo registrado en el Sheet no aparecen aquí — se ven completos en la vista de Lista.</div>`
+    : '';
+  wrap.innerHTML = `<div class="org-tree-outer"><div class="org-tree">${arboles.map(r => renderOrgNode(r, true)).join('')}</div></div>${avisoSueltos}`;
 }
 
 function openDirModal(key) {
@@ -3757,6 +3918,7 @@ async function loadAll() {
 
     document.getElementById('last-updated').textContent = '↑ ' + new Date().toLocaleTimeString('es-MX');
     _colabIndexCache = null; // los datos son nuevos — que el próximo getColabIndex() reconstruya
+    _orgChartBuilt = false;
     populateFilters();
 
     ['pre','d30','ev','cert','ruta','cal','dir','inicio'].forEach(k=>{
