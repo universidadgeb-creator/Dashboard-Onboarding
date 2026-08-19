@@ -122,6 +122,28 @@
   .home-nav-card .ic { font-size: 26px; margin-bottom: 10px; }
   .home-nav-card h3 { font-size: 16px; font-weight: 700; color: var(--blanco); margin: 0 0 6px; }
   .home-nav-card p { font-size: 12.5px; color: var(--gris-medio); margin: 0; line-height: 1.5; }
+
+  /* BANDEJA DE ENTRADA / AVISOS (vista previa) */
+  .home-inbox { background: #fff; border-radius: 16px; padding: 24px; margin-bottom: 28px; box-shadow: 0 2px 10px rgba(0,0,0,.05); border: 1px solid #F1F5F9; }
+  .home-inbox-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .home-inbox-head h2 { font-size: 16px; font-weight: 700; color: var(--blanco); margin: 0; }
+  .btn-nuevo-aviso { background: var(--verde-acento); color: #fff; border: none; border-radius: 6px; padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: opacity .15s; white-space: nowrap; }
+  .btn-nuevo-aviso:hover { opacity: .88; }
+  .avisos-lista { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .avisos-empty { font-size: 13px; color: var(--gris-texto); padding: 6px 0; }
+  .aviso-card { background: var(--gris-claro); border-radius: 10px; padding: 12px 14px; }
+  .aviso-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+  .aviso-titulo { font-size: 13.5px; font-weight: 700; color: var(--blanco); }
+  .aviso-fecha { font-size: 10.5px; color: var(--gris-texto); white-space: nowrap; }
+  .aviso-msg { font-size: 12.5px; color: var(--gris-medio); line-height: 1.5; white-space: pre-wrap; }
+  .aviso-borrar { margin-top: 8px; background: none; border: none; color: var(--rojo); font-size: 11px; cursor: pointer; font-family: 'Inter', sans-serif; padding: 0; text-decoration: underline; }
+  .ver-todos-avisos { margin-top: 14px; background: none; border: none; color: var(--verde-acento); font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; padding: 0; }
+  .ver-todos-avisos:hover { text-decoration: underline; }
+  .bandeja-sub { font-size: 12.5px; color: var(--gris-texto); margin: -6px 0 16px; }
+  .soon-box-compact { margin: 0 0 20px; padding: 24px; text-align: left; }
+  .soon-box-compact .soon-icon { font-size: 22px; margin-bottom: 6px; }
+  .soon-box-compact .soon-title { font-size: 14px; }
+
   @media (max-width: 700px) {
     .home-stats { grid-template-columns: 1fr; }
     .home-nav { grid-template-columns: 1fr; }
@@ -350,6 +372,8 @@
   .alta-campo-full { grid-column: 1 / -1; }
   .alta-campo input { font-size: 13px; font-weight: 400; color: var(--blanco); border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px 10px; font-family: 'Inter', sans-serif; }
   .alta-campo input:focus { outline: none; border-color: var(--verde-acento); }
+  .alta-campo textarea { font-size: 13px; font-weight: 400; color: var(--blanco); border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px 10px; font-family: 'Inter', sans-serif; resize: vertical; }
+  .alta-campo textarea:focus { outline: none; border-color: var(--verde-acento); }
   .alta-dias { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
   .alta-dias label { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--gris-medio); background: var(--gris-claro); border-radius: 6px; padding: 6px 10px; cursor: pointer; }
   .alta-acciones { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #F1F5F9; }
@@ -866,6 +890,16 @@
           <div class="home-today-list" id="home-today-list"></div>
         </div>
 
+        <div class="home-inbox">
+          <div class="home-inbox-head">
+            <h2>📥 Bandeja de entrada</h2>
+            <button class="btn-nuevo-aviso" id="btn-nuevo-aviso-inicio" style="display:none" onclick="abrirAvisoModal()">+ Nuevo aviso</button>
+          </div>
+          <p class="home-today-sub">Avisos publicados por la empresa</p>
+          <div class="avisos-lista" id="inicio-bandeja-lista"></div>
+          <button class="ver-todos-avisos" onclick="switchTab('bandeja')">Ver todos los avisos →</button>
+        </div>
+
         <div class="home-nav">
           <div class="home-nav-card" onclick="switchTab('directorio')">
             <div class="ic">👥</div>
@@ -1151,8 +1185,26 @@
     </div>
   </div>
 
-  <div class="tab-panel" id="panel-bandeja"><div class="soon-box"><div class="soon-icon">📥</div><div class="soon-title">Bandeja de entrada</div><div class="soon-desc">Aquí llegarán tus notificaciones, solicitudes y tareas pendientes — como en Factorial. Sección en construcción, todavía sin datos reales.</div></div></div>
-  <div class="tab-panel" id="panel-perfil"><div class="soon-box"><div class="soon-icon">👤</div><div class="soon-title">Perfil</div><div class="soon-desc">Cuando el panel tenga inicio de sesión individual, aquí verás tu propio perfil (datos personales, documentos, ausencias). Por ahora puedes consultar el perfil de cualquier colaborador desde Organización.</div></div></div>
+  <div class="tab-panel" id="panel-bandeja">
+    <div class="section-header">
+      <div class="section-title">Bandeja de entrada</div>
+      <button class="btn-nuevo-aviso" id="btn-nuevo-aviso-bandeja" style="display:none" onclick="abrirAvisoModal()">+ Nuevo aviso</button>
+    </div>
+    <p class="bandeja-sub">Avisos publicados por la empresa. Notificaciones de tareas y solicitudes llegarán aquí más adelante — por ahora es solo el tablón de avisos.</p>
+    <div class="avisos-lista" id="bandeja-lista"></div>
+  </div>
+  <div class="tab-panel" id="panel-perfil">
+    <div class="soon-box soon-box-compact">
+      <div class="soon-icon">👤</div>
+      <div class="soon-title">Perfil</div>
+      <div class="soon-desc">Cuando el panel tenga inicio de sesión individual, aquí verás tus propios datos personales. Por ahora puedes consultar el perfil de cualquier colaborador desde Organización — y aquí abajo tu bandeja de entrada con los avisos de la empresa.</div>
+    </div>
+    <div class="section-header">
+      <div class="section-title">📥 Bandeja de entrada</div>
+      <button class="btn-nuevo-aviso" id="btn-nuevo-aviso-perfil" style="display:none" onclick="abrirAvisoModal()">+ Nuevo aviso</button>
+    </div>
+    <div class="avisos-lista" id="perfil-bandeja-lista"></div>
+  </div>
   <div class="tab-panel" id="panel-ausencias"><div class="soon-box"><div class="soon-icon">🌴</div><div class="soon-title">Ausencias</div><div class="soon-desc">Vacaciones, incapacidades y permisos por colaborador. Sección en construcción, todavía sin datos reales.</div></div></div>
   <div class="tab-panel" id="panel-documentos"><div class="soon-box"><div class="soon-icon">📁</div><div class="soon-title">Documentos</div><div class="soon-desc">Repositorio de documentos por colaborador (contratos, identificaciones, comprobantes). Sección en construcción, todavía sin datos reales.</div></div></div>
   <div class="tab-panel" id="panel-politicas"><div class="soon-box"><div class="soon-icon">📋</div><div class="soon-title">Políticas</div><div class="soon-desc">Políticas y reglamentos de la empresa, disponibles para consulta. Sección en construcción, todavía sin datos reales.</div></div></div>
@@ -1274,6 +1326,30 @@
       <div class="alta-acciones">
         <button class="btn-refresh" onclick="closeAltaModalDirect()">Cancelar</button>
         <button class="btn-nuevo-colab" onclick="guardarAltaColaborador()">Guardar (vista previa)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO AVISO (VISTA PREVIA — no se envía a nadie, solo se guarda en este navegador) -->
+<div class="modal-overlay" id="aviso-modal-overlay" onclick="closeAvisoModal(event)">
+  <div class="modal-panel" id="aviso-modal-panel">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-nombre">+ Nuevo aviso</div>
+        <div class="modal-meta"><span>Vista previa — se guarda solo en este navegador, no se envía a nadie</span></div>
+      </div>
+      <button class="modal-close" onclick="closeAvisoModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alta-aviso">🔒 Esto es una vista previa de cómo se vería publicar un aviso con permiso de administrador. No se envía realmente a nadie — se guarda nada más en este navegador.</div>
+      <div class="alta-grid">
+        <label class="alta-campo alta-campo-full">Título *<input type="text" id="aviso-titulo" placeholder="Ej. Cierre de oficinas el 16 de septiembre" maxlength="120"></label>
+        <label class="alta-campo alta-campo-full">Mensaje *<textarea id="aviso-mensaje" rows="4" placeholder="Escribe el aviso…" maxlength="600"></textarea></label>
+      </div>
+      <div class="alta-acciones">
+        <button class="btn-refresh" onclick="closeAvisoModalDirect()">Cancelar</button>
+        <button class="btn-nuevo-colab" onclick="guardarAviso()">Publicar aviso</button>
       </div>
     </div>
   </div>
@@ -3223,12 +3299,20 @@ function toggleModoAdmin() {
   localStorage.setItem(MODO_ADMIN_KEY, on ? '1' : '');
   aplicarModoAdmin();
 }
+function esAdmin() {
+  return localStorage.getItem(MODO_ADMIN_KEY) === '1';
+}
 function aplicarModoAdmin() {
-  const on = localStorage.getItem(MODO_ADMIN_KEY) === '1';
+  const on = esAdmin();
   document.getElementById('modo-admin-check').checked = on;
   document.getElementById('admin-toggle').classList.toggle('on', on);
   const btn = document.getElementById('btn-nuevo-colab');
   if (btn) btn.style.display = on ? '' : 'none';
+  ['btn-nuevo-aviso-inicio', 'btn-nuevo-aviso-bandeja', 'btn-nuevo-aviso-perfil'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.style.display = on ? '' : 'none';
+  });
+  renderTodosLosAvisos();
 }
 
 // ── ALTA DE COLABORADOR (vista previa — solo localStorage, nunca se manda al Sheet) ──
@@ -3332,6 +3416,72 @@ function guardarAltaColaborador() {
   _colabIndexCache = null;
   renderDirectorio();
   alert(`${nombre} se agregó como vista previa. Aparece marcado como "Vista previa" en el Directorio — recuerda que esto no se guardó en ningún Sheet, solo en este navegador.`);
+}
+
+// ── BANDEJA DE ENTRADA / AVISOS (vista previa — solo localStorage, nunca se envía a nadie) ──
+const AVISOS_KEY = 'geb_avisos_preview';
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function getAvisos() {
+  try { return JSON.parse(localStorage.getItem(AVISOS_KEY)) || []; } catch(e) { return []; }
+}
+function avisoCardHtml(a) {
+  const fecha = new Date(a.fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+  return `<div class="aviso-card">
+    <div class="aviso-head"><span class="aviso-titulo">${escapeHtml(a.titulo)}</span><span class="aviso-fecha">${fecha}</span></div>
+    <div class="aviso-msg">${escapeHtml(a.mensaje)}</div>
+    ${esAdmin() ? `<button class="aviso-borrar" onclick="borrarAvisoUI(${a.id})">🗑 Eliminar</button>` : ''}
+  </div>`;
+}
+function renderAvisosEn(containerId, limite) {
+  const cont = document.getElementById(containerId);
+  if (!cont) return;
+  let avisos = getAvisos();
+  if (limite) avisos = avisos.slice(0, limite);
+  cont.innerHTML = avisos.length
+    ? avisos.map(avisoCardHtml).join('')
+    : '<div class="avisos-empty">Aún no hay avisos publicados.</div>';
+}
+function renderTodosLosAvisos() {
+  renderAvisosEn('inicio-bandeja-lista', 3);
+  renderAvisosEn('bandeja-lista', null);
+  renderAvisosEn('perfil-bandeja-lista', null);
+}
+
+function abrirAvisoModal() {
+  document.getElementById('aviso-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeAvisoModal(e) {
+  if (e.target === document.getElementById('aviso-modal-overlay')) closeAvisoModalDirect();
+}
+function closeAvisoModalDirect() {
+  document.getElementById('aviso-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeAvisoModalDirect(); });
+
+function guardarAviso() {
+  const titulo = document.getElementById('aviso-titulo').value.trim();
+  const mensaje = document.getElementById('aviso-mensaje').value.trim();
+  if (!titulo || !mensaje) {
+    alert('Falta el título o el mensaje del aviso — son obligatorios.');
+    return;
+  }
+  const lista = getAvisos();
+  lista.unshift({ id: Date.now(), titulo, mensaje, fecha: new Date().toISOString() });
+  localStorage.setItem(AVISOS_KEY, JSON.stringify(lista));
+  document.getElementById('aviso-titulo').value = '';
+  document.getElementById('aviso-mensaje').value = '';
+  closeAvisoModalDirect();
+  renderTodosLosAvisos();
+}
+function borrarAvisoUI(id) {
+  if (!confirm('¿Eliminar este aviso? Esta acción no se puede deshacer.')) return;
+  const lista = getAvisos().filter(a => a.id !== id);
+  localStorage.setItem(AVISOS_KEY, JSON.stringify(lista));
+  renderTodosLosAvisos();
 }
 
 // ── DIRECTORIO DE COLABORADORES ──
