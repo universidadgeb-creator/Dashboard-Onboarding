@@ -24,7 +24,8 @@
     --verde-ok-txt: #15803D;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Inter', sans-serif; background: var(--verde-oscuro); color: var(--blanco); min-height: 100vh; }
+  html { overflow-x: hidden; }
+  body { font-family: 'Inter', sans-serif; background: var(--verde-oscuro); color: var(--blanco); min-height: 100vh; overflow-x: hidden; }
 
   /* HEADER */
   header {
@@ -154,17 +155,63 @@
     .dir-suc, .dir-col-suc { display: none; }
   }
 
-  /* TABS */
-  .tabs-bar { background: #F1F5F9; padding: 0 32px; display: flex; border-bottom: 1px solid #E2E8F0; }
-  .tab-btn { padding: 14px 24px; font-size: 13px; font-weight: 500; color: #94A3B8; background: transparent; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; letter-spacing: 0.02em; }
-  .tab-btn:hover { color: #ffffff; }
-  .tab-btn.active { color: #A21CAF; border-bottom-color: #A21CAF; }
-  .tab-dropdown-wrap { position: relative; }
-  .tab-dropdown-menu { display: none; position: absolute; top: 100%; left: 0; background: #fff; border: 1px solid #E2E8F0; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.14); z-index: 200; padding: 6px; min-width: 220px; }
-  .tab-dropdown-menu.open { display: block; }
-  .tab-dropdown-menu button { display: block; width: 100%; text-align: left; padding: 9px 12px; font-size: 13px; font-weight: 500; color: var(--blanco); background: transparent; border: none; border-radius: 6px; cursor: pointer; font-family: 'Inter', sans-serif; }
-  .tab-dropdown-menu button:hover { background: var(--gris-claro); }
-  .tab-dropdown-menu button.active { color: var(--verde-acento); background: var(--gris-claro); }
+  /* APP SHELL / SIDEBAR (navegación estilo Factorial) */
+  .app-shell { display: flex; align-items: flex-start; }
+  .app-content { flex: 1; min-width: 0; }
+  .sidebar {
+    width: 232px; flex-shrink: 0; box-sizing: border-box;
+    background: #1E2D40; color: #CBD5E1;
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 14px 10px 10px; position: sticky; top: 60px; height: calc(100vh - 60px);
+    overflow-y: auto;
+  }
+  .sidebar-top { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+  .sidebar-bottom { margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.08); }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+    background: transparent; border: none; color: #CBD5E1;
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+    padding: 9px 10px; border-radius: 8px; cursor: pointer; transition: all .15s;
+  }
+  .sidebar-item:hover { background: rgba(255,255,255,.07); color: #fff; }
+  .sidebar-item.active { background: #A21CAF; color: #fff; }
+  .si-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+  .si-label { flex: 1; }
+  .si-soon { font-size: 9px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: #94A3B8; background: rgba(255,255,255,.08); padding: 2px 6px; border-radius: 10px; flex-shrink: 0; }
+  .sidebar-item.active .si-soon { background: rgba(255,255,255,.22); color: #fff; }
+  .sidebar-group { margin-bottom: 2px; }
+  .sidebar-group-header {
+    display: flex; align-items: center; justify-content: space-between; width: 100%;
+    background: transparent; border: none; color: #64748B; font-family: 'Inter', sans-serif;
+    font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    padding: 12px 10px 6px; cursor: pointer;
+  }
+  .sidebar-group-header:hover { color: #94A3B8; }
+  .sg-chevron { transition: transform .15s; font-size: 11px; flex-shrink: 0; }
+  .sidebar-group.collapsed .sg-chevron, .sidebar-subgroup.collapsed .sg-chevron { transform: rotate(-90deg); }
+  .sidebar-group.collapsed .sidebar-group-body, .sidebar-subgroup.collapsed .sidebar-subgroup-body { display: none; }
+  .sidebar-group-body { display: flex; flex-direction: column; gap: 2px; }
+  .sidebar-subgroup-body { padding-left: 20px; margin-top: 2px; }
+  .sidebar-subitem {
+    display: block; width: 100%; text-align: left; background: transparent; border: none;
+    color: #94A3B8; font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 500;
+    padding: 7px 10px; border-radius: 6px; cursor: pointer;
+  }
+  .sidebar-subitem:hover { background: rgba(255,255,255,.07); color: #fff; }
+  .sidebar-subitem.active { color: #E879F9; background: rgba(162,28,175,.2); font-weight: 600; }
+
+  /* Secciones "próximamente" y Configuración */
+  .soon-box { max-width: 480px; margin: 60px auto; text-align: center; padding: 40px 24px; background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; }
+  .soon-icon { font-size: 34px; margin-bottom: 12px; }
+  .soon-title { font-size: 17px; font-weight: 700; color: var(--blanco); margin-bottom: 8px; }
+  .soon-desc { font-size: 13px; color: var(--gris-medio); line-height: 1.5; }
+  .config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .config-card { background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 18px; }
+  .config-card-title { font-size: 13px; font-weight: 700; color: var(--blanco); margin-bottom: 10px; }
+  .config-desc { font-size: 12px; color: var(--gris-medio); line-height: 1.5; margin-bottom: 10px; }
+  .config-row { display: flex; justify-content: space-between; gap: 12px; font-size: 12.5px; color: var(--gris-medio); padding: 6px 0; border-top: 1px solid #F1F5F9; }
+  .config-row:first-of-type { border-top: none; }
+  .config-row span:last-child { color: var(--blanco); font-weight: 600; }
 
   /* FILTERS */
   .filters-bar { background: #FFFFFF; padding: 14px 32px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid #E2E8F0; }
@@ -626,6 +673,19 @@
     .main { padding: 16px; }
     .filters-bar, header { padding: 0 16px; }
     .filters-bar { padding: 12px 16px; }
+    .app-shell { flex-direction: column; }
+    .sidebar {
+      width: 100%; min-width: 0; height: auto; position: static; flex-direction: row; align-items: center;
+      overflow-x: auto; overflow-y: visible; padding: 6px 12px; gap: 4px;
+      border-bottom: 2px solid var(--verde-acento);
+    }
+    .sidebar-top, .sidebar-group-body, .sidebar-subgroup-body { flex-direction: row; flex-wrap: nowrap; }
+    .sidebar-group, .sidebar-subgroup { display: flex; align-items: center; margin-bottom: 0; flex-shrink: 0; }
+    .sidebar-group-header { display: none; }
+    .sidebar-group.collapsed .sidebar-group-body, .sidebar-subgroup.collapsed .sidebar-subgroup-body { display: flex; }
+    .sidebar-bottom { margin-top: 0; padding-top: 0; border-top: none; flex-shrink: 0; }
+    .sidebar-item, .sidebar-subitem { width: auto; white-space: nowrap; flex-shrink: 0; }
+    .sidebar-subgroup-body { padding-left: 4px; margin-top: 0; }
   }
 </style>
 
@@ -648,21 +708,83 @@
   </div>
 </header>
 
-<div class="tabs-bar">
-  <button class="tab-btn active" data-tab="inicio" onclick="switchTab('inicio')">Inicio</button>
-  <div class="tab-dropdown-wrap">
-    <button class="tab-btn" id="onboarding-toggle-btn" onclick="toggleOnboardingMenu(event)">Onboarding ▾</button>
-    <div class="tab-dropdown-menu" id="onboarding-menu">
-      <button data-tab="preonboarding" onclick="switchTab('preonboarding')">Preonboarding</button>
-      <button data-tab="treinta" onclick="switchTab('treinta')">Encuesta 30 Días</button>
-      <button data-tab="evaluacion" onclick="switchTab('evaluacion')">Evaluación Inducción</button>
-      <button data-tab="certificaciones" onclick="switchTab('certificaciones')">Certificaciones</button>
-      <button data-tab="ruta" onclick="switchTab('ruta')">Ruta del Colaborador</button>
+<div class="app-shell">
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-top">
+    <button class="sidebar-item active" data-tab="inicio" onclick="switchTab('inicio')">
+      <span class="si-icon">🏠</span><span class="si-label">Inicio</span>
+    </button>
+    <button class="sidebar-item" data-tab="bandeja" onclick="switchTab('bandeja')">
+      <span class="si-icon">📥</span><span class="si-label">Bandeja de entrada</span><span class="si-soon">pronto</span>
+    </button>
+    <button class="sidebar-item" data-tab="calendario" onclick="switchTab('calendario')">
+      <span class="si-icon">📅</span><span class="si-label">Calendario</span>
+    </button>
+  </div>
+
+  <div class="sidebar-group" id="sg-personal">
+    <button class="sidebar-group-header" onclick="toggleSidebarGroup('sg-personal')">
+      <span>Personal</span><span class="sg-chevron">⌄</span>
+    </button>
+    <div class="sidebar-group-body">
+      <button class="sidebar-item" data-tab="perfil" onclick="switchTab('perfil')">
+        <span class="si-icon">👤</span><span class="si-label">Perfil</span><span class="si-soon">pronto</span>
+      </button>
+      <button class="sidebar-item" data-tab="ausencias" onclick="switchTab('ausencias')">
+        <span class="si-icon">🌴</span><span class="si-label">Ausencias</span><span class="si-soon">pronto</span>
+      </button>
+      <div class="sidebar-subgroup" id="ssg-formacion">
+        <button class="sidebar-item sidebar-item-expand" onclick="toggleSidebarGroup('ssg-formacion')">
+          <span class="si-icon">🎓</span><span class="si-label">Formación</span><span class="sg-chevron">⌄</span>
+        </button>
+        <div class="sidebar-group-body sidebar-subgroup-body">
+          <button class="sidebar-subitem" data-tab="preonboarding" onclick="switchTab('preonboarding')">Preonboarding</button>
+          <button class="sidebar-subitem" data-tab="treinta" onclick="switchTab('treinta')">Encuesta 30 Días</button>
+          <button class="sidebar-subitem" data-tab="evaluacion" onclick="switchTab('evaluacion')">Evaluación Inducción</button>
+          <button class="sidebar-subitem" data-tab="certificaciones" onclick="switchTab('certificaciones')">Certificaciones</button>
+        </div>
+      </div>
+      <button class="sidebar-item" data-tab="documentos" onclick="switchTab('documentos')">
+        <span class="si-icon">📁</span><span class="si-label">Documentos</span><span class="si-soon">pronto</span>
+      </button>
     </div>
   </div>
-  <button class="tab-btn" data-tab="calendario" onclick="switchTab('calendario')">Aniversarios</button>
-  <button class="tab-btn" data-tab="directorio" onclick="switchTab('directorio')">Directorio</button>
-</div>
+
+  <div class="sidebar-group" id="sg-empresa">
+    <button class="sidebar-group-header" onclick="toggleSidebarGroup('sg-empresa')">
+      <span>Empresa</span><span class="sg-chevron">⌄</span>
+    </button>
+    <div class="sidebar-group-body">
+      <button class="sidebar-item" data-tab="directorio" onclick="switchTab('directorio')">
+        <span class="si-icon">🏢</span><span class="si-label">Organización</span>
+      </button>
+      <button class="sidebar-item" data-tab="politicas" onclick="switchTab('politicas')">
+        <span class="si-icon">📋</span><span class="si-label">Políticas</span><span class="si-soon">pronto</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="sidebar-group" id="sg-talento">
+    <button class="sidebar-group-header" onclick="toggleSidebarGroup('sg-talento')">
+      <span>Talento</span><span class="sg-chevron">⌄</span>
+    </button>
+    <div class="sidebar-group-body">
+      <button class="sidebar-item" data-tab="desempeno" onclick="switchTab('desempeno')">
+        <span class="si-icon">📈</span><span class="si-label">Desempeño</span><span class="si-soon">pronto</span>
+      </button>
+      <button class="sidebar-item" data-tab="ruta" onclick="switchTab('ruta')">
+        <span class="si-icon">📉</span><span class="si-label">Retención</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="sidebar-bottom">
+    <button class="sidebar-item" data-tab="configuracion" onclick="switchTab('configuracion')">
+      <span class="si-icon">⚙️</span><span class="si-label">Configuración</span>
+    </button>
+  </div>
+</nav>
+<div class="app-content">
 
 <div class="filters-bar" id="filters-bar" style="display:none">
   <span class="filter-label">Filtrar por</span>
@@ -1029,6 +1151,37 @@
     </div>
   </div>
 
+  <div class="tab-panel" id="panel-bandeja"><div class="soon-box"><div class="soon-icon">📥</div><div class="soon-title">Bandeja de entrada</div><div class="soon-desc">Aquí llegarán tus notificaciones, solicitudes y tareas pendientes — como en Factorial. Sección en construcción, todavía sin datos reales.</div></div></div>
+  <div class="tab-panel" id="panel-perfil"><div class="soon-box"><div class="soon-icon">👤</div><div class="soon-title">Perfil</div><div class="soon-desc">Cuando el panel tenga inicio de sesión individual, aquí verás tu propio perfil (datos personales, documentos, ausencias). Por ahora puedes consultar el perfil de cualquier colaborador desde Organización.</div></div></div>
+  <div class="tab-panel" id="panel-ausencias"><div class="soon-box"><div class="soon-icon">🌴</div><div class="soon-title">Ausencias</div><div class="soon-desc">Vacaciones, incapacidades y permisos por colaborador. Sección en construcción, todavía sin datos reales.</div></div></div>
+  <div class="tab-panel" id="panel-documentos"><div class="soon-box"><div class="soon-icon">📁</div><div class="soon-title">Documentos</div><div class="soon-desc">Repositorio de documentos por colaborador (contratos, identificaciones, comprobantes). Sección en construcción, todavía sin datos reales.</div></div></div>
+  <div class="tab-panel" id="panel-politicas"><div class="soon-box"><div class="soon-icon">📋</div><div class="soon-title">Políticas</div><div class="soon-desc">Políticas y reglamentos de la empresa, disponibles para consulta. Sección en construcción, todavía sin datos reales.</div></div></div>
+  <div class="tab-panel" id="panel-desempeno"><div class="soon-box"><div class="soon-icon">📈</div><div class="soon-title">Desempeño</div><div class="soon-desc">Evaluaciones de desempeño periódicas para todo el personal (más allá de la evaluación de inducción). Sección en construcción, todavía sin datos reales.</div></div></div>
+
+  <div class="tab-panel" id="panel-configuracion">
+    <div class="section-title" style="margin-bottom:16px">Configuración</div>
+    <div class="config-grid">
+      <div class="config-card">
+        <div class="config-card-title">Estado de los datos</div>
+        <div class="config-row"><span>Última actualización</span><span id="cfg-last-updated">—</span></div>
+        <div class="config-row"><span>Fuente de estatus</span><span id="cfg-fuente-estatus">—</span></div>
+      </div>
+      <div class="config-card">
+        <div class="config-card-title">Modo administrador</div>
+        <div class="config-desc">Vista previa: simula el permiso de administrador para ver cómo se vería el alta de colaboradores. Se controla desde el botón 🔑 en la esquina superior derecha — no es seguridad real.</div>
+        <div class="config-row"><span>Estado actual</span><span id="cfg-admin-estado">—</span></div>
+      </div>
+      <div class="config-card">
+        <div class="config-card-title">Colaboradores de vista previa</div>
+        <div class="config-desc">Colaboradores agregados con "+ Nuevo colaborador". Solo existen en este navegador — nunca se enviaron al Sheet.</div>
+        <div class="config-row"><span>Guardados aquí</span><span id="cfg-preview-count">—</span></div>
+        <button class="btn-clear" style="margin-top:10px" onclick="borrarDatosPreview()">Borrar datos de vista previa</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
 </div>
 
 <!-- MODAL RUTA DEL COLABORADOR -->
@@ -2862,14 +3015,16 @@ function closeRutaModalDirect() {
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeRutaModalDirect(); });
 
 const ONBOARDING_TABS = ['preonboarding','treinta','evaluacion','certificaciones','ruta'];
+const FORMACION_TABS = ['preonboarding','treinta','evaluacion','certificaciones'];
 
 function switchTab(tab) {
   ACTIVE = tab;
   document.querySelectorAll('[data-tab]').forEach(b => {
     b.classList.toggle('active', b.dataset.tab === tab);
   });
-  document.getElementById('onboarding-toggle-btn').classList.toggle('active', ONBOARDING_TABS.includes(tab));
-  document.getElementById('onboarding-menu').classList.remove('open');
+  if (FORMACION_TABS.includes(tab)) {
+    document.getElementById('ssg-formacion').classList.remove('collapsed');
+  }
   document.getElementById('alert-panel').classList.remove('open');
   const searchResults = document.getElementById('home-search-results');
   if (searchResults) searchResults.classList.remove('open');
@@ -2879,18 +3034,12 @@ function switchTab(tab) {
   document.getElementById('metas-bar').style.display = ONBOARDING_TABS.includes(tab) ? '' : 'none';
   updateEvFilters();
   applyFilters();
+  if (tab === 'configuracion') renderConfiguracion();
 }
 
-function toggleOnboardingMenu(e) {
-  // Sin stopPropagation: el listener de "click afuera" ya ignora los clics dentro de
-  // .tab-dropdown-wrap (ver más abajo), así que detener la propagación aquí solo lograba
-  // que los OTROS paneles flotantes (avisos, buscador de Inicio) se quedaran abiertos.
-  document.getElementById('onboarding-menu').classList.toggle('open');
+function toggleSidebarGroup(id) {
+  document.getElementById(id).classList.toggle('collapsed');
 }
-document.addEventListener('click', (e) => {
-  const wrap = document.querySelector('.tab-dropdown-wrap');
-  if (wrap && !wrap.contains(e.target)) document.getElementById('onboarding-menu').classList.remove('open');
-});
 
 // ── ALERTAS: encuestas de 30/60/90 días pendientes de enviar ──
 function colaboradoresPendientesEncuesta() {
@@ -3087,6 +3236,24 @@ const COLAB_PREVIEW_KEY = 'geb_colaboradores_preview';
 function getColaboradoresPreview() {
   try { return JSON.parse(localStorage.getItem(COLAB_PREVIEW_KEY)) || []; } catch(e) { return []; }
 }
+function borrarDatosPreview() {
+  if (!confirm('¿Borrar los colaboradores de vista previa guardados en este navegador? Esta acción no se puede deshacer.')) return;
+  localStorage.removeItem(COLAB_PREVIEW_KEY);
+  _colabIndexCache = null;
+  renderDirectorio();
+  renderConfiguracion();
+  alert('Se borraron los datos de vista previa de este navegador.');
+}
+
+function renderConfiguracion() {
+  const lu = document.getElementById('last-updated').textContent;
+  document.getElementById('cfg-last-updated').textContent = lu && lu !== '—' ? lu : 'Aún no se ha cargado';
+  document.getElementById('cfg-fuente-estatus').textContent = _estatusFuente === 'sheet' ? "Hoja 'Estatus Colaboradores'" : 'Respaldo (Excel importado)';
+  const adminOn = localStorage.getItem(MODO_ADMIN_KEY) === '1';
+  document.getElementById('cfg-admin-estado').textContent = adminOn ? 'Activado' : 'Desactivado';
+  document.getElementById('cfg-preview-count').textContent = getColaboradoresPreview().length;
+}
+
 function colaboradoresPreviewComoLista() {
   return getColaboradoresPreview().map(p => ({
     key: normName(p.nombre) + '__preview__' + p.id,
