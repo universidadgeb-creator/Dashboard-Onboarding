@@ -129,8 +129,12 @@
   .dir-controls { display: flex; gap: 12px; margin: 16px 0; align-items: center; flex-wrap: wrap; }
   .dir-controls .rv-search-input { flex: 1; min-width: 200px; }
   #dir-orden { font-size: 13px; color: var(--blanco); border: 1px solid #E2E8F0; border-radius: 6px; padding: 8px 12px; font-family: 'Inter', sans-serif; cursor: pointer; }
+  .dir-chips { display: flex; gap: 6px; }
+  .dir-chip { font-size: 12px; font-weight: 500; color: var(--gris-medio); background: #F1F5F9; border: 1px solid transparent; border-radius: 20px; padding: 7px 14px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all .15s; white-space: nowrap; }
+  .dir-chip:hover { background: #E2E8F0; }
+  .dir-chip.active { background: var(--verde-acento); color: #fff; }
   .dir-table { border: 1px solid #F1F5F9; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
-  .dir-row { display: grid; grid-template-columns: 2fr 1.4fr 1fr; gap: 12px; padding: 10px 16px; align-items: center; border-bottom: 1px solid #F1F5F9; }
+  .dir-row { display: grid; grid-template-columns: 2fr 1.4fr 1fr 0.8fr; gap: 12px; padding: 10px 16px; align-items: center; border-bottom: 1px solid #F1F5F9; }
   .dir-row:last-child { border-bottom: none; }
   .dir-head { background: #F8FAFC; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gris-medio); }
   .dir-row:not(.dir-head) { cursor: pointer; }
@@ -140,7 +144,7 @@
   .dir-rol, .dir-suc { font-size: 12.5px; color: var(--gris-medio); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .dir-empty { padding: 30px; text-align: center; color: var(--gris-texto); font-size: 13px; }
   @media (max-width: 700px) {
-    .dir-row { grid-template-columns: 2fr 1fr; }
+    .dir-row { grid-template-columns: 2fr 1fr 0.8fr; }
     .dir-suc { display: none; }
   }
 
@@ -977,6 +981,12 @@
       <div class="section-title">Directorio de colaboradores</div>
       <div class="dir-controls">
         <input type="text" class="rv-search-input" id="dir-buscar" placeholder="Buscar por nombre…" oninput="renderDirectorio()">
+        <div class="dir-chips" id="dir-status-chips">
+          <button class="dir-chip active" onclick="dirFiltrarEstatus('', event)">Todos</button>
+          <button class="dir-chip" onclick="dirFiltrarEstatus('activo', event)">Activos</button>
+          <button class="dir-chip" onclick="dirFiltrarEstatus('baja', event)">Inactivos</button>
+          <button class="dir-chip" onclick="dirFiltrarEstatus('desconocido', event)">Sin estatus</button>
+        </div>
         <select id="dir-orden" onchange="renderDirectorio()">
           <option value="alfabetico">Orden alfabético</option>
           <option value="contratacion">Fecha de contratación</option>
@@ -985,10 +995,11 @@
         </select>
       </div>
       <div class="dir-table">
-        <div class="dir-row dir-head">
+        <div class="dir-row dir-head dir-row-estatus">
           <div class="dir-col-nombre">Colaborador</div>
           <div class="dir-col-rol">Rol</div>
           <div class="dir-col-suc">Sucursal</div>
+          <div class="dir-col-estatus">Estatus</div>
         </div>
         <div id="dir-list"></div>
       </div>
@@ -2946,8 +2957,17 @@ function renderCalendario() {
 }
 
 // ── DIRECTORIO DE COLABORADORES ──
+let _dirEstatusFiltro = '';
+function dirFiltrarEstatus(estatus, e) {
+  _dirEstatusFiltro = estatus;
+  document.querySelectorAll('#dir-status-chips .dir-chip').forEach(b => b.classList.remove('active'));
+  if (e) e.target.classList.add('active');
+  renderDirectorio();
+}
+
 function renderDirectorio() {
-  const idx = buildColabIndex().filter(c => c.estatus !== 'baja' && c.nombre);
+  let idx = buildColabIndex().filter(c => c.nombre);
+  if (_dirEstatusFiltro) idx = idx.filter(c => c.estatus === _dirEstatusFiltro);
   const busq = normName(document.getElementById('dir-buscar').value);
   const orden = document.getElementById('dir-orden').value;
   const lista = busq ? idx.filter(c => normName(c.nombre).includes(busq)) : idx.slice();
@@ -2970,7 +2990,10 @@ function renderDirectorio() {
 
   const list = document.getElementById('dir-list');
   if (!lista.length) { list.innerHTML = `<div class="dir-empty">Sin colaboradores para esta búsqueda.</div>`; return; }
-  list.innerHTML = lista.map(c => `
+  list.innerHTML = lista.map(c => {
+    const estClass = c.estatus==='activo'?'estatus-activo':c.estatus==='baja'?'estatus-baja':'estatus-desconocido';
+    const estLabel = c.estatus==='activo'?'Activo':c.estatus==='baja'?'Inactivo':'—';
+    return `
     <div class="dir-row" onclick="openDirModal('${c.key.replace(/'/g,"\\'")}')">
       <div class="dir-nombre-cell">
         ${avatarHtml(c)}
@@ -2978,7 +3001,9 @@ function renderDirectorio() {
       </div>
       <div class="dir-rol">${c.rol||'—'}</div>
       <div class="dir-suc">${c.sucursal||'—'}</div>
-    </div>`).join('');
+      <div><span class="estatus-badge ${estClass}">${estLabel}</span></div>
+    </div>`;
+  }).join('');
 }
 
 function openDirModal(key) {
