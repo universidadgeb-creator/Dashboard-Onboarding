@@ -235,6 +235,22 @@
   .resultado-opcion-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--gris-medio); margin-bottom: 4px; }
   .resultado-opcion-track { background: var(--gris-claro); border-radius: 6px; height: 8px; overflow: hidden; }
   .resultado-opcion-fill { background: linear-gradient(90deg, #8B5CF6, #7C3AED); height: 100%; border-radius: 6px; transition: width .3s; }
+  .resultado-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 22px; }
+  .resultado-stat { background: var(--gris-claro); border-radius: 10px; padding: 14px 10px; text-align: center; }
+  .resultado-stat-num { font-size: 22px; font-weight: 700; color: var(--verde-acento); }
+  .resultado-stat-label { font-size: 10.5px; color: var(--gris-medio); text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
+
+  /* Destinatarios (constructor de evaluaciones) */
+  .destino-tipo-switch { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--gris-medio); margin-bottom: 4px; }
+  .destino-tipo-switch label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .destino-tipo-switch input { cursor: pointer; accent-color: var(--verde-acento); }
+  .destino-grupo { margin-bottom: 14px; }
+  .destino-grupo-titulo { font-size: 11px; font-weight: 700; color: var(--gris-medio); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+  .destino-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .destino-chip { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gris-medio); background: var(--gris-claro); border-radius: 14px; padding: 5px 10px 5px 8px; cursor: pointer; }
+  .destino-chip input { cursor: pointer; accent-color: var(--verde-acento); }
+  .destino-chip-elegido { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--verde-acento); background: #F5F3FF; border-radius: 14px; padding: 5px 6px 5px 10px; margin: 0 6px 6px 0; }
+  .destino-chip-elegido button { background: none; border: none; color: inherit; cursor: pointer; font-size: 11px; padding: 0 2px; }
   .dir-table { border: 1px solid #F5F2FC; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(76,29,149,.08); }
   .dir-row { display: grid; grid-template-columns: 2fr 1.4fr 1fr 0.8fr; gap: 12px; padding: 10px 16px; align-items: center; border-bottom: 1px solid #F5F2FC; }
   .dir-row:last-child { border-bottom: none; }
@@ -1306,6 +1322,10 @@
     </div>
     <p class="bandeja-sub">Avisos publicados por la empresa. Notificaciones de tareas y solicitudes llegarán aquí más adelante — por ahora es solo el tablón de avisos.</p>
     <div class="avisos-lista" id="bandeja-lista"></div>
+    <div id="bandeja-evaluaciones-wrap" style="display:none">
+      <div class="modal-section-label" style="margin-top:22px">Evaluaciones pendientes para ti</div>
+      <div class="encuestas-lista" id="bandeja-evaluaciones-pendientes"></div>
+    </div>
   </div>
   <div class="tab-panel" id="panel-perfil">
     <div class="soon-box soon-box-compact">
@@ -1519,6 +1539,20 @@
         <label class="alta-campo alta-campo-full">Nombre de la evaluación *<input type="text" id="enc-nombre" placeholder="Ej. Evaluación de desempeño Q3" maxlength="120"></label>
         <label class="alta-campo alta-campo-full">Descripción<textarea id="enc-descripcion" rows="2" placeholder="Para qué es esta evaluación (opcional)" maxlength="400"></textarea></label>
       </div>
+      <div class="modal-section-label">Destinatarios</div>
+      <div class="destino-tipo-switch">
+        <label><input type="radio" name="destino-tipo" value="todos" onchange="cambiarTipoDestino(this.value)"> Todos los colaboradores activos</label>
+        <label><input type="radio" name="destino-tipo" value="especifico" onchange="cambiarTipoDestino(this.value)"> Selección específica</label>
+      </div>
+      <div id="enc-destinatarios" style="display:none"></div>
+      <p class="bandeja-sub" id="destino-conteo" style="margin-top:8px"></p>
+
+      <div class="modal-section-label">Vigencia (opcional)</div>
+      <div class="alta-grid">
+        <label class="alta-campo">Disponible desde<input type="date" id="enc-fecha-inicio"></label>
+        <label class="alta-campo">Disponible hasta<input type="date" id="enc-fecha-fin"></label>
+      </div>
+
       <div class="modal-section-label">Preguntas</div>
       <div id="enc-preguntas-list"></div>
       <button class="opcion-agregar" style="margin-top:8px" onclick="agregarPreguntaBuilder()">+ Agregar pregunta</button>
@@ -2738,6 +2772,7 @@ function buildColabIndex() {
     const c = findOrCreate(nom);
     considerarNombre(c, nom, 1);
     c.sucursal = c.sucursal || r['Sucursal'];
+    c.unidadNegocio = c.unidadNegocio || r['Unidad de Negocio'];
     c.pre = r;
   });
   DATA.d30.forEach(r => {
@@ -2745,6 +2780,7 @@ function buildColabIndex() {
     const c = findOrCreate(nom);
     considerarNombre(c, nom, 1);
     c.sucursal = c.sucursal || r['Sucursal'];
+    c.unidadNegocio = c.unidadNegocio || r['Unidad de Negocio'];
     c.rol = c.rol || r['Rol'];
     c.fechaIngresoSrc = c.fechaIngresoSrc || parseFecha(r['Fecha de Ingreso']);
     c.d30 = r;
@@ -3823,6 +3859,27 @@ function renderTodosLosAvisos() {
   renderAvisosEn('inicio-bandeja-lista', 3);
   renderAvisosEn('bandeja-lista', null);
   renderAvisosEn('perfil-bandeja-lista', null);
+  renderEvaluacionesPendientesBandeja();
+}
+// Evaluaciones de desempeño dirigidas a quien esté activo en el simulador ahora mismo —
+// aparecen en su Bandeja de entrada además de en Desempeño, sin importar si esa persona es
+// colaborador, líder o admin (cualquiera puede tener su propia evaluación pendiente).
+function renderEvaluacionesPendientesBandeja() {
+  const wrap = document.getElementById('bandeja-evaluaciones-wrap');
+  const cont = document.getElementById('bandeja-evaluaciones-pendientes');
+  if (!wrap || !cont) return;
+  const sim = getSimulacionActiva();
+  const pendientes = sim
+    ? getEncuestas().filter(e => e.activa && encuestaEnVigencia(e) && !yaContesto(e.id, sim.c.key) && colaboradoresObjetivo(e).some(c => c.key === sim.c.key))
+    : [];
+  if (!pendientes.length) { wrap.style.display = 'none'; cont.innerHTML = ''; return; }
+  wrap.style.display = '';
+  cont.innerHTML = pendientes.map(enc => `<div class="encuesta-card">
+    <div class="encuesta-card-nombre">${escapeHtml(enc.nombre)}</div>
+    ${enc.descripcion ? `<div class="encuesta-card-desc">${escapeHtml(enc.descripcion)}</div>` : ''}
+    <div class="encuesta-card-meta">Evaluación de desempeño · ${enc.preguntas.length} pregunta${enc.preguntas.length===1?'':'s'}</div>
+    <div class="encuesta-card-acciones"><button class="btn-nuevo-colab" onclick="abrirResponderEncuesta(${enc.id})">Contestar</button></div>
+  </div>`).join('');
 }
 
 function abrirAvisoModal() {
@@ -3885,6 +3942,39 @@ function yaContesto(encuestaId, colabKey) {
   return getRespuestasEncuestas().some(r => r.encuestaId === encuestaId && r.colabKey === colabKey);
 }
 
+// A quién le toca una evaluación: "todos" = todo colaborador activo; "específico" = cualquiera
+// que empate con AL MENOS UNO de los filtros marcados (sucursal, área, unidad de negocio o
+// nombre puntual) — no hace falta cumplir todos a la vez.
+function colaboradoresObjetivo(enc) {
+  const idx = getColabIndex().filter(c => c.nombre && c.estatus !== 'baja');
+  const d = enc.destinatarios;
+  if (!d || d.tipo !== 'especifico') return idx;
+  const sucSet = new Set(d.sucursales || []);
+  const areaSet = new Set(d.areas || []);
+  const unSet = new Set(d.unidadesNegocio || []);
+  const nomSet = new Set(d.nombres || []);
+  if (!sucSet.size && !areaSet.size && !unSet.size && !nomSet.size) return [];
+  return idx.filter(c =>
+    nomSet.has(c.key) ||
+    (c.sucursal && sucSet.has(c.sucursal)) ||
+    (c.area && areaSet.has(c.area)) ||
+    (c.unidadNegocio && unSet.has(c.unidadNegocio))
+  );
+}
+function encuestaEnVigencia(enc) {
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  if (enc.fechaInicio && hoy < new Date(enc.fechaInicio + 'T00:00:00')) return false;
+  if (enc.fechaFin && hoy > new Date(enc.fechaFin + 'T00:00:00')) return false;
+  return true;
+}
+function rangoVigenciaTexto(enc) {
+  if (!enc.fechaInicio && !enc.fechaFin) return '';
+  const f = (s) => fmtFecha(new Date(s + 'T06:00:00'));
+  if (enc.fechaInicio && enc.fechaFin) return `Del ${f(enc.fechaInicio)} al ${f(enc.fechaFin)}`;
+  if (enc.fechaInicio) return `Desde el ${f(enc.fechaInicio)}`;
+  return `Hasta el ${f(enc.fechaFin)}`;
+}
+
 function renderDesempeno() {
   const rol = rolEfectivoActual();
   document.getElementById('desempeno-admin').style.display = rol === 'admin' ? '' : 'none';
@@ -3899,14 +3989,16 @@ function renderEncuestasAdmin() {
   const cont = document.getElementById('encuestas-admin-lista');
   const lista = getEncuestas();
   if (!lista.length) { cont.innerHTML = `<div class="avisos-empty">Aún no has creado ninguna evaluación.</div>`; return; }
-  const total = getColabIndex().filter(c => c.nombre && c.estatus !== 'baja').length;
   cont.innerHTML = lista.slice().reverse().map(enc => {
-    const respuestas = respuestasDe(enc.id);
+    const objetivo = colaboradoresObjetivo(enc);
+    const respuestas = respuestasDe(enc.id).filter(r => objetivo.some(c => c.key === r.colabKey));
+    const destinoTxt = enc.destinatarios && enc.destinatarios.tipo === 'especifico' ? 'Selección específica' : 'Todos los colaboradores';
+    const vigTxt = rangoVigenciaTexto(enc);
     return `<div class="encuesta-card">
       <div class="encuesta-card-head">
         <div>
           <div class="encuesta-card-nombre">${escapeHtml(enc.nombre)}</div>
-          <div class="encuesta-card-meta">${enc.preguntas.length} pregunta${enc.preguntas.length===1?'':'s'} · ${respuestas.length} de ${total} contestaron</div>
+          <div class="encuesta-card-meta">${enc.preguntas.length} pregunta${enc.preguntas.length===1?'':'s'} · ${respuestas.length} de ${objetivo.length} contestaron · ${destinoTxt}${vigTxt ? ' · ' + vigTxt : ''}</div>
         </div>
         <span class="encuesta-badge ${enc.activa ? 'activa' : 'pausada'}">${enc.activa ? 'Activa' : 'Pausada'}</span>
       </div>
@@ -3929,12 +4021,14 @@ function renderEncuestasLider() {
   if (!lista.length) { cont.innerHTML = `<div class="avisos-empty">Todavía no hay evaluaciones creadas.</div>`; return; }
   const equipoKeys = new Set([sim.c.key, ...equipoDe(sim.c.key).map(c => c.key)]);
   cont.innerHTML = lista.slice().reverse().map(enc => {
-    const respuestasEquipo = respuestasDe(enc.id).filter(r => equipoKeys.has(r.colabKey));
+    const objetivoEquipo = colaboradoresObjetivo(enc).filter(c => equipoKeys.has(c.key));
+    const respuestasEquipo = respuestasDe(enc.id).filter(r => objetivoEquipo.some(c => c.key === r.colabKey));
+    if (!objetivoEquipo.length) return '';
     return `<div class="encuesta-card">
       <div class="encuesta-card-head">
         <div>
           <div class="encuesta-card-nombre">${escapeHtml(enc.nombre)}</div>
-          <div class="encuesta-card-meta">${enc.preguntas.length} pregunta${enc.preguntas.length===1?'':'s'} · ${respuestasEquipo.length} de ${equipoKeys.size} de tu equipo contestaron</div>
+          <div class="encuesta-card-meta">${enc.preguntas.length} pregunta${enc.preguntas.length===1?'':'s'} · ${respuestasEquipo.length} de ${objetivoEquipo.length} de tu equipo contestaron</div>
         </div>
         <span class="encuesta-badge ${enc.activa ? 'activa' : 'pausada'}">${enc.activa ? 'Activa' : 'Pausada'}</span>
       </div>
@@ -3943,7 +4037,7 @@ function renderEncuestasLider() {
         <button class="btn-ver-como" onclick="verResultadosEncuesta(${enc.id})">Ver resultados de mi equipo</button>
       </div>
     </div>`;
-  }).join('');
+  }).filter(Boolean).join('') || `<div class="avisos-empty">Ninguna evaluación aplica a tu equipo todavía.</div>`;
 }
 
 function renderEncuestasColaborador() {
@@ -3951,9 +4045,9 @@ function renderEncuestasColaborador() {
   const pendCont = document.getElementById('encuestas-colab-pendientes');
   const doneCont = document.getElementById('encuestas-colab-contestadas');
   if (!sim) { pendCont.innerHTML = ''; doneCont.innerHTML = ''; return; }
-  const lista = getEncuestas().filter(e => e.activa);
-  const pendientes = lista.filter(e => !yaContesto(e.id, sim.c.key));
-  const contestadas = lista.filter(e => yaContesto(e.id, sim.c.key));
+  const todas = getEncuestas();
+  const pendientes = todas.filter(e => e.activa && encuestaEnVigencia(e) && !yaContesto(e.id, sim.c.key) && colaboradoresObjetivo(e).some(c => c.key === sim.c.key));
+  const contestadas = todas.filter(e => yaContesto(e.id, sim.c.key));
 
   pendCont.innerHTML = pendientes.length
     ? pendientes.map(enc => `<div class="encuesta-card">
@@ -3975,14 +4069,24 @@ function renderEncuestasColaborador() {
 // — Constructor de evaluaciones (admin) —
 let _builderPreguntas = [];
 let _builderEditandoId = null;
+let _builderDestinatarios = { tipo: 'todos', sucursales: [], areas: [], unidadesNegocio: [], nombres: [] };
 
 function abrirEncuestaModal(encuestaId) {
   const existente = encuestaId ? getEncuestas().find(e => e.id === encuestaId) : null;
   _builderEditandoId = existente ? existente.id : null;
   _builderPreguntas = existente ? JSON.parse(JSON.stringify(existente.preguntas)) : [];
+  _builderDestinatarios = existente && existente.destinatarios
+    ? JSON.parse(JSON.stringify(existente.destinatarios))
+    : { tipo: 'todos', sucursales: [], areas: [], unidadesNegocio: [], nombres: [] };
   document.getElementById('enc-nombre').value = existente ? existente.nombre : '';
   document.getElementById('enc-descripcion').value = existente ? existente.descripcion : '';
+  document.getElementById('enc-fecha-inicio').value = existente && existente.fechaInicio ? existente.fechaInicio : '';
+  document.getElementById('enc-fecha-fin').value = existente && existente.fechaFin ? existente.fechaFin : '';
   document.getElementById('encuesta-modal-titulo').textContent = existente ? 'Editar evaluación' : '+ Nueva evaluación';
+  document.querySelectorAll('input[name="destino-tipo"]').forEach(r => r.checked = r.value === _builderDestinatarios.tipo);
+  document.getElementById('enc-destinatarios').style.display = _builderDestinatarios.tipo === 'especifico' ? '' : 'none';
+  if (_builderDestinatarios.tipo === 'especifico') renderBuilderDestinatarios();
+  actualizarConteoDestinatarios();
   renderBuilderPreguntas();
   document.getElementById('encuesta-modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -3995,6 +4099,93 @@ function closeEncuestaModalDirect() {
   document.body.style.overflow = '';
 }
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeEncuestaModalDirect(); });
+
+// — Destinatarios: todos, o por sucursal / área / unidad de negocio / nombre puntual —
+function cambiarTipoDestino(val) {
+  _builderDestinatarios.tipo = val;
+  document.getElementById('enc-destinatarios').style.display = val === 'especifico' ? '' : 'none';
+  if (val === 'especifico') renderBuilderDestinatarios();
+  actualizarConteoDestinatarios();
+}
+function opcionesDestinatarios() {
+  const idx = getColabIndex().filter(c => c.nombre && c.estatus !== 'baja');
+  const uniq = arr => [...new Set(arr.filter(Boolean))].sort((a,b) => a.localeCompare(b,'es'));
+  return {
+    sucursales: uniq(idx.map(c => c.sucursal)),
+    areas: uniq(idx.map(c => c.area)),
+    unidadesNegocio: uniq(idx.map(c => c.unidadNegocio)),
+  };
+}
+function toggleDestinoValor(el) {
+  const campo = el.dataset.campo;
+  const val = el.value;
+  const arr = _builderDestinatarios[campo];
+  const i = arr.indexOf(val);
+  if (el.checked && i === -1) arr.push(val);
+  if (!el.checked && i !== -1) arr.splice(i, 1);
+  actualizarConteoDestinatarios();
+}
+function renderBuilderDestinatarios() {
+  const cont = document.getElementById('enc-destinatarios');
+  const ops = opcionesDestinatarios();
+  const d = _builderDestinatarios;
+  const grupo = (titulo, campo, lista) => !lista.length ? '' : `
+    <div class="destino-grupo">
+      <div class="destino-grupo-titulo">${titulo}</div>
+      <div class="destino-chips">
+        ${lista.map(v => `<label class="destino-chip">
+          <input type="checkbox" data-campo="${campo}" value="${escapeHtml(v)}" ${d[campo].includes(v)?'checked':''} onchange="toggleDestinoValor(this)"> ${escapeHtml(v)}
+        </label>`).join('')}
+      </div>
+    </div>`;
+  cont.innerHTML = `
+    ${grupo('Sucursal', 'sucursales', ops.sucursales)}
+    ${grupo('Área', 'areas', ops.areas)}
+    ${grupo('Unidad de negocio', 'unidadesNegocio', ops.unidadesNegocio)}
+    <div class="destino-grupo">
+      <div class="destino-grupo-titulo">Colaboradores específicos</div>
+      <input type="text" class="rv-search-input" id="destino-buscar" placeholder="Buscar por nombre para agregar…" oninput="renderDestinoBusqueda()" autocomplete="off">
+      <div id="destino-busqueda-resultados" class="sim-resultados"></div>
+      <div id="destino-nombres-elegidos" class="destino-chips" style="margin-top:8px"></div>
+    </div>`;
+  renderDestinoNombresElegidos();
+}
+function renderDestinoBusqueda() {
+  const q = normName(document.getElementById('destino-buscar').value);
+  const cont = document.getElementById('destino-busqueda-resultados');
+  if (!q) { cont.innerHTML = ''; return; }
+  const idx = getColabIndex().filter(c => c.nombre && c.estatus !== 'baja' && normName(c.nombre).includes(q) && !_builderDestinatarios.nombres.includes(c.key));
+  cont.innerHTML = idx.length
+    ? idx.slice(0,6).map(c => `<div class="sim-resultado-item" style="cursor:pointer" onclick="agregarDestinoNombre('${c.key.replace(/'/g,"\\'")}')">${avatarHtml(c)}<div class="sim-resultado-info">${escapeHtml(c.nombre)}</div></div>`).join('')
+    : `<div class="avisos-empty">Sin resultados.</div>`;
+}
+function agregarDestinoNombre(key) {
+  if (!_builderDestinatarios.nombres.includes(key)) _builderDestinatarios.nombres.push(key);
+  document.getElementById('destino-buscar').value = '';
+  document.getElementById('destino-busqueda-resultados').innerHTML = '';
+  renderDestinoNombresElegidos();
+  actualizarConteoDestinatarios();
+}
+function quitarDestinoNombre(key) {
+  _builderDestinatarios.nombres = _builderDestinatarios.nombres.filter(k => k !== key);
+  renderDestinoNombresElegidos();
+  actualizarConteoDestinatarios();
+}
+function renderDestinoNombresElegidos() {
+  const cont = document.getElementById('destino-nombres-elegidos');
+  if (!cont) return;
+  const idx = getColabIndex();
+  cont.innerHTML = _builderDestinatarios.nombres.map(key => {
+    const c = idx.find(x => x.key === key);
+    return c ? `<span class="destino-chip-elegido">${escapeHtml(c.nombre)}<button onclick="quitarDestinoNombre('${key.replace(/'/g,"\\'")}')">✕</button></span>` : '';
+  }).join('');
+}
+function actualizarConteoDestinatarios() {
+  const el = document.getElementById('destino-conteo');
+  if (!el) return;
+  const n = colaboradoresObjetivo({ destinatarios: _builderDestinatarios }).length;
+  el.textContent = `Esta evaluación llegaría a ${n} colaborador${n===1?'':'es'} con la selección actual.`;
+}
 
 function agregarPreguntaBuilder() {
   _builderPreguntas.push({ id: Date.now() + Math.random(), texto: '', tipo: 'texto', opciones: [] });
@@ -4066,12 +4257,21 @@ function guardarEncuesta() {
       if (p.opciones.length < 2) { alert(`La pregunta "${p.texto}" necesita al menos 2 opciones.`); return; }
     }
   }
+  if (_builderDestinatarios.tipo === 'especifico' && !colaboradoresObjetivo({ destinatarios: _builderDestinatarios }).length) {
+    if (!confirm('Con la selección de destinatarios actual, esta evaluación no le llegaría a nadie. ¿Guardar de todas formas?')) return;
+  }
+  const fechaInicio = document.getElementById('enc-fecha-inicio').value || null;
+  const fechaFin = document.getElementById('enc-fecha-fin').value || null;
+  if (fechaInicio && fechaFin && fechaFin < fechaInicio) { alert('La fecha de cierre no puede ser antes de la fecha de inicio.'); return; }
+  const destinatarios = JSON.parse(JSON.stringify(_builderDestinatarios));
+
   const lista = getEncuestas();
   if (_builderEditandoId) {
     const enc = lista.find(e => e.id === _builderEditandoId);
     enc.nombre = nombre; enc.descripcion = descripcion; enc.preguntas = preguntasLimpias;
+    enc.destinatarios = destinatarios; enc.fechaInicio = fechaInicio; enc.fechaFin = fechaFin;
   } else {
-    lista.push({ id: Date.now(), nombre, descripcion, preguntas: preguntasLimpias, activa: true, creada: new Date().toISOString() });
+    lista.push({ id: Date.now(), nombre, descripcion, preguntas: preguntasLimpias, destinatarios, fechaInicio, fechaFin, activa: true, creada: new Date().toISOString() });
   }
   guardarEncuestasEnStorage(lista);
   closeEncuestaModalDirect();
@@ -4156,27 +4356,62 @@ function enviarRespuestaEncuesta() {
   guardarRespuestasEnStorage(lista);
   closeResponderModalDirect();
   renderDesempeno();
+  renderTodosLosAvisos();
   alert('¡Gracias! Tu evaluación quedó registrada.');
 }
 
 // — Resultados (admin y líder, líder solo ve a su equipo) —
+function desgloseParticipacionHtml(titulo, objetivo, respondieronKeys) {
+  const grupos = new Map();
+  objetivo.forEach(c => {
+    const et = titulo === 'Por sucursal' ? (c.sucursal || 'Sin sucursal') : (c.rol || 'Sin rol');
+    if (!grupos.has(et)) grupos.set(et, { total: 0, respondieron: 0 });
+    const g = grupos.get(et);
+    g.total++;
+    if (respondieronKeys.has(c.key)) g.respondieron++;
+  });
+  if (!grupos.size) return '';
+  const filas = [...grupos.entries()].sort((a,b) => b[1].total - a[1].total).slice(0, 12);
+  return `<div class="resultado-pregunta">
+    <div class="resultado-pregunta-texto">${titulo}</div>
+    ${filas.map(([et, g]) => {
+      const pct = g.total ? Math.round((g.respondieron / g.total) * 100) : 0;
+      return `<div class="resultado-opcion-bar">
+        <div class="resultado-opcion-label"><span>${escapeHtml(et)}</span><span>${g.respondieron}/${g.total} (${pct}%)</span></div>
+        <div class="resultado-opcion-track"><div class="resultado-opcion-fill" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
 function verResultadosEncuesta(encuestaId) {
   const enc = getEncuestas().find(e => e.id === encuestaId);
   if (!enc) return;
   const rol = rolEfectivoActual();
-  let respuestas = respuestasDe(encuestaId);
-  let universo = getColabIndex().filter(c => c.nombre && c.estatus !== 'baja').length;
+  let objetivo = colaboradoresObjetivo(enc);
   if (rol === 'lider') {
     const sim = getSimulacionActiva();
     const equipoKeys = new Set([sim.c.key, ...equipoDe(sim.c.key).map(c => c.key)]);
-    respuestas = respuestas.filter(r => equipoKeys.has(r.colabKey));
-    universo = equipoKeys.size;
+    objetivo = objetivo.filter(c => equipoKeys.has(c.key));
   }
+  const objetivoKeys = new Set(objetivo.map(c => c.key));
+  const respuestas = respuestasDe(encuestaId).filter(r => objetivoKeys.has(r.colabKey));
+  const pctParticipacion = objetivo.length ? Math.round((respuestas.length / objetivo.length) * 100) : 0;
 
   document.getElementById('resultados-modal-titulo').textContent = enc.nombre;
-  document.getElementById('resultados-modal-meta').textContent = `${respuestas.length} de ${universo} contestaron`;
+  document.getElementById('resultados-modal-meta').textContent = `${respuestas.length} de ${objetivo.length} contestaron`;
 
-  document.getElementById('resultados-modal-body').innerHTML = enc.preguntas.map((p, idx) => {
+  let html = `<div class="resultado-stats">
+    <div class="resultado-stat"><div class="resultado-stat-num">${objetivo.length}</div><div class="resultado-stat-label">Invitados</div></div>
+    <div class="resultado-stat"><div class="resultado-stat-num">${respuestas.length}</div><div class="resultado-stat-label">Respuestas</div></div>
+    <div class="resultado-stat"><div class="resultado-stat-num">${pctParticipacion}%</div><div class="resultado-stat-label">Participación</div></div>
+  </div>`;
+
+  const respondieronKeys = new Set(respuestas.map(r => r.colabKey));
+  html += desgloseParticipacionHtml('Por sucursal', objetivo, respondieronKeys);
+  html += desgloseParticipacionHtml('Por rol', objetivo, respondieronKeys);
+
+  html += enc.preguntas.map((p, idx) => {
     if (p.tipo === 'texto') {
       const conTexto = respuestas.filter(r => r.respuestas[p.id]);
       return `<div class="resultado-pregunta">
@@ -4204,6 +4439,7 @@ function verResultadosEncuesta(encuestaId) {
     </div>`;
   }).join('');
 
+  document.getElementById('resultados-modal-body').innerHTML = html;
   document.getElementById('resultados-modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
