@@ -180,7 +180,10 @@
   .sim-banner button { background: rgba(255,255,255,.12); border: none; color: #fff; font-size: 11.5px; font-weight: 600; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; }
   .sim-banner button:hover { background: rgba(255,255,255,.22); }
   .sim-resultados { margin-top: 8px; border-radius: 10px; overflow: hidden; }
-  .sim-resultado-item { display: flex; align-items: center; gap: 10px; padding: 8px 4px; cursor: pointer; border-bottom: 1px solid #F5F2FC; }
+  .sim-resultado-item { display: flex; align-items: center; gap: 10px; padding: 8px 4px; flex-wrap: wrap; border-bottom: 1px solid #F5F2FC; }
+  .sim-resultado-info { flex: 1; min-width: 120px; }
+  .btn-ver-como { background: #F5F2FC; border: none; color: var(--verde-acento); font-size: 11.5px; font-weight: 600; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; }
+  .btn-ver-como:hover { background: #E6DFF5; }
   .sim-resultado-item:hover { background: #FAF9FD; }
   .dir-table { border: 1px solid #F5F2FC; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(76,29,149,.08); }
   .dir-row { display: grid; grid-template-columns: 2fr 1.4fr 1fr 0.8fr; gap: 12px; padding: 10px 16px; align-items: center; border-bottom: 1px solid #F5F2FC; }
@@ -954,7 +957,7 @@
         </div>
 
         <div class="home-nav">
-          <div class="home-nav-card" onclick="switchTab('directorio')">
+          <div class="home-nav-card" data-tab="directorio" onclick="switchTab('directorio')">
             <div class="ic">👥</div>
             <h3>Directorio</h3>
             <p>El listado completo del equipo — foto, rol y sucursal de cada colaborador.</p>
@@ -1297,10 +1300,13 @@
     </div>
 
     <div class="config-card" style="margin-top:16px">
-      <div class="config-card-title">Roles y permisos — simular vista</div>
-      <div class="config-desc">Cada colaborador tiene un rol (Colaborador, Líder o Administrador) asignable desde su perfil en Organización. Un Líder ve además a su equipo; un Colaborador solo ve su propio perfil. Elige a alguien aquí para ver el panel como lo vería esa persona — es una simulación, no hay inicio de sesión real todavía.</div>
-      <input type="text" class="rv-search-input" id="sim-buscar" placeholder="Buscar colaborador para simular…" oninput="renderSimResultados()" autocomplete="off">
-      <div id="sim-resultados" class="sim-resultados"></div>
+      <div class="config-card-title">Roles y permisos</div>
+      <div class="config-desc">
+        Un <strong>Colaborador</strong> ve Inicio, Bandeja de entrada, Calendario, Perfil, Formación, Documentos, Políticas y Ausencias (lo suyo). Un <strong>Líder</strong> ve además Organización y Desempeño, con la vista de equipo filtrada a quienes le reportan. Un <strong>Administrador</strong> ve todo, sin restricción.
+        Busca a alguien para cambiar su rol o para ver el panel como lo vería esa persona — es una simulación, no hay inicio de sesión real todavía.
+      </div>
+      <input type="text" class="rv-search-input" id="perm-buscar" placeholder="Buscar colaborador…" oninput="renderPermResultados()" autocomplete="off">
+      <div id="perm-resultados" class="sim-resultados"></div>
     </div>
   </div>
 
@@ -3181,7 +3187,33 @@ document.addEventListener('keydown', e => { if (e.key==='Escape') closeRutaModal
 const ONBOARDING_TABS = ['preonboarding','treinta','evaluacion','certificaciones','ruta'];
 const FORMACION_TABS = ['preonboarding','treinta','evaluacion','certificaciones'];
 
+// Qué tan alto tiene que ser el rol para ver cada sección de la barra izquierda. Lo que no
+// aparece aquí (Inicio, Bandeja, Calendario, Perfil, Formación, Documentos, Políticas,
+// Ausencias) lo ve cualquier colaborador. Sin simulación activa navegando el panel se ve todo,
+// como hasta ahora — el filtro solo aplica cuando alguien está "viendo como" un rol concreto.
+const ROL_MINIMO_TAB = { directorio: 'lider', desempeno: 'lider', ruta: 'admin', configuracion: 'admin' };
+const ORDEN_ROLES = { colaborador: 1, lider: 2, admin: 3 };
+function rolEfectivoActual() {
+  const sim = getSimulacionActiva();
+  return sim ? sim.rol : 'admin';
+}
+function tabVisibleParaRol(tab, rol) {
+  const minimo = ROL_MINIMO_TAB[tab];
+  return !minimo || ORDEN_ROLES[rol] >= ORDEN_ROLES[minimo];
+}
+function aplicarVisibilidadNav() {
+  const rol = rolEfectivoActual();
+  document.querySelectorAll('[data-tab]').forEach(el => {
+    el.style.display = tabVisibleParaRol(el.dataset.tab, rol) ? '' : 'none';
+  });
+  document.querySelectorAll('.sidebar-group, .sidebar-bottom').forEach(cont => {
+    const algunoVisible = [...cont.querySelectorAll('[data-tab]')].some(el => el.style.display !== 'none');
+    cont.style.display = algunoVisible ? '' : 'none';
+  });
+}
+
 function switchTab(tab) {
+  if (!tabVisibleParaRol(tab, rolEfectivoActual())) tab = 'inicio';
   ACTIVE = tab;
   document.querySelectorAll('[data-tab]').forEach(b => {
     b.classList.toggle('active', b.dataset.tab === tab);
@@ -3475,27 +3507,38 @@ function activarSimulacion(key) {
   localStorage.setItem(SIM_KEY, JSON.stringify({ key }));
   aplicarSimulacion();
   renderDirectorio();
+  if (!tabVisibleParaRol(ACTIVE, rolEfectivoActual())) switchTab('inicio');
 }
 function detenerSimulacion() {
   localStorage.removeItem(SIM_KEY);
   aplicarSimulacion();
   renderDirectorio();
 }
-function renderSimResultados() {
-  const input = document.getElementById('sim-buscar');
-  const results = document.getElementById('sim-resultados');
+function renderPermResultados() {
+  const input = document.getElementById('perm-buscar');
+  const results = document.getElementById('perm-resultados');
   const q = normName(input.value);
   if (!q) { results.innerHTML = ''; return; }
   const idx = getColabIndex().filter(c => c.estatus !== 'baja' && c.nombre && normName(c.nombre).includes(q));
   results.innerHTML = idx.length
-    ? idx.slice(0,8).map(c => `
-      <div class="sim-resultado-item" onclick="document.getElementById('sim-buscar').value=''; document.getElementById('sim-resultados').innerHTML=''; activarSimulacion('${c.key.replace(/'/g,"\\'")}')">
+    ? idx.slice(0,8).map(c => {
+        const rol = getRolDe(c);
+        return `
+      <div class="sim-resultado-item">
         ${avatarHtml(c)}
-        <div><div style="font-size:13px;font-weight:500;color:var(--blanco)">${c.nombre}</div><div style="font-size:11px;color:var(--gris-texto)">${c.rol||'—'} · ${nombreRol(getRolDe(c))}</div></div>
-      </div>`).join('')
+        <div class="sim-resultado-info"><div style="font-size:13px;font-weight:500;color:var(--blanco)">${c.nombre}</div><div style="font-size:11px;color:var(--gris-texto)">${c.rol||'—'}</div></div>
+        <select class="permiso-select" onchange="cambiarRolColab('${c.key.replace(/'/g,"\\'")}', this.value)">
+          <option value="colaborador" ${rol==='colaborador'?'selected':''}>Colaborador</option>
+          <option value="lider" ${rol==='lider'?'selected':''}>Líder</option>
+          <option value="admin" ${rol==='admin'?'selected':''}>Administrador</option>
+        </select>
+        <button class="btn-ver-como" onclick="activarSimulacion('${c.key.replace(/'/g,"\\'")}')">Ver como</button>
+      </div>`;
+      }).join('')
     : `<div class="avisos-empty">Sin resultados.</div>`;
 }
 function aplicarSimulacion() {
+  aplicarVisibilidadNav();
   const banner = document.getElementById('sim-banner');
   if (!banner) return;
   const sim = getSimulacionActiva();
@@ -3877,17 +3920,8 @@ function openDirModal(key) {
 
   const rolActual = getRolDe(c);
   html += `<div class="modal-section-label">Permisos (vista previa)</div>`;
-  if (esAdmin()) {
-    html += `<div class="modal-item"><span class="modal-item-label">Rol de acceso</span><div class="modal-item-vals">
-      <select class="permiso-select" onchange="cambiarRolColab('${c.key.replace(/'/g,"\\'")}', this.value)">
-        <option value="colaborador" ${rolActual==='colaborador'?'selected':''}>Colaborador</option>
-        <option value="lider" ${rolActual==='lider'?'selected':''}>Líder</option>
-        <option value="admin" ${rolActual==='admin'?'selected':''}>Administrador</option>
-      </select>
-    </div></div>`;
-  } else {
-    html += item('Rol de acceso', nombreRol(rolActual));
-  }
+  html += item('Rol de acceso', nombreRol(rolActual));
+  if (esAdmin()) html += `<div class="alta-aviso" style="margin-top:8px">Los roles se asignan desde <strong>Configuración → Roles y permisos</strong>.</div>`;
 
   html += `<div class="modal-section-label">Información del rol</div>`;
   html += item('Rol / Puesto', c.rol);
