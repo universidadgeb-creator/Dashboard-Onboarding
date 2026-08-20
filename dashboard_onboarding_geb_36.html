@@ -789,13 +789,13 @@
 <nav class="sidebar" id="sidebar">
   <div class="sidebar-top">
     <button class="sidebar-item active" data-tab="inicio" onclick="switchTab('inicio')">
-      <span class="si-icon">🏠</span><span class="si-label">Inicio</span>
+      <span class="si-icon"></span><span class="si-label">Inicio</span>
     </button>
     <button class="sidebar-item" data-tab="bandeja" onclick="switchTab('bandeja')">
-      <span class="si-icon">📥</span><span class="si-label">Bandeja de entrada</span><span class="si-soon">pronto</span>
+      <span class="si-icon"></span><span class="si-label">Bandeja de entrada</span><span class="si-soon">pronto</span>
     </button>
     <button class="sidebar-item" data-tab="calendario" onclick="switchTab('calendario')">
-      <span class="si-icon">📅</span><span class="si-label">Calendario</span>
+      <span class="si-icon"></span><span class="si-label">Calendario</span>
     </button>
   </div>
 
@@ -805,14 +805,14 @@
     </button>
     <div class="sidebar-group-body">
       <button class="sidebar-item" data-tab="perfil" onclick="switchTab('perfil')">
-        <span class="si-icon">👤</span><span class="si-label">Perfil</span><span class="si-soon">pronto</span>
+        <span class="si-icon"></span><span class="si-label">Perfil</span><span class="si-soon">pronto</span>
       </button>
       <button class="sidebar-item" data-tab="ausencias" onclick="switchTab('ausencias')">
-        <span class="si-icon">🌴</span><span class="si-label">Ausencias</span><span class="si-soon">pronto</span>
+        <span class="si-icon"></span><span class="si-label">Ausencias</span><span class="si-soon">pronto</span>
       </button>
       <div class="sidebar-subgroup" id="ssg-formacion">
         <button class="sidebar-item sidebar-item-expand" onclick="toggleSidebarGroup('ssg-formacion')">
-          <span class="si-icon">🎓</span><span class="si-label">Formación</span><span class="sg-chevron">⌄</span>
+          <span class="si-icon"></span><span class="si-label">Formación</span><span class="sg-chevron">⌄</span>
         </button>
         <div class="sidebar-group-body sidebar-subgroup-body">
           <button class="sidebar-subitem" data-tab="preonboarding" onclick="switchTab('preonboarding')">Preonboarding</button>
@@ -822,7 +822,7 @@
         </div>
       </div>
       <button class="sidebar-item" data-tab="documentos" onclick="switchTab('documentos')">
-        <span class="si-icon">📁</span><span class="si-label">Documentos</span><span class="si-soon">pronto</span>
+        <span class="si-icon"></span><span class="si-label">Documentos</span><span class="si-soon">pronto</span>
       </button>
     </div>
   </div>
@@ -833,10 +833,10 @@
     </button>
     <div class="sidebar-group-body">
       <button class="sidebar-item" data-tab="directorio" onclick="switchTab('directorio')">
-        <span class="si-icon">🏢</span><span class="si-label">Organización</span>
+        <span class="si-icon"></span><span class="si-label">Organización</span>
       </button>
       <button class="sidebar-item" data-tab="politicas" onclick="switchTab('politicas')">
-        <span class="si-icon">📋</span><span class="si-label">Políticas</span><span class="si-soon">pronto</span>
+        <span class="si-icon"></span><span class="si-label">Políticas</span><span class="si-soon">pronto</span>
       </button>
     </div>
   </div>
@@ -847,17 +847,17 @@
     </button>
     <div class="sidebar-group-body">
       <button class="sidebar-item" data-tab="desempeno" onclick="switchTab('desempeno')">
-        <span class="si-icon">📈</span><span class="si-label">Desempeño</span><span class="si-soon">pronto</span>
+        <span class="si-icon"></span><span class="si-label">Desempeño</span><span class="si-soon">pronto</span>
       </button>
       <button class="sidebar-item" data-tab="ruta" onclick="switchTab('ruta')">
-        <span class="si-icon">📉</span><span class="si-label">Retención</span>
+        <span class="si-icon"></span><span class="si-label">Retención</span>
       </button>
     </div>
   </div>
 
   <div class="sidebar-bottom">
     <button class="sidebar-item" data-tab="configuracion" onclick="switchTab('configuracion')">
-      <span class="si-icon">⚙️</span><span class="si-label">Configuración</span>
+      <span class="si-icon"></span><span class="si-label">Configuración</span>
     </button>
   </div>
 </nav>
@@ -917,7 +917,7 @@
     <span class="meta-target">meta 100%</span>
   </div>
   <div class="alert-wrap" style="margin-left:auto">
-    <button class="alert-bell" id="alert-bell-btn" onclick="toggleAlertPanel(event)" title="Encuestas pendientes de enviar">📣<span class="alert-badge" id="alert-badge" style="display:none">0</span></button>
+    <button class="alert-bell" id="alert-bell-btn" onclick="toggleAlertPanel(event)" title="Encuestas pendientes de enviar"><span class="alert-badge" id="alert-badge" style="display:none">0</span></button>
     <div class="alert-panel" id="alert-panel"></div>
   </div>
 </div>
@@ -933,7 +933,7 @@
           <h1 id="home-hero-titulo">Equipo VIVO 47</h1>
           <p id="home-hero-sub">Consulta a todo el equipo, sus roles, sucursales, cumpleaños y aniversarios.</p>
           <div class="home-search">
-            <span class="home-search-icon">🔍</span>
+            <span class="home-search-icon"></span>
             <input type="text" id="home-buscar" placeholder="Buscar un colaborador…" oninput="renderHomeBusquedaDebounced()" onfocus="renderHomeBusqueda()" autocomplete="off">
             <div class="home-search-results" id="home-search-results"></div>
           </div>
@@ -942,14 +942,14 @@
         <div class="home-stats" id="home-stats"></div>
 
         <div class="home-today">
-          <h2>🎉 Hoy</h2>
+          <h2>Hoy</h2>
           <p class="home-today-sub">Cumpleaños y aniversarios laborales del día</p>
           <div class="home-today-list" id="home-today-list"></div>
         </div>
 
         <div class="home-inbox">
           <div class="home-inbox-head">
-            <h2>📥 Bandeja de entrada</h2>
+            <h2>Bandeja de entrada</h2>
             <button class="btn-nuevo-aviso" id="btn-nuevo-aviso-inicio" style="display:none" onclick="abrirAvisoModal()">+ Nuevo aviso</button>
           </div>
           <p class="home-today-sub">Avisos publicados por la empresa</p>
@@ -959,12 +959,12 @@
 
         <div class="home-nav">
           <div class="home-nav-card" data-tab="directorio" onclick="switchTab('directorio')">
-            <div class="ic">👥</div>
+            <div class="ic"></div>
             <h3>Directorio</h3>
             <p>El listado completo del equipo — foto, rol y sucursal de cada colaborador.</p>
           </div>
           <div class="home-nav-card" onclick="switchTab('calendario')">
-            <div class="ic">🎂</div>
+            <div class="ic"></div>
             <h3>Aniversarios</h3>
             <p>El calendario de cumpleaños y aniversarios laborales de todo el equipo.</p>
           </div>
@@ -1162,7 +1162,7 @@
             <div id="ruta-focos-verdes-resumen"></div>
           </div>
           <div>
-            <div class="rv-resumen-label bad">⚠ Focos rojos más comunes</div>
+            <div class="rv-resumen-label bad">Focos rojos más comunes</div>
             <div id="ruta-focos-rojos-resumen"></div>
           </div>
         </div>
@@ -1216,8 +1216,8 @@
         <button class="btn-nuevo-colab" id="btn-nuevo-colab" style="display:none" onclick="abrirAltaColaborador()">+ Nuevo colaborador</button>
       </div>
       <div class="dir-vista-switch">
-        <button class="dir-vista-btn active" id="dir-vista-btn-lista" onclick="cambiarVistaDirectorio('lista')">📋 Lista</button>
-        <button class="dir-vista-btn" id="dir-vista-btn-organigrama" onclick="cambiarVistaDirectorio('organigrama')">🌳 Organigrama</button>
+        <button class="dir-vista-btn active" id="dir-vista-btn-lista" onclick="cambiarVistaDirectorio('lista')">Lista</button>
+        <button class="dir-vista-btn" id="dir-vista-btn-organigrama" onclick="cambiarVistaDirectorio('organigrama')">Organigrama</button>
       </div>
 
       <div id="dir-vista-lista">
@@ -1264,20 +1264,20 @@
   </div>
   <div class="tab-panel" id="panel-perfil">
     <div class="soon-box soon-box-compact">
-      <div class="soon-icon">👤</div>
+      <div class="soon-icon"></div>
       <div class="soon-title">Perfil</div>
       <div class="soon-desc">Cuando el panel tenga inicio de sesión individual, aquí verás tus propios datos personales. Por ahora puedes consultar el perfil de cualquier colaborador desde Organización — y aquí abajo tu bandeja de entrada con los avisos de la empresa.</div>
     </div>
     <div class="section-header">
-      <div class="section-title">📥 Bandeja de entrada</div>
+      <div class="section-title">Bandeja de entrada</div>
       <button class="btn-nuevo-aviso" id="btn-nuevo-aviso-perfil" style="display:none" onclick="abrirAvisoModal()">+ Nuevo aviso</button>
     </div>
     <div class="avisos-lista" id="perfil-bandeja-lista"></div>
   </div>
-  <div class="tab-panel" id="panel-ausencias"><div class="soon-box"><div class="soon-icon">🌴</div><div class="soon-title">Ausencias</div><div class="soon-desc">Vacaciones, incapacidades y permisos por colaborador. Sección en construcción, todavía sin datos reales.</div></div></div>
-  <div class="tab-panel" id="panel-documentos"><div class="soon-box"><div class="soon-icon">📁</div><div class="soon-title">Documentos</div><div class="soon-desc">Repositorio de documentos por colaborador (contratos, identificaciones, comprobantes). Sección en construcción, todavía sin datos reales.</div></div></div>
-  <div class="tab-panel" id="panel-politicas"><div class="soon-box"><div class="soon-icon">📋</div><div class="soon-title">Políticas</div><div class="soon-desc">Políticas y reglamentos de la empresa, disponibles para consulta. Sección en construcción, todavía sin datos reales.</div></div></div>
-  <div class="tab-panel" id="panel-desempeno"><div class="soon-box"><div class="soon-icon">📈</div><div class="soon-title">Desempeño</div><div class="soon-desc">Evaluaciones de desempeño periódicas para todo el personal (más allá de la evaluación de inducción). Sección en construcción, todavía sin datos reales.</div></div></div>
+  <div class="tab-panel" id="panel-ausencias"><div class="soon-box"><div class="soon-icon"></div><div class="soon-title">Ausencias</div><div class="soon-desc">Vacaciones, incapacidades y permisos por colaborador. Sección en construcción, todavía sin datos reales.</div></div></div>
+  <div class="tab-panel" id="panel-documentos"><div class="soon-box"><div class="soon-icon"></div><div class="soon-title">Documentos</div><div class="soon-desc">Repositorio de documentos por colaborador (contratos, identificaciones, comprobantes). Sección en construcción, todavía sin datos reales.</div></div></div>
+  <div class="tab-panel" id="panel-politicas"><div class="soon-box"><div class="soon-icon"></div><div class="soon-title">Políticas</div><div class="soon-desc">Políticas y reglamentos de la empresa, disponibles para consulta. Sección en construcción, todavía sin datos reales.</div></div></div>
+  <div class="tab-panel" id="panel-desempeno"><div class="soon-box"><div class="soon-icon"></div><div class="soon-title">Desempeño</div><div class="soon-desc">Evaluaciones de desempeño periódicas para todo el personal (más allá de la evaluación de inducción). Sección en construcción, todavía sin datos reales.</div></div></div>
 
   <div class="tab-panel" id="panel-configuracion">
     <div class="section-title" style="margin-bottom:16px">Configuración</div>
@@ -1358,7 +1358,7 @@
       <button class="modal-close" onclick="closeAltaModalDirect()">✕</button>
     </div>
     <div class="modal-body">
-      <div class="alta-aviso">🔒 Esto es una vista previa de cómo se vería un alta con permiso de administrador. No se sube a ningún lado — se guarda nada más en este navegador.</div>
+      <div class="alta-aviso">Esto es una vista previa de cómo se vería un alta con permiso de administrador. No se sube a ningún lado — se guarda nada más en este navegador.</div>
 
       <div class="modal-section-label">Datos personales</div>
       <div class="alta-grid">
@@ -1423,7 +1423,7 @@
       <button class="modal-close" onclick="closeAvisoModalDirect()">✕</button>
     </div>
     <div class="modal-body">
-      <div class="alta-aviso">🔒 Esto es una vista previa de cómo se vería publicar un aviso con permiso de administrador. No se envía realmente a nadie — se guarda nada más en este navegador.</div>
+      <div class="alta-aviso">Esto es una vista previa de cómo se vería publicar un aviso con permiso de administrador. No se envía realmente a nadie — se guarda nada más en este navegador.</div>
       <div class="alta-grid">
         <label class="alta-campo alta-campo-full">Título *<input type="text" id="aviso-titulo" placeholder="Ej. Cierre de oficinas el 16 de septiembre" maxlength="120"></label>
         <label class="alta-campo alta-campo-full">Mensaje *<textarea id="aviso-mensaje" rows="4" placeholder="Escribe el aviso…" maxlength="600"></textarea></label>
@@ -2086,7 +2086,7 @@ function renderD30() {
   const sent={2:0,1:0};
   rows.forEach(r=>{ const s=sentScore(r['Incorporación']); if(s) sent[s]++; });
   const sentEl = document.getElementById('d30-sentimiento');
-  const sentLabels={2:'✓ Respuesta positiva',1:'⚠ Requiere atención'};
+  const sentLabels={2:'✓ Respuesta positiva',1:'Requiere atención'};
   const sentColors={2:'var(--verde-ok)',1:'var(--rojo)'};
   sentEl.innerHTML = [2,1].map(k=>{
     const p=n?Math.round(sent[k]/n*100):0;
@@ -2117,7 +2117,7 @@ function renderD30() {
   const sentTag = v => {
     const s = sentScore(v);
     if (s===2) return '<span style="color:var(--verde-ok);font-size:11px">✓ Bien</span>';
-    if (s===1) return '<span style="color:var(--rojo);font-size:11px;font-weight:600">⚠ Atención</span>';
+    if (s===1) return '<span style="color:var(--rojo);font-size:11px;font-weight:600">Atención</span>';
     return '<span style="color:#6B6280">—</span>';
   };
 
@@ -2914,7 +2914,7 @@ function renderRuta() {
 
   const noteEl = document.getElementById('ruta-estatus-note');
   if (_estatusFuente === 'excel') {
-    noteEl.innerHTML = `<div class="ruta-note">ℹ️ % Activos y % Rotación están usando el estatus del <b>Excel que compartiste</b> (13 colaboradores en ventana de 60–90 días) — todavía no la hoja en vivo. Cuando agregues al Sheet una hoja llamada <b>"Estatus Colaboradores"</b> con <b>todos</b> tus colaboradores (columnas: Nombre completo · Unidad de Negocio · Sucursal · Rol · Fecha de ingreso · Estatus Activo/Baja · Fecha de baja · Motivo de baja), el dashboard la detecta sola y deja de usar el Excel.</div>`;
+    noteEl.innerHTML = `<div class="ruta-note">% Activos y % Rotación están usando el estatus del <b>Excel que compartiste</b> (13 colaboradores en ventana de 60–90 días) — todavía no la hoja en vivo. Cuando agregues al Sheet una hoja llamada <b>"Estatus Colaboradores"</b> con <b>todos</b> tus colaboradores (columnas: Nombre completo · Unidad de Negocio · Sucursal · Rol · Fecha de ingreso · Estatus Activo/Baja · Fecha de baja · Motivo de baja), el dashboard la detecta sola y deja de usar el Excel.</div>`;
   } else {
     noteEl.innerHTML = '';
   }
@@ -2989,7 +2989,7 @@ function renderColabList() {
     const st30  = rvStageState(!!c.d30, c.dias, VENTANA_30, focos.some(f=>f.fuente==='30 días'));
     const st60  = rvStageState(!!c.d60 || !!c.d60l, c.dias, VENTANA_60, focos.some(f=>f.fuente==='60 días'||f.fuente==='60 días · líder'));
     const st90  = rvStageState(!!c.d90, c.dias, VENTANA_90, focos.some(f=>f.fuente==='90 días'));
-    const teaser = focos.length ? `⚠ ${focos[0].motivo}` : (c.estatus==='baja' ? '' : '✓ Sin focos rojos');
+    const teaser = focos.length ? `${focos[0].motivo}` : (c.estatus==='baja' ? '' : '✓ Sin focos rojos');
     const metaBits = [c.sucursal, c.rol, c.turno].filter(Boolean).join(' · ');
     return `<div class="rv-colab-card" onclick="openRutaModal('${c.key.replace(/'/g,"\\'")}')">
       ${avatarHtml(c)}
@@ -3550,7 +3550,7 @@ function aplicarSimulacion() {
   const sim = getSimulacionActiva();
   if (!sim) { banner.style.display = 'none'; return; }
   const equipoTxt = sim.rol === 'lider' ? ` — ve su equipo (${equipoDe(sim.c.key).length} personas)` : sim.rol === 'colaborador' ? ' — solo ve su propio perfil' : '';
-  banner.innerHTML = `<span>👁️ Viendo el panel como <strong>${escapeHtml(sim.c.nombre)}</strong> <span class="sim-rol-tag">${nombreRol(sim.rol)}</span>${equipoTxt}</span><button onclick="detenerSimulacion()">Salir de la simulación</button>`;
+  banner.innerHTML = `<span>Viendo el panel como <strong>${escapeHtml(sim.c.nombre)}</strong> <span class="sim-rol-tag">${nombreRol(sim.rol)}</span>${equipoTxt}</span><button onclick="detenerSimulacion()">Salir de la simulación</button>`;
   banner.style.display = 'flex';
 }
 
@@ -3673,7 +3673,7 @@ function avisoCardHtml(a) {
   return `<div class="aviso-card">
     <div class="aviso-head"><span class="aviso-titulo">${escapeHtml(a.titulo)}</span><span class="aviso-fecha">${fecha}</span></div>
     <div class="aviso-msg">${escapeHtml(a.mensaje)}</div>
-    ${esAdmin() ? `<button class="aviso-borrar" onclick="borrarAvisoUI(${a.id})">🗑 Eliminar</button>` : ''}
+    ${esAdmin() ? `<button class="aviso-borrar" onclick="borrarAvisoUI(${a.id})">Eliminar</button>` : ''}
   </div>`;
 }
 function renderAvisosEn(containerId, limite) {
@@ -3916,7 +3916,7 @@ function openDirModal(key) {
   const item = (label, val) => `<div class="modal-item"><span class="modal-item-label">${label}</span><div class="modal-item-vals"><span>${val || '—'}</span></div></div>`;
 
   let html = '';
-  if (c.esVistaPrevia) html += `<div class="alta-aviso">🔒 Este colaborador es una vista previa — se creó desde "+ Nuevo colaborador" y solo existe en este navegador.</div>`;
+  if (c.esVistaPrevia) html += `<div class="alta-aviso">Este colaborador es una vista previa — se creó desde "+ Nuevo colaborador" y solo existe en este navegador.</div>`;
   const estClass = c.estatus==='activo'?'estatus-activo':c.estatus==='baja'?'estatus-baja':'estatus-desconocido';
   const estLabel = c.estatus==='activo'?'Activo':c.estatus==='baja'?'Inactivo':'Sin estatus';
   html += `<div class="modal-item"><span class="modal-item-label">Estatus</span><div class="modal-item-vals"><span class="estatus-badge ${estClass}">${estLabel}</span></div></div>`;
@@ -3998,7 +3998,7 @@ const SALUDOS_INICIO = [
   n => `${saludoHora()}, ${n}`,
   n => `¡Hola de nuevo, ${n}!`,
   n => `Qué gusto verte, ${n}`,
-  n => `${saludoHora()}, ${n} 👋`,
+  n => `${saludoHora()}, ${n}`,
   n => `¡Hola, ${n}!`,
 ];
 function saludoAleatorio(nombre) {
@@ -4020,7 +4020,7 @@ function renderSaludoInicio() {
 
   const nombre = getNombreUsuario();
   if (!nombre) {
-    tituloEl.textContent = '¡Hola! 👋';
+    tituloEl.textContent = '¡Hola!';
     subEl.innerHTML = `<span class="hero-nombre-prompt">¿Cómo te llamas?
       <input type="text" id="hero-nombre-input" placeholder="Tu nombre" maxlength="40">
       <button onclick="guardarNombreDesdeInicio()">Guardar</button>
@@ -4066,7 +4066,6 @@ function renderInicio() {
   listEl.innerHTML = hoyEventos.length
     ? hoyEventos.map(ev => `
       <div class="home-today-person">
-        <span style="font-size:20px">${ev.tipo==='cumple'?'🎂':'🎉'}</span>
         <div class="txt"><span class="n">${ev.nombre}</span><span class="d">${ev.detalle}</span></div>
       </div>`).join('')
     : `<div class="home-today-empty">Nadie cumple años ni aniversario hoy.</div>`;
@@ -4109,7 +4108,7 @@ async function loadAll() {
 
   const errMsg = (k, e) => {
     document.getElementById(`${k}-loading`).innerHTML =
-      `<span class="state-msg" style="color:var(--rojo)">⚠ Error al cargar: ${e.message}<br><br>
+      `<span class="state-msg" style="color:var(--rojo)">Error al cargar: ${e.message}<br><br>
       Verifica que el Apps Script esté publicado como webapp pública.</span>`;
   };
 
@@ -4246,7 +4245,7 @@ const SENT_ESPERADO = '¡Wow! Realmente siento que están emocionados de que yo 
 function sentLabel(v) {
   if (!v) return { text: '—', cls: '' };
   const s = String(v);
-  if (s.includes('básico') || s.includes('Eso fue todo') || s.includes('No parecen') || s.includes('no tiene tiempo')) return { text: '⚠ Requiere atención', cls: 'mal' };
+  if (s.includes('básico') || s.includes('Eso fue todo') || s.includes('No parecen') || s.includes('no tiene tiempo')) return { text: 'Requiere atención', cls: 'mal' };
   return { text: '✓ Bien', cls: 'ok' };
 }
 
@@ -4283,7 +4282,7 @@ function openModal(r) {
   const todasFallas = [...fallaItems, ...sentFallas];
 
   if (todasFallas.length > 0) {
-    html += `<div class="modal-section-label" style="color:#B91C1C">⚠ Causa raíz del score rojo</div>`;
+    html += `<div class="modal-section-label" style="color:#B91C1C">Causa raíz del score rojo</div>`;
     html += `<div class="modal-item alerta" style="flex-direction:column;align-items:flex-start;gap:8px">
       <div class="modal-item-label" style="font-weight:600;color:#B91C1C">Este colaborador tiene ${todasFallas.length} punto${todasFallas.length>1?'s':''} fuera de norma:</div>
       <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px">
@@ -4314,7 +4313,7 @@ function openModal(r) {
       </div>
       <div class="modal-item-vals">
         <span class="modal-resp ${cls}">${text}</span>
-        ${esAlerta?`<span class="modal-esperado">Esperado: ★ Excelente</span>`:''}
+        ${esAlerta?`<span class="modal-esperado">Esperado: Excelente</span>`:''}
       </div>
     </div>`;
   });
@@ -4943,7 +4942,7 @@ function renderMetasPre(rows) {
     })()
   });
   indicadores.push({
-    label: '📊 Total período',
+    label: 'Total período',
     data: (() => {
       const byMes = {};
       meses.forEach(m => {
@@ -4977,7 +4976,7 @@ function renderMetasD30(rows) {
   const checkCols = [
     ['  ¿Esta organización y el trabajo coinciden con lo anunciado?  ', 'Org. coincide con lo anunciado'],
     ['  ¿Tomé la decisión correcta al aceptar este trabajo?  ', 'Decisión correcta'],
-    ['  ¿Me siento conectado con esta organización?  ', '🎯 Conectado con la organización'],
+    ['  ¿Me siento conectado con esta organización?  ', 'Conectado con la organización'],
     ['  ¿Tu líder se reunió contigo para explicarte los indicadores clave de desempeño de tu rol?', 'Líder explicó KPIs del rol'],
     ['  ¿Recibiste por escrito tu certificación de rol?', 'Certificación de rol por escrito'],
     ['  ¿Tu capacitación se cumplió al pie de la letra?  ', 'Capacitación completa'],
@@ -5018,7 +5017,7 @@ function renderMetasEv(rows) {
     { label: 'Propósito %', data: agruparPorMes(rows, r=>r['Marca temporal'], r => { const v=parseFloat(r['% Propósito']); return !isNaN(v)&&v>0?Math.round(v):null; }) },
     { label: 'Credo %', data: agruparPorMes(rows, r=>r['Marca temporal'], r => { const v=parseFloat(r['% Credo']); return !isNaN(v)&&v>0?Math.round(v):null; }) },
     { label: 'Valores %', data: agruparPorMes(rows, r=>r['Marca temporal'], r => { const v=parseFloat(r['% Valores']); return !isNaN(v)&&v>0?Math.round(v):null; }) },
-    { label: '📊 % Filosofía total', data: agruparPorMes(rows, r=>r['Marca temporal'], r => filosofiaPct(r)) },
+    { label: '% Filosofía total', data: agruparPorMes(rows, r=>r['Marca temporal'], r => filosofiaPct(r)) },
     { label: 'Juego del Año %', data: agruparPorMes(rows, r=>r['Marca temporal'], r => { const v=parseFloat(r['% Calificación Juego del Año']); return !isNaN(v)&&v>0?Math.round(v):null; }) },
   ];
 
