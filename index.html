@@ -5948,16 +5948,48 @@ function updateMetas() {
 }
 
 // ── BENITO — mascota/guía de Plenia (rana de VIVO 47, vista previa) ──
-// Respuestas fijas a preguntas frecuentes de navegación — no es un asistente con IA real,
-// no inventa políticas de RH ni datos personales. Los mensajes viven solo en memoria de esta
-// sesión (se reinician si recargas la página).
+// Respuestas fijas a preguntas frecuentes de navegación — no es un asistente con IA real, así
+// que en vez de entender lenguaje libre, busca coincidencias de palabras clave contra un banco
+// de temas (BENITO_FAQ) y usa eso para responder texto escrito a mano. No inventa políticas de
+// RH, cifras ni datos personales — cuando algo no matchea, lo dice claramente en vez de fingir
+// que sabe. Los mensajes viven solo en memoria de esta sesión (se reinician si recargas).
 const BENITO_TIP_KEY = 'geb_benito_tip_visto';
 const BENITO_BANNER_KEY = 'geb_benito_banner_oculto';
 const BENITO_CHIPS = [
   { label: 'Pedir vacaciones', respuesta: 'Ve a Ausencias, en el menú de la izquierda — ahí vas a poder ver tus días disponibles y mandar tu solicitud.' },
   { label: 'Ver mis documentos', respuesta: 'Los encuentras en Documentos, también en el menú de la izquierda.' },
-  { label: 'Hablar con RH', respuesta: 'Busca a tu líder o al equipo de Capital Humano desde Organización, con el buscador de arriba.' },
+  { label: 'Buscar a un compañero', respuesta: 'En Organización puedes buscar a cualquier colaborador y ver el organigrama completo del equipo.' },
+  { label: 'Mis evaluaciones', respuesta: 'Revisa Desempeño o tu Bandeja de entrada — ahí te avisamos si tienes una evaluación pendiente por contestar.' },
 ];
+// Banco de temas para cuando alguien escribe su pregunta en vez de tocar un botón. Cada entrada
+// se busca por palabras clave (no es NLP de verdad, es coincidencia de texto simple).
+const BENITO_FAQ = [
+  { keywords: ['vacacion','ausencia','permiso','incapacidad','dia libre'], respuesta: 'Ve a Ausencias, en el menú de la izquierda — ahí vas a poder ver tus días disponibles y mandar tu solicitud.' },
+  { keywords: ['documento','contrato','identificacion','comprobante','papeleo'], respuesta: 'Tus documentos (contratos, identificaciones, comprobantes) están en Documentos, en el menú de la izquierda.' },
+  { keywords: ['recursos humanos','capital humano',' rh ','hablar con rh'], respuesta: 'Busca a tu líder o al equipo de Capital Humano desde Organización, con el buscador de arriba.' },
+  { keywords: ['lider','jefe','supervisor','reporto'], respuesta: 'Para ver quién es tu líder, busca tu nombre en Organización y abre tu perfil — ahí sale esa información.' },
+  { keywords: ['organigrama','directorio','compañero','equipo de trabajo','quien trabaja'], respuesta: 'En Organización puedes buscar a cualquier colaborador y también ver el organigrama completo del equipo.' },
+  { keywords: ['cumpleaños','aniversario','calendario'], respuesta: 'Los cumpleaños y aniversarios laborales del equipo están en Calendario, y también salen en Inicio el día que le toca a alguien.' },
+  { keywords: ['aviso','anuncio','comunicado','noticia'], respuesta: 'Los avisos que publica la empresa están en Bandeja de entrada — ahí también verás si tienes alguna evaluación pendiente.' },
+  { keywords: ['evaluacion','desempeño','encuesta'], respuesta: 'Tus evaluaciones de desempeño pendientes están en Desempeño, y también te avisamos en Bandeja de entrada.' },
+  { keywords: ['curso','capacitacion','certificacion','formacion','aprender'], respuesta: 'Eso vive en Formación, en el menú de la izquierda — por ahora es donde se hace seguimiento a la inducción de nuevo ingreso.' },
+  { keywords: ['politica','reglamento','norma'], respuesta: 'Las políticas y reglamentos de la empresa están en Políticas, en el menú de la izquierda.' },
+  { keywords: ['perfil','mis datos','mi informacion'], respuesta: 'Tu perfil está en Perfil, en el menú de la izquierda.' },
+  { keywords: ['rol','permiso','administrador','simular'], respuesta: 'Los roles y permisos los asigna quien tenga acceso de Administrador, desde Configuración.' },
+  { keywords: ['proyecto','iniciativa','desarrollar'], respuesta: 'Todavía no puedo ayudarte a desarrollar proyectos — soy un guía con respuestas fijas, no una IA de verdad (eso necesitaría conectarme a un modelo real, con su propio servidor).' },
+  { keywords: ['hola','buenas','que tal','buen dia'], respuesta: '¡Hola! ¿En qué te ayudo por aquí en Plenia?' },
+  { keywords: ['gracias'], respuesta: '¡De nada! Aquí ando si necesitas algo más.' },
+  { keywords: ['quien eres','que eres','que haces','eres una ia'], respuesta: 'Soy Benito, te ayudo a encontrar cosas dentro de Plenia. Todavía no soy una IA de verdad, así que prefiero decir "no sé" a inventar algo.' },
+];
+function buscarRespuestaBenito(texto) {
+  const norm = normName(texto);
+  let mejor = null, mejorScore = 0;
+  BENITO_FAQ.forEach(item => {
+    const score = item.keywords.filter(k => norm.includes(normName(k))).length;
+    if (score > mejorScore) { mejorScore = score; mejor = item; }
+  });
+  return mejor ? mejor.respuesta : null;
+}
 let _benitoMensajes = [
   { texto: '¡Ey! Soy Benito. Te ayudo a moverte por Plenia.', yo: false },
   { texto: 'Puedo ayudarte a encontrar tus vacaciones, documentos o a quién contactar. ¿Qué necesitas?', yo: false },
@@ -6001,7 +6033,8 @@ function enviarMensajeBenito() {
   const val = input.value.trim();
   if (!val) return;
   _benitoMensajes.push({ texto: val, yo: true });
-  _benitoMensajes.push({ texto: 'Todavía estoy aprendiendo a contestar preguntas así de específicas — prueba alguna de las opciones de arriba, o contacta directo a tu líder.', yo: false });
+  const respuesta = buscarRespuestaBenito(val) || 'No encontré nada sobre eso — soy un guía con respuestas fijas, no una IA de verdad. Prueba alguna de las opciones de arriba, o contacta directo a tu líder.';
+  _benitoMensajes.push({ texto: respuesta, yo: false });
   input.value = '';
   renderBenitoMensajes();
 }
