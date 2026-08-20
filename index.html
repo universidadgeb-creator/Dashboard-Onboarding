@@ -160,6 +160,11 @@
   .benito-msg { max-width: 82%; font-size: 13px; line-height: 1.45; padding: 10px 13px; font-weight: 500; }
   .benito-msg-bot { align-self: flex-start; background: #fff; color: #2c3a22; border-radius: 14px 14px 14px 3px; }
   .benito-msg-yo { align-self: flex-end; background: #6DB33F; color: #fff; border-radius: 14px 14px 3px 14px; }
+  .benito-msg-escribiendo { display: flex; gap: 4px; padding: 13px 15px; }
+  .benito-msg-escribiendo span { width: 6px; height: 6px; border-radius: 50%; background: #a8b89e; animation: benitoEscribiendo 1.2s ease-in-out infinite; }
+  .benito-msg-escribiendo span:nth-child(2) { animation-delay: .15s; }
+  .benito-msg-escribiendo span:nth-child(3) { animation-delay: .3s; }
+  @keyframes benitoEscribiendo { 0%,60%,100% { opacity: .3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
   .benito-chat-chips { display: flex; flex-wrap: wrap; gap: 7px; padding: 0 16px 14px; background: #f7f9f4; }
   .benito-chip { cursor: pointer; font-size: 12px; font-weight: 700; color: #4A8B27; background: #fff; border: 1.5px solid #d5e5c6; border-radius: 999px; padding: 7px 12px; font-family: 'Inter', sans-serif; }
   .benito-chip:hover { background: #6DB33F; color: #fff; border-color: #6DB33F; }
@@ -6027,9 +6032,16 @@ function cerrarBenitoTip() {
   document.getElementById('benito-tip').style.display = 'none';
   localStorage.setItem(BENITO_TIP_KEY, '1');
 }
+// URL del backend (Cloudflare Worker) que le da a Benito una respuesta real de Claude, en vez
+// del guion fijo. Vacío = sigue funcionando como guía con respuestas fijas, sin romper nada —
+// en cuanto despliegues el worker (ver benito-worker.js), pon aquí su URL y Benito empieza a
+// contestar con IA real, con el guion como respaldo si la llamada falla.
+const BENITO_API_URL = '';
+
 function renderBenitoMensajes() {
   const cont = document.getElementById('benito-mensajes');
-  cont.innerHTML = _benitoMensajes.map(m => `<div class="benito-msg ${m.yo ? 'benito-msg-yo' : 'benito-msg-bot'}">${escapeHtml(m.texto)}</div>`).join('');
+  cont.innerHTML = _benitoMensajes.map(m => `<div class="benito-msg ${m.yo ? 'benito-msg-yo' : 'benito-msg-bot'}">${escapeHtml(m.texto)}</div>`).join('')
+    + (_benitoEscribiendo ? `<div class="benito-msg benito-msg-bot benito-msg-escribiendo"><span></span><span></span><span></span></div>` : '');
   cont.scrollTop = cont.scrollHeight;
 }
 function renderBenitoChips() {
@@ -6041,14 +6053,35 @@ function benitoResponderChip(i) {
   _benitoMensajes.push({ texto: c.respuesta, yo: false });
   renderBenitoMensajes();
 }
-function enviarMensajeBenito() {
+let _benitoEscribiendo = false;
+async function pedirRespuestaIA(historial) {
+  if (!BENITO_API_URL) return null;
+  try {
+    const res = await fetch(BENITO_API_URL, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ messages: historial.map(m => ({ role: m.yo ? 'user' : 'assistant', content: m.texto })) }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.texto || null;
+  } catch (e) {
+    return null; // sin internet, worker caído, CORS, etc. — que caiga al guion, no que se rompa
+  }
+}
+async function enviarMensajeBenito() {
   const input = document.getElementById('benito-input');
   const val = input.value.trim();
   if (!val) return;
   _benitoMensajes.push({ texto: val, yo: true });
-  const respuesta = buscarRespuestaBenito(val) || 'No encontré nada sobre eso — soy un guía con respuestas fijas, no una IA de verdad. Prueba alguna de las opciones de arriba, o contacta directo a tu líder.';
-  _benitoMensajes.push({ texto: respuesta, yo: false });
   input.value = '';
+  _benitoEscribiendo = true;
+  renderBenitoMensajes();
+
+  const respuestaIA = await pedirRespuestaIA(_benitoMensajes);
+  _benitoEscribiendo = false;
+  const respuesta = respuestaIA || buscarRespuestaBenito(val) || 'No encontré nada sobre eso — soy un guía con respuestas fijas, no una IA de verdad. Prueba alguna de las opciones de arriba, o contacta directo a tu líder.';
+  _benitoMensajes.push({ texto: respuesta, yo: false });
   renderBenitoMensajes();
 }
 function ocultarBenitoBanner() {
