@@ -168,8 +168,12 @@ async function llamarClaude({ env, system, messages, maxTokens }) {
   }
 
   const data = await anthropicRes.json();
-  const texto = data.content && data.content[0] && data.content[0].text
-    ? data.content[0].text
+  // No asumir que el texto está en content[0]: si Claude usó razonamiento extendido antes
+  // de responder, ese primer bloque es de tipo "thinking" (sin .text) y la respuesta real
+  // queda en un bloque posterior — hay que buscar el primer bloque de tipo "text".
+  const bloqueTexto = Array.isArray(data.content) ? data.content.find(b => b.type === 'text') : null;
+  const texto = bloqueTexto && bloqueTexto.text
+    ? bloqueTexto.text
     : 'No pude pensar en una respuesta, intenta de nuevo.';
   return jsonResponse({ texto });
 }
