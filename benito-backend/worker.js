@@ -59,7 +59,7 @@ export default {
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001', // rápido y barato; sube a 'claude-sonnet-5' si quieres respuestas más elaboradas
+          model: 'claude-haiku-4-5', // rápido y barato ($1/$5 por millón de tokens); sube a 'claude-sonnet-5' si quieres respuestas más elaboradas
           max_tokens: 300,
           system: SYSTEM_PROMPT,
           messages,
