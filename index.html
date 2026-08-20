@@ -165,6 +165,23 @@
   .btn-nuevo-colab:hover { box-shadow: 0 4px 14px rgba(124,58,237,.4); transform: translateY(-1px); }
   .btn-nuevo-colab:hover { opacity: .88; }
   .dir-preview-badge { display: inline-block; margin-left: 6px; font-size: 9.5px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: #A16207; background: #FEF3C7; border-radius: 8px; padding: 1px 6px; vertical-align: middle; }
+
+  /* ROLES Y PERMISOS */
+  .rol-badge { display: inline-block; margin-left: 6px; font-size: 9.5px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; border-radius: 8px; padding: 1px 6px; vertical-align: middle; }
+  .rol-badge-lider { color: #7E22CE; background: #F5F3FF; }
+  .rol-badge-admin { color: #fff; background: linear-gradient(135deg, #8B5CF6, #7C3AED); }
+  .permiso-select { font-size: 13px; font-family: 'Inter', sans-serif; color: var(--blanco); border: 1px solid #E6DFF5; border-radius: 6px; padding: 6px 10px; background: #fff; cursor: pointer; }
+  .sim-banner {
+    display: none; align-items: center; justify-content: space-between; gap: 12px;
+    background: linear-gradient(135deg, #2A1F45, #241B3D); color: #fff;
+    padding: 9px 32px; font-size: 12.5px;
+  }
+  .sim-banner .sim-rol-tag { background: rgba(255,255,255,.16); border-radius: 8px; padding: 1px 8px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; margin: 0 4px; }
+  .sim-banner button { background: rgba(255,255,255,.12); border: none; color: #fff; font-size: 11.5px; font-weight: 600; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; }
+  .sim-banner button:hover { background: rgba(255,255,255,.22); }
+  .sim-resultados { margin-top: 8px; border-radius: 10px; overflow: hidden; }
+  .sim-resultado-item { display: flex; align-items: center; gap: 10px; padding: 8px 4px; cursor: pointer; border-bottom: 1px solid #F5F2FC; }
+  .sim-resultado-item:hover { background: #FAF9FD; }
   .dir-table { border: 1px solid #F5F2FC; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(76,29,149,.08); }
   .dir-row { display: grid; grid-template-columns: 2fr 1.4fr 1fr 0.8fr; gap: 12px; padding: 10px 16px; align-items: center; border-bottom: 1px solid #F5F2FC; }
   .dir-row:last-child { border-bottom: none; }
@@ -766,6 +783,8 @@
   </div>
 </header>
 
+<div class="sim-banner" id="sim-banner" style="display:none"></div>
+
 <div class="app-shell">
 <nav class="sidebar" id="sidebar">
   <div class="sidebar-top">
@@ -1275,6 +1294,13 @@
         <div class="config-row"><span>Guardados aquí</span><span id="cfg-preview-count">—</span></div>
         <button class="btn-clear" style="margin-top:10px" onclick="borrarDatosPreview()">Borrar datos de vista previa</button>
       </div>
+    </div>
+
+    <div class="config-card" style="margin-top:16px">
+      <div class="config-card-title">Roles y permisos — simular vista</div>
+      <div class="config-desc">Cada colaborador tiene un rol (Colaborador, Líder o Administrador) asignable desde su perfil en Organización. Un Líder ve además a su equipo; un Colaborador solo ve su propio perfil. Elige a alguien aquí para ver el panel como lo vería esa persona — es una simulación, no hay inicio de sesión real todavía.</div>
+      <input type="text" class="rv-search-input" id="sim-buscar" placeholder="Buscar colaborador para simular…" oninput="renderSimResultados()" autocomplete="off">
+      <div id="sim-resultados" class="sim-resultados"></div>
     </div>
   </div>
 
@@ -3377,6 +3403,108 @@ function aplicarModoAdmin() {
   renderTodosLosAvisos();
 }
 
+// ── ROLES Y PERMISOS (vista previa — no hay login real, esto solo simula qué vería cada rol) ──
+// Todo colaborador es "colaborador" por defecto; el mapa solo guarda a quien tiene un rol
+// distinto (líder o administrador), asignado a mano por un admin desde el perfil.
+const ROLES_KEY = 'geb_roles_preview';
+function getRolesAsignados() {
+  try { return JSON.parse(localStorage.getItem(ROLES_KEY)) || {}; } catch(e) { return {}; }
+}
+function getRolDe(c) {
+  return getRolesAsignados()[c.key] || 'colaborador';
+}
+function nombreRol(rol) {
+  return rol === 'admin' ? 'Administrador' : rol === 'lider' ? 'Líder' : 'Colaborador';
+}
+function cambiarRolColab(key, rol) {
+  const roles = getRolesAsignados();
+  if (rol === 'colaborador') delete roles[key]; else roles[key] = rol;
+  localStorage.setItem(ROLES_KEY, JSON.stringify(roles));
+  renderDirectorio();
+}
+
+// El equipo de un líder = todos los colaboradores que reportan a esta persona directa o
+// indirectamente (todo el subárbol, misma lógica de emparejamiento difuso que el organigrama)
+// — no solo quien le reporta directo, porque un director también "tiene equipo" a través de
+// sus gerentes.
+function equipoDe(personaKey) {
+  const idx = getColabIndex().filter(c => c.nombre && c.estatus !== 'baja');
+  const byKey = new Map(idx.map(c => [c.key, c]));
+  function resolveLiderKey(liderNombre, ownKey) {
+    if (!liderNombre) return null;
+    const nk = normName(liderNombre);
+    if (!nk) return null;
+    const match = byKey.get(nk) || idx.find(c => similarNames(nk, normName(c.nombre)));
+    if (!match || match.key === ownKey) return null;
+    return match.key;
+  }
+  const hijosDe = new Map();
+  idx.forEach(c => {
+    const pKey = resolveLiderKey(c.lider, c.key);
+    if (pKey) {
+      if (!hijosDe.has(pKey)) hijosDe.set(pKey, []);
+      hijosDe.get(pKey).push(c);
+    }
+  });
+  const equipo = [];
+  const visitados = new Set([personaKey]);
+  (function recolectar(key) {
+    (hijosDe.get(key) || []).forEach(c => {
+      if (visitados.has(c.key)) return; // corta ciclos si los datos se contradicen
+      visitados.add(c.key);
+      equipo.push(c);
+      recolectar(c.key);
+    });
+  })(personaKey);
+  return equipo;
+}
+
+// ── SIMULADOR "VER COMO" (filtra lo que ya mostramos según el rol de la persona elegida —
+// no es un login real, solo una demostración de cómo se comportaría el permiso) ──
+const SIM_KEY = 'geb_simular_como_preview';
+function getSimulacionActiva() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SIM_KEY));
+    if (!raw || !raw.key) return null;
+    const c = getColabIndex().find(x => x.key === raw.key);
+    if (!c) return null;
+    return { c, rol: getRolDe(c) };
+  } catch(e) { return null; }
+}
+function activarSimulacion(key) {
+  localStorage.setItem(SIM_KEY, JSON.stringify({ key }));
+  aplicarSimulacion();
+  renderDirectorio();
+}
+function detenerSimulacion() {
+  localStorage.removeItem(SIM_KEY);
+  aplicarSimulacion();
+  renderDirectorio();
+}
+function renderSimResultados() {
+  const input = document.getElementById('sim-buscar');
+  const results = document.getElementById('sim-resultados');
+  const q = normName(input.value);
+  if (!q) { results.innerHTML = ''; return; }
+  const idx = getColabIndex().filter(c => c.estatus !== 'baja' && c.nombre && normName(c.nombre).includes(q));
+  results.innerHTML = idx.length
+    ? idx.slice(0,8).map(c => `
+      <div class="sim-resultado-item" onclick="document.getElementById('sim-buscar').value=''; document.getElementById('sim-resultados').innerHTML=''; activarSimulacion('${c.key.replace(/'/g,"\\'")}')">
+        ${avatarHtml(c)}
+        <div><div style="font-size:13px;font-weight:500;color:var(--blanco)">${c.nombre}</div><div style="font-size:11px;color:var(--gris-texto)">${c.rol||'—'} · ${nombreRol(getRolDe(c))}</div></div>
+      </div>`).join('')
+    : `<div class="avisos-empty">Sin resultados.</div>`;
+}
+function aplicarSimulacion() {
+  const banner = document.getElementById('sim-banner');
+  if (!banner) return;
+  const sim = getSimulacionActiva();
+  if (!sim) { banner.style.display = 'none'; return; }
+  const equipoTxt = sim.rol === 'lider' ? ` — ve su equipo (${equipoDe(sim.c.key).length} personas)` : sim.rol === 'colaborador' ? ' — solo ve su propio perfil' : '';
+  banner.innerHTML = `<span>👁️ Viendo el panel como <strong>${escapeHtml(sim.c.nombre)}</strong> <span class="sim-rol-tag">${nombreRol(sim.rol)}</span>${equipoTxt}</span><button onclick="detenerSimulacion()">Salir de la simulación</button>`;
+  banner.style.display = 'flex';
+}
+
 // ── ALTA DE COLABORADOR (vista previa — solo localStorage, nunca se manda al Sheet) ──
 const COLAB_PREVIEW_KEY = 'geb_colaboradores_preview';
 function getColaboradoresPreview() {
@@ -3560,6 +3688,14 @@ function dirFiltrarEstatus(estatus, e) {
 const renderDirectorioDebounced = debounce(renderDirectorio, 150);
 function renderDirectorio() {
   let idx = getColabIndex().filter(c => c.nombre);
+  const sim = getSimulacionActiva();
+  if (sim) {
+    if (sim.rol === 'colaborador') idx = idx.filter(c => c.key === sim.c.key);
+    else if (sim.rol === 'lider') {
+      const equipoKeys = new Set(equipoDe(sim.c.key).map(c => c.key));
+      idx = idx.filter(c => c.key === sim.c.key || equipoKeys.has(c.key));
+    }
+  }
   if (_dirEstatusFiltro) idx = idx.filter(c => c.estatus === _dirEstatusFiltro);
   const busq = normName(document.getElementById('dir-buscar').value);
   const orden = document.getElementById('dir-orden').value;
@@ -3586,11 +3722,13 @@ function renderDirectorio() {
   list.innerHTML = lista.map(c => {
     const estClass = c.estatus==='activo'?'estatus-activo':c.estatus==='baja'?'estatus-baja':'estatus-desconocido';
     const estLabel = c.estatus==='activo'?'Activo':c.estatus==='baja'?'Inactivo':'—';
+    const rolColab = getRolDe(c);
     return `
     <div class="dir-row" onclick="openDirModal('${c.key.replace(/'/g,"\\'")}')">
       <div class="dir-nombre-cell">
         ${avatarHtml(c)}
         <span class="dir-nombre-txt">${c.nombre}</span>
+        ${rolColab !== 'colaborador' ? `<span class="rol-badge rol-badge-${rolColab}">${nombreRol(rolColab)}</span>` : ''}
         ${c.esVistaPrevia ? '<span class="dir-preview-badge">Vista previa</span>' : ''}
       </div>
       <div class="dir-rol">${c.rol||'—'}</div>
@@ -3735,6 +3873,20 @@ function openDirModal(key) {
   if (c.estatus === 'baja') {
     html += item('Fecha de baja', fmtFecha(c.fechaBaja));
     html += item('Motivo de baja', c.motivoBaja);
+  }
+
+  const rolActual = getRolDe(c);
+  html += `<div class="modal-section-label">Permisos (vista previa)</div>`;
+  if (esAdmin()) {
+    html += `<div class="modal-item"><span class="modal-item-label">Rol de acceso</span><div class="modal-item-vals">
+      <select class="permiso-select" onchange="cambiarRolColab('${c.key.replace(/'/g,"\\'")}', this.value)">
+        <option value="colaborador" ${rolActual==='colaborador'?'selected':''}>Colaborador</option>
+        <option value="lider" ${rolActual==='lider'?'selected':''}>Líder</option>
+        <option value="admin" ${rolActual==='admin'?'selected':''}>Administrador</option>
+      </select>
+    </div></div>`;
+  } else {
+    html += item('Rol de acceso', nombreRol(rolActual));
   }
 
   html += `<div class="modal-section-label">Información del rol</div>`;
@@ -3948,6 +4100,7 @@ async function loadAll() {
     applyFilters();
     updateMetas();
     renderAlertas();
+    aplicarSimulacion();
   } catch(e) {
     ['pre','d30','ev','cert','ruta','cal','dir','inicio'].forEach(k => errMsg(k, e));
   }
