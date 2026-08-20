@@ -190,6 +190,51 @@
   .btn-ver-como { background: #F5F2FC; border: none; color: var(--verde-acento); font-size: 11.5px; font-weight: 600; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; }
   .btn-ver-como:hover { background: #E6DFF5; }
   .sim-resultado-item:hover { background: #FAF9FD; }
+
+  /* DESEMPEÑO — evaluaciones (vista previa) */
+  .encuestas-lista { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+  .encuesta-card { background: #fff; border: 1px solid #F5F2FC; border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 10px rgba(76,29,149,.06); }
+  .encuesta-card-done { opacity: .7; }
+  .encuesta-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .encuesta-card-nombre { font-size: 14px; font-weight: 700; color: var(--blanco); }
+  .encuesta-card-meta { font-size: 11.5px; color: var(--gris-texto); margin-top: 3px; }
+  .encuesta-card-desc { font-size: 12.5px; color: var(--gris-medio); margin-top: 8px; line-height: 1.5; }
+  .encuesta-card-acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .encuesta-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; border-radius: 10px; padding: 3px 9px; white-space: nowrap; }
+  .encuesta-badge.activa { color: var(--verde-ok-txt); background: var(--verde-ok-bg); }
+  .encuesta-badge.pausada { color: var(--gris-medio); background: var(--gris-claro); }
+
+  .pregunta-builder { background: var(--gris-claro); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+  .pregunta-builder-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pregunta-builder-num { font-size: 11px; font-weight: 700; color: var(--gris-medio); flex-shrink: 0; }
+  .pregunta-texto-input { flex: 1; min-width: 160px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--blanco); border: 1px solid #E6DFF5; border-radius: 6px; padding: 7px 10px; }
+  .pregunta-texto-input:focus { outline: none; border-color: var(--verde-acento); }
+  .pregunta-tipo-select { font-size: 12px; font-family: 'Inter', sans-serif; color: var(--gris-medio); border: 1px solid #E6DFF5; border-radius: 6px; padding: 7px 8px; background: #fff; cursor: pointer; }
+  .pregunta-quitar { background: none; border: none; color: var(--rojo); font-size: 11px; cursor: pointer; font-family: 'Inter', sans-serif; text-decoration: underline; white-space: nowrap; }
+  .pregunta-opciones { margin: 10px 0 0 22px; display: flex; flex-direction: column; gap: 6px; }
+  .opcion-builder-row { display: flex; align-items: center; gap: 6px; }
+  .opcion-builder-row input { flex: 1; font-size: 12.5px; font-family: 'Inter', sans-serif; color: var(--blanco); border: 1px solid #E6DFF5; border-radius: 6px; padding: 6px 9px; }
+  .opcion-builder-row input:focus { outline: none; border-color: var(--verde-acento); }
+  .opcion-builder-row button { background: none; border: none; color: var(--gris-texto); cursor: pointer; font-size: 12px; padding: 2px 6px; }
+  .opcion-builder-row button:hover { color: var(--rojo); }
+  .opcion-agregar { align-self: flex-start; background: none; border: none; color: var(--verde-acento); font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; padding: 0; }
+
+  .pregunta-responder { margin-bottom: 20px; }
+  .pregunta-responder-texto { font-size: 13.5px; font-weight: 600; color: var(--blanco); margin-bottom: 8px; }
+  .pregunta-respuesta-input { width: 100%; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--blanco); border: 1px solid #E6DFF5; border-radius: 8px; padding: 9px 12px; resize: vertical; }
+  .pregunta-respuesta-input:focus { outline: none; border-color: var(--verde-acento); }
+  .pregunta-opciones-responder { display: flex; flex-direction: column; gap: 8px; }
+  .opcion-responder-label { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--gris-medio); background: var(--gris-claro); border-radius: 8px; padding: 9px 12px; cursor: pointer; }
+  .opcion-responder-label input { cursor: pointer; accent-color: var(--verde-acento); }
+
+  .resultado-pregunta { margin-bottom: 22px; }
+  .resultado-pregunta-texto { font-size: 13.5px; font-weight: 600; color: var(--blanco); margin-bottom: 10px; }
+  .resultado-texto-item { font-size: 12.5px; color: var(--gris-medio); background: var(--gris-claro); border-radius: 8px; padding: 8px 12px; margin-bottom: 6px; line-height: 1.5; }
+  .resultado-texto-item strong { color: var(--blanco); }
+  .resultado-opcion-bar { margin-bottom: 10px; }
+  .resultado-opcion-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--gris-medio); margin-bottom: 4px; }
+  .resultado-opcion-track { background: var(--gris-claro); border-radius: 6px; height: 8px; overflow: hidden; }
+  .resultado-opcion-fill { background: linear-gradient(90deg, #8B5CF6, #7C3AED); height: 100%; border-radius: 6px; transition: width .3s; }
   .dir-table { border: 1px solid #F5F2FC; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(76,29,149,.08); }
   .dir-row { display: grid; grid-template-columns: 2fr 1.4fr 1fr 0.8fr; gap: 12px; padding: 10px 16px; align-items: center; border-bottom: 1px solid #F5F2FC; }
   .dir-row:last-child { border-bottom: none; }
@@ -847,7 +892,7 @@
     </button>
     <div class="sidebar-group-body">
       <button class="sidebar-item" data-tab="desempeno" onclick="switchTab('desempeno')">
-        <span class="si-icon"></span><span class="si-label">Desempeño</span><span class="si-soon">pronto</span>
+        <span class="si-icon"></span><span class="si-label">Desempeño</span>
       </button>
       <button class="sidebar-item" data-tab="ruta" onclick="switchTab('ruta')">
         <span class="si-icon"></span><span class="si-label">Retención</span>
@@ -1277,7 +1322,30 @@
   <div class="tab-panel" id="panel-ausencias"><div class="soon-box"><div class="soon-icon"></div><div class="soon-title">Ausencias</div><div class="soon-desc">Vacaciones, incapacidades y permisos por colaborador. Sección en construcción, todavía sin datos reales.</div></div></div>
   <div class="tab-panel" id="panel-documentos"><div class="soon-box"><div class="soon-icon"></div><div class="soon-title">Documentos</div><div class="soon-desc">Repositorio de documentos por colaborador (contratos, identificaciones, comprobantes). Sección en construcción, todavía sin datos reales.</div></div></div>
   <div class="tab-panel" id="panel-politicas"><div class="soon-box"><div class="soon-icon"></div><div class="soon-title">Políticas</div><div class="soon-desc">Políticas y reglamentos de la empresa, disponibles para consulta. Sección en construcción, todavía sin datos reales.</div></div></div>
-  <div class="tab-panel" id="panel-desempeno"><div class="soon-box"><div class="soon-icon"></div><div class="soon-title">Desempeño</div><div class="soon-desc">Evaluaciones de desempeño periódicas para todo el personal (más allá de la evaluación de inducción). Sección en construcción, todavía sin datos reales.</div></div></div>
+  <div class="tab-panel" id="panel-desempeno">
+    <div id="desempeno-admin" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Desempeño</div>
+        <button class="btn-nuevo-colab" onclick="abrirEncuestaModal()">+ Nueva evaluación</button>
+      </div>
+      <p class="bandeja-sub">Crea evaluaciones para el equipo — vista previa: se guardan y contestan solo en este navegador, nunca se suben al Sheet.</p>
+      <div id="encuestas-admin-lista" class="encuestas-lista"></div>
+    </div>
+
+    <div id="desempeno-lider" style="display:none">
+      <div class="section-title" style="margin-bottom:12px">Desempeño de tu equipo</div>
+      <p class="bandeja-sub">Resultados de las evaluaciones activas para ti y las personas que te reportan.</p>
+      <div id="encuestas-lider-lista" class="encuestas-lista"></div>
+    </div>
+
+    <div id="desempeno-colaborador" style="display:none">
+      <div class="section-title" style="margin-bottom:4px">Tus evaluaciones</div>
+      <p class="bandeja-sub">Lo que tengas pendiente por contestar.</p>
+      <div id="encuestas-colab-pendientes" class="encuestas-lista"></div>
+      <div class="modal-section-label" style="margin-top:20px">Ya contestadas</div>
+      <div id="encuestas-colab-contestadas" class="encuestas-lista"></div>
+    </div>
+  </div>
 
   <div class="tab-panel" id="panel-configuracion">
     <div class="section-title" style="margin-bottom:16px">Configuración</div>
@@ -1432,6 +1500,68 @@
         <button class="btn-refresh" onclick="closeAvisoModalDirect()">Cancelar</button>
         <button class="btn-nuevo-colab" onclick="guardarAviso()">Publicar aviso</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CREAR/EDITAR EVALUACIÓN DE DESEMPEÑO (VISTA PREVIA) -->
+<div class="modal-overlay" id="encuesta-modal-overlay" onclick="closeEncuestaModal(event)">
+  <div class="modal-panel modal-panel-ancho" id="encuesta-modal-panel">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-nombre" id="encuesta-modal-titulo">+ Nueva evaluación</div>
+        <div class="modal-meta"><span>Vista previa — se guarda y contesta solo en este navegador</span></div>
+      </div>
+      <button class="modal-close" onclick="closeEncuestaModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alta-grid">
+        <label class="alta-campo alta-campo-full">Nombre de la evaluación *<input type="text" id="enc-nombre" placeholder="Ej. Evaluación de desempeño Q3" maxlength="120"></label>
+        <label class="alta-campo alta-campo-full">Descripción<textarea id="enc-descripcion" rows="2" placeholder="Para qué es esta evaluación (opcional)" maxlength="400"></textarea></label>
+      </div>
+      <div class="modal-section-label">Preguntas</div>
+      <div id="enc-preguntas-list"></div>
+      <button class="opcion-agregar" style="margin-top:8px" onclick="agregarPreguntaBuilder()">+ Agregar pregunta</button>
+      <div class="alta-acciones">
+        <button class="btn-refresh" onclick="closeEncuestaModalDirect()">Cancelar</button>
+        <button class="btn-nuevo-colab" onclick="guardarEncuesta()">Guardar evaluación</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONTESTAR EVALUACIÓN DE DESEMPEÑO -->
+<div class="modal-overlay" id="responder-modal-overlay" onclick="closeResponderModal(event)">
+  <div class="modal-panel modal-panel-ancho" id="responder-modal-panel">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-nombre" id="responder-modal-titulo">Evaluación</div>
+        <div class="modal-meta"><span id="responder-modal-desc"></span></div>
+      </div>
+      <button class="modal-close" onclick="closeResponderModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="responder-modal-body"></div>
+      <div class="alta-acciones">
+        <button class="btn-refresh" onclick="closeResponderModalDirect()">Cancelar</button>
+        <button class="btn-nuevo-colab" onclick="enviarRespuestaEncuesta()">Enviar respuestas</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RESULTADOS DE EVALUACIÓN DE DESEMPEÑO -->
+<div class="modal-overlay" id="resultados-modal-overlay" onclick="closeResultadosModal(event)">
+  <div class="modal-panel modal-panel-ancho" id="resultados-modal-panel">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-nombre" id="resultados-modal-titulo">Resultados</div>
+        <div class="modal-meta"><span id="resultados-modal-meta"></span></div>
+      </div>
+      <button class="modal-close" onclick="closeResultadosModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="resultados-modal-body"></div>
     </div>
   </div>
 </div>
@@ -1862,6 +1992,7 @@ function applyFilters() {
   if (ACTIVE==='calendario') renderCalendario();
   if (ACTIVE==='directorio') renderDirectorio();
   if (ACTIVE==='inicio') renderInicio();
+  if (ACTIVE==='desempeno') renderDesempeno();
 }
 function populateFilters() {
   const certSucs = DATA.cert.map(r => clubNombre(r['Club']));
@@ -3194,10 +3325,12 @@ const FORMACION_TABS = ['preonboarding','treinta','evaluacion','certificaciones'
 // aparece aquí (Inicio, Bandeja, Calendario, Perfil, Documentos, Políticas, Ausencias) lo ve
 // cualquier colaborador. Formación (Preonboarding/30 días/Evaluación/Certificaciones) es
 // seguimiento de encuestas de TODO el roster, no algo personal de cada quien — solo admin.
-// Sin simulación activa navegando el panel se ve todo, como hasta ahora — el filtro solo
-// aplica cuando alguien está "viendo como" un rol concreto.
+// Desempeño SÍ lo ve todo el mundo (un colaborador necesita entrar ahí a contestar sus
+// evaluaciones pendientes) — lo que cambia por rol es el contenido dentro, no si aparece o
+// no en la barra (ver renderDesempeno). Sin simulación activa navegando el panel se ve todo,
+// como hasta ahora — el filtro solo aplica cuando alguien está "viendo como" un rol concreto.
 const ROL_MINIMO_TAB = {
-  directorio: 'lider', desempeno: 'lider', ruta: 'admin', configuracion: 'admin',
+  directorio: 'lider', ruta: 'admin', configuracion: 'admin',
   preonboarding: 'admin', treinta: 'admin', evaluacion: 'admin', certificaciones: 'admin',
 };
 const ORDEN_ROLES = { colaborador: 1, lider: 2, admin: 3 };
@@ -3545,6 +3678,7 @@ function aplicarSimulacion() {
   aplicarVisibilidadNav();
   aplicarControlesAdmin();
   renderSaludoInicio();
+  if (document.getElementById('desempeno-admin')) renderDesempeno();
   const banner = document.getElementById('sim-banner');
   if (!banner) return;
   const sim = getSimulacionActiva();
@@ -3725,6 +3859,362 @@ function borrarAvisoUI(id) {
   localStorage.setItem(AVISOS_KEY, JSON.stringify(lista));
   renderTodosLosAvisos();
 }
+
+// ── DESEMPEÑO: EVALUACIONES (vista previa — se crean, contestan y consultan solo en este
+// navegador; nada se manda a ningún lado). El admin arma la evaluación con preguntas de texto
+// libre, opción única u opción múltiple; el colaborador la contesta "como" la persona activa
+// en el simulador; el líder y el admin ven las respuestas agregadas y una a una. ──
+const ENCUESTAS_KEY = 'geb_encuestas_desempeno_preview';
+function getEncuestas() {
+  try { return JSON.parse(localStorage.getItem(ENCUESTAS_KEY)) || []; } catch(e) { return []; }
+}
+function guardarEncuestasEnStorage(lista) {
+  localStorage.setItem(ENCUESTAS_KEY, JSON.stringify(lista));
+}
+const RESPUESTAS_ENCUESTA_KEY = 'geb_respuestas_desempeno_preview';
+function getRespuestasEncuestas() {
+  try { return JSON.parse(localStorage.getItem(RESPUESTAS_ENCUESTA_KEY)) || []; } catch(e) { return []; }
+}
+function guardarRespuestasEnStorage(lista) {
+  localStorage.setItem(RESPUESTAS_ENCUESTA_KEY, JSON.stringify(lista));
+}
+function respuestasDe(encuestaId) {
+  return getRespuestasEncuestas().filter(r => r.encuestaId === encuestaId);
+}
+function yaContesto(encuestaId, colabKey) {
+  return getRespuestasEncuestas().some(r => r.encuestaId === encuestaId && r.colabKey === colabKey);
+}
+
+function renderDesempeno() {
+  const rol = rolEfectivoActual();
+  document.getElementById('desempeno-admin').style.display = rol === 'admin' ? '' : 'none';
+  document.getElementById('desempeno-lider').style.display = rol === 'lider' ? '' : 'none';
+  document.getElementById('desempeno-colaborador').style.display = rol === 'colaborador' ? '' : 'none';
+  if (rol === 'admin') renderEncuestasAdmin();
+  else if (rol === 'lider') renderEncuestasLider();
+  else renderEncuestasColaborador();
+}
+
+function renderEncuestasAdmin() {
+  const cont = document.getElementById('encuestas-admin-lista');
+  const lista = getEncuestas();
+  if (!lista.length) { cont.innerHTML = `<div class="avisos-empty">Aún no has creado ninguna evaluación.</div>`; return; }
+  const total = getColabIndex().filter(c => c.nombre && c.estatus !== 'baja').length;
+  cont.innerHTML = lista.slice().reverse().map(enc => {
+    const respuestas = respuestasDe(enc.id);
+    return `<div class="encuesta-card">
+      <div class="encuesta-card-head">
+        <div>
+          <div class="encuesta-card-nombre">${escapeHtml(enc.nombre)}</div>
+          <div class="encuesta-card-meta">${enc.preguntas.length} pregunta${enc.preguntas.length===1?'':'s'} · ${respuestas.length} de ${total} contestaron</div>
+        </div>
+        <span class="encuesta-badge ${enc.activa ? 'activa' : 'pausada'}">${enc.activa ? 'Activa' : 'Pausada'}</span>
+      </div>
+      ${enc.descripcion ? `<div class="encuesta-card-desc">${escapeHtml(enc.descripcion)}</div>` : ''}
+      <div class="encuesta-card-acciones">
+        <button class="btn-ver-como" onclick="verResultadosEncuesta(${enc.id})">Ver resultados</button>
+        <button class="btn-ver-como" onclick="abrirEncuestaModal(${enc.id})">Editar</button>
+        <button class="btn-ver-como" onclick="toggleEncuestaActiva(${enc.id})">${enc.activa ? 'Pausar' : 'Reactivar'}</button>
+        <button class="aviso-borrar" onclick="eliminarEncuesta(${enc.id})">Eliminar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderEncuestasLider() {
+  const cont = document.getElementById('encuestas-lider-lista');
+  const sim = getSimulacionActiva();
+  if (!sim) { cont.innerHTML = ''; return; }
+  const lista = getEncuestas();
+  if (!lista.length) { cont.innerHTML = `<div class="avisos-empty">Todavía no hay evaluaciones creadas.</div>`; return; }
+  const equipoKeys = new Set([sim.c.key, ...equipoDe(sim.c.key).map(c => c.key)]);
+  cont.innerHTML = lista.slice().reverse().map(enc => {
+    const respuestasEquipo = respuestasDe(enc.id).filter(r => equipoKeys.has(r.colabKey));
+    return `<div class="encuesta-card">
+      <div class="encuesta-card-head">
+        <div>
+          <div class="encuesta-card-nombre">${escapeHtml(enc.nombre)}</div>
+          <div class="encuesta-card-meta">${enc.preguntas.length} pregunta${enc.preguntas.length===1?'':'s'} · ${respuestasEquipo.length} de ${equipoKeys.size} de tu equipo contestaron</div>
+        </div>
+        <span class="encuesta-badge ${enc.activa ? 'activa' : 'pausada'}">${enc.activa ? 'Activa' : 'Pausada'}</span>
+      </div>
+      ${enc.descripcion ? `<div class="encuesta-card-desc">${escapeHtml(enc.descripcion)}</div>` : ''}
+      <div class="encuesta-card-acciones">
+        <button class="btn-ver-como" onclick="verResultadosEncuesta(${enc.id})">Ver resultados de mi equipo</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderEncuestasColaborador() {
+  const sim = getSimulacionActiva();
+  const pendCont = document.getElementById('encuestas-colab-pendientes');
+  const doneCont = document.getElementById('encuestas-colab-contestadas');
+  if (!sim) { pendCont.innerHTML = ''; doneCont.innerHTML = ''; return; }
+  const lista = getEncuestas().filter(e => e.activa);
+  const pendientes = lista.filter(e => !yaContesto(e.id, sim.c.key));
+  const contestadas = lista.filter(e => yaContesto(e.id, sim.c.key));
+
+  pendCont.innerHTML = pendientes.length
+    ? pendientes.map(enc => `<div class="encuesta-card">
+        <div class="encuesta-card-nombre">${escapeHtml(enc.nombre)}</div>
+        ${enc.descripcion ? `<div class="encuesta-card-desc">${escapeHtml(enc.descripcion)}</div>` : ''}
+        <div class="encuesta-card-meta">${enc.preguntas.length} pregunta${enc.preguntas.length===1?'':'s'}</div>
+        <div class="encuesta-card-acciones"><button class="btn-nuevo-colab" onclick="abrirResponderEncuesta(${enc.id})">Contestar</button></div>
+      </div>`).join('')
+    : `<div class="avisos-empty">No tienes evaluaciones pendientes por ahora.</div>`;
+
+  doneCont.innerHTML = contestadas.length
+    ? contestadas.map(enc => `<div class="encuesta-card encuesta-card-done">
+        <div class="encuesta-card-nombre">${escapeHtml(enc.nombre)}</div>
+        <div class="encuesta-card-meta">Ya la contestaste</div>
+      </div>`).join('')
+    : `<div class="avisos-empty">Todavía no has contestado ninguna.</div>`;
+}
+
+// — Constructor de evaluaciones (admin) —
+let _builderPreguntas = [];
+let _builderEditandoId = null;
+
+function abrirEncuestaModal(encuestaId) {
+  const existente = encuestaId ? getEncuestas().find(e => e.id === encuestaId) : null;
+  _builderEditandoId = existente ? existente.id : null;
+  _builderPreguntas = existente ? JSON.parse(JSON.stringify(existente.preguntas)) : [];
+  document.getElementById('enc-nombre').value = existente ? existente.nombre : '';
+  document.getElementById('enc-descripcion').value = existente ? existente.descripcion : '';
+  document.getElementById('encuesta-modal-titulo').textContent = existente ? 'Editar evaluación' : '+ Nueva evaluación';
+  renderBuilderPreguntas();
+  document.getElementById('encuesta-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeEncuestaModal(e) {
+  if (e.target === document.getElementById('encuesta-modal-overlay')) closeEncuestaModalDirect();
+}
+function closeEncuestaModalDirect() {
+  document.getElementById('encuesta-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeEncuestaModalDirect(); });
+
+function agregarPreguntaBuilder() {
+  _builderPreguntas.push({ id: Date.now() + Math.random(), texto: '', tipo: 'texto', opciones: [] });
+  renderBuilderPreguntas();
+}
+function quitarPreguntaBuilder(idx) {
+  _builderPreguntas.splice(idx, 1);
+  renderBuilderPreguntas();
+}
+function actualizarPreguntaTexto(idx, val) { _builderPreguntas[idx].texto = val; }
+function actualizarPreguntaTipo(idx, val) {
+  _builderPreguntas[idx].tipo = val;
+  if (val !== 'texto' && _builderPreguntas[idx].opciones.length === 0) {
+    _builderPreguntas[idx].opciones = ['Opción 1', 'Opción 2'];
+  }
+  renderBuilderPreguntas();
+}
+function agregarOpcionBuilder(idx) {
+  _builderPreguntas[idx].opciones.push(`Opción ${_builderPreguntas[idx].opciones.length + 1}`);
+  renderBuilderPreguntas();
+}
+function quitarOpcionBuilder(idx, oIdx) {
+  _builderPreguntas[idx].opciones.splice(oIdx, 1);
+  renderBuilderPreguntas();
+}
+function actualizarOpcionTexto(idx, oIdx, val) { _builderPreguntas[idx].opciones[oIdx] = val; }
+
+function renderBuilderPreguntas() {
+  const cont = document.getElementById('enc-preguntas-list');
+  if (!_builderPreguntas.length) {
+    cont.innerHTML = `<div class="avisos-empty">Sin preguntas todavía — agrega la primera abajo.</div>`;
+    return;
+  }
+  cont.innerHTML = _builderPreguntas.map((p, idx) => `
+    <div class="pregunta-builder">
+      <div class="pregunta-builder-head">
+        <span class="pregunta-builder-num">${idx + 1}</span>
+        <input type="text" class="pregunta-texto-input" placeholder="Escribe la pregunta…" value="${escapeHtml(p.texto)}" oninput="actualizarPreguntaTexto(${idx}, this.value)">
+        <select class="pregunta-tipo-select" onchange="actualizarPreguntaTipo(${idx}, this.value)">
+          <option value="texto" ${p.tipo==='texto'?'selected':''}>Texto libre</option>
+          <option value="opcion_unica" ${p.tipo==='opcion_unica'?'selected':''}>Opción única</option>
+          <option value="opcion_multiple" ${p.tipo==='opcion_multiple'?'selected':''}>Opción múltiple</option>
+        </select>
+        <button class="pregunta-quitar" onclick="quitarPreguntaBuilder(${idx})" title="Quitar pregunta">Quitar</button>
+      </div>
+      ${p.tipo !== 'texto' ? `
+      <div class="pregunta-opciones">
+        ${p.opciones.map((o, oIdx) => `
+          <div class="opcion-builder-row">
+            <input type="text" value="${escapeHtml(o)}" oninput="actualizarOpcionTexto(${idx}, ${oIdx}, this.value)">
+            <button onclick="quitarOpcionBuilder(${idx}, ${oIdx})" title="Quitar opción">✕</button>
+          </div>`).join('')}
+        <button class="opcion-agregar" onclick="agregarOpcionBuilder(${idx})">+ Agregar opción</button>
+      </div>` : ''}
+    </div>
+  `).join('');
+}
+
+function guardarEncuesta() {
+  const nombre = document.getElementById('enc-nombre').value.trim();
+  const descripcion = document.getElementById('enc-descripcion').value.trim();
+  if (!nombre) { alert('Falta el nombre de la evaluación.'); return; }
+  if (!_builderPreguntas.length) { alert('Agrega al menos una pregunta.'); return; }
+  const preguntasLimpias = _builderPreguntas.filter(p => p.texto.trim());
+  if (!preguntasLimpias.length) { alert('Las preguntas no pueden estar vacías.'); return; }
+  for (const p of preguntasLimpias) {
+    if (p.tipo !== 'texto') {
+      p.opciones = p.opciones.map(o => o.trim()).filter(Boolean);
+      if (p.opciones.length < 2) { alert(`La pregunta "${p.texto}" necesita al menos 2 opciones.`); return; }
+    }
+  }
+  const lista = getEncuestas();
+  if (_builderEditandoId) {
+    const enc = lista.find(e => e.id === _builderEditandoId);
+    enc.nombre = nombre; enc.descripcion = descripcion; enc.preguntas = preguntasLimpias;
+  } else {
+    lista.push({ id: Date.now(), nombre, descripcion, preguntas: preguntasLimpias, activa: true, creada: new Date().toISOString() });
+  }
+  guardarEncuestasEnStorage(lista);
+  closeEncuestaModalDirect();
+  renderDesempeno();
+}
+function eliminarEncuesta(id) {
+  if (!confirm('¿Eliminar esta evaluación? También se borrarán las respuestas que ya se hayan capturado. Esta acción no se puede deshacer.')) return;
+  guardarEncuestasEnStorage(getEncuestas().filter(e => e.id !== id));
+  guardarRespuestasEnStorage(getRespuestasEncuestas().filter(r => r.encuestaId !== id));
+  renderDesempeno();
+}
+function toggleEncuestaActiva(id) {
+  const lista = getEncuestas();
+  const enc = lista.find(e => e.id === id);
+  enc.activa = !enc.activa;
+  guardarEncuestasEnStorage(lista);
+  renderDesempeno();
+}
+
+// — Contestar (colaborador) —
+function abrirResponderEncuesta(encuestaId) {
+  const enc = getEncuestas().find(e => e.id === encuestaId);
+  if (!enc) return;
+  document.getElementById('responder-modal-titulo').textContent = enc.nombre;
+  document.getElementById('responder-modal-desc').textContent = enc.descripcion || 'Vista previa — tu respuesta se guarda solo en este navegador';
+  document.getElementById('responder-modal-body').innerHTML = enc.preguntas.map((p, idx) => renderPreguntaResponder(p, idx)).join('');
+  document.getElementById('responder-modal-overlay').dataset.encuestaId = encuestaId;
+  document.getElementById('responder-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function renderPreguntaResponder(p, idx) {
+  if (p.tipo === 'texto') {
+    return `<div class="pregunta-responder"><div class="pregunta-responder-texto">${idx+1}. ${escapeHtml(p.texto)}</div>
+      <textarea class="pregunta-respuesta-input" data-pregunta-id="${p.id}" rows="3"></textarea></div>`;
+  }
+  const inputType = p.tipo === 'opcion_unica' ? 'radio' : 'checkbox';
+  return `<div class="pregunta-responder"><div class="pregunta-responder-texto">${idx+1}. ${escapeHtml(p.texto)}</div>
+    <div class="pregunta-opciones-responder">
+      ${p.opciones.map(o => `<label class="opcion-responder-label">
+        <input type="${inputType}" name="pregunta-${p.id}" value="${escapeHtml(o)}" data-pregunta-id="${p.id}">
+        <span>${escapeHtml(o)}</span>
+      </label>`).join('')}
+    </div></div>`;
+}
+function closeResponderModal(e) {
+  if (e.target === document.getElementById('responder-modal-overlay')) closeResponderModalDirect();
+}
+function closeResponderModalDirect() {
+  document.getElementById('responder-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeResponderModalDirect(); });
+
+function enviarRespuestaEncuesta() {
+  const overlay = document.getElementById('responder-modal-overlay');
+  const encuestaId = Number(overlay.dataset.encuestaId);
+  const enc = getEncuestas().find(e => e.id === encuestaId);
+  const sim = getSimulacionActiva();
+  if (!enc || !sim) return;
+
+  const respuestasObj = {};
+  let faltan = false;
+  enc.preguntas.forEach(p => {
+    if (p.tipo === 'texto') {
+      const val = document.querySelector(`textarea[data-pregunta-id="${p.id}"]`).value.trim();
+      if (!val) faltan = true;
+      respuestasObj[p.id] = val;
+    } else if (p.tipo === 'opcion_unica') {
+      const sel = document.querySelector(`input[name="pregunta-${p.id}"]:checked`);
+      if (!sel) faltan = true;
+      respuestasObj[p.id] = sel ? sel.value : null;
+    } else {
+      const sels = [...document.querySelectorAll(`input[name="pregunta-${p.id}"]:checked`)];
+      if (!sels.length) faltan = true;
+      respuestasObj[p.id] = sels.map(s => s.value);
+    }
+  });
+  if (faltan) { alert('Contesta todas las preguntas antes de enviar.'); return; }
+
+  const lista = getRespuestasEncuestas();
+  lista.push({ id: Date.now(), encuestaId, colabKey: sim.c.key, colabNombre: sim.c.nombre, fecha: new Date().toISOString(), respuestas: respuestasObj });
+  guardarRespuestasEnStorage(lista);
+  closeResponderModalDirect();
+  renderDesempeno();
+  alert('¡Gracias! Tu evaluación quedó registrada.');
+}
+
+// — Resultados (admin y líder, líder solo ve a su equipo) —
+function verResultadosEncuesta(encuestaId) {
+  const enc = getEncuestas().find(e => e.id === encuestaId);
+  if (!enc) return;
+  const rol = rolEfectivoActual();
+  let respuestas = respuestasDe(encuestaId);
+  let universo = getColabIndex().filter(c => c.nombre && c.estatus !== 'baja').length;
+  if (rol === 'lider') {
+    const sim = getSimulacionActiva();
+    const equipoKeys = new Set([sim.c.key, ...equipoDe(sim.c.key).map(c => c.key)]);
+    respuestas = respuestas.filter(r => equipoKeys.has(r.colabKey));
+    universo = equipoKeys.size;
+  }
+
+  document.getElementById('resultados-modal-titulo').textContent = enc.nombre;
+  document.getElementById('resultados-modal-meta').textContent = `${respuestas.length} de ${universo} contestaron`;
+
+  document.getElementById('resultados-modal-body').innerHTML = enc.preguntas.map((p, idx) => {
+    if (p.tipo === 'texto') {
+      const conTexto = respuestas.filter(r => r.respuestas[p.id]);
+      return `<div class="resultado-pregunta">
+        <div class="resultado-pregunta-texto">${idx+1}. ${escapeHtml(p.texto)}</div>
+        ${conTexto.length ? conTexto.map(r => `<div class="resultado-texto-item"><strong>${escapeHtml(r.colabNombre)}:</strong> ${escapeHtml(r.respuestas[p.id])}</div>`).join('') : `<div class="avisos-empty">Sin respuestas todavía.</div>`}
+      </div>`;
+    }
+    const respsPregunta = respuestas.map(r => r.respuestas[p.id]).filter(v => v !== undefined && v !== null && v !== '');
+    const conteo = {};
+    p.opciones.forEach(o => conteo[o] = 0);
+    respsPregunta.forEach(v => {
+      if (Array.isArray(v)) v.forEach(vv => { conteo[vv] = (conteo[vv]||0) + 1; });
+      else conteo[v] = (conteo[v]||0) + 1;
+    });
+    return `<div class="resultado-pregunta">
+      <div class="resultado-pregunta-texto">${idx+1}. ${escapeHtml(p.texto)}</div>
+      ${p.opciones.map(o => {
+        const n = conteo[o] || 0;
+        const pct = respsPregunta.length ? Math.round((n / respsPregunta.length) * 100) : 0;
+        return `<div class="resultado-opcion-bar">
+          <div class="resultado-opcion-label"><span>${escapeHtml(o)}</span><span>${n} (${pct}%)</span></div>
+          <div class="resultado-opcion-track"><div class="resultado-opcion-fill" style="width:${pct}%"></div></div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+
+  document.getElementById('resultados-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeResultadosModal(e) {
+  if (e.target === document.getElementById('resultados-modal-overlay')) closeResultadosModalDirect();
+}
+function closeResultadosModalDirect() {
+  document.getElementById('resultados-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeResultadosModalDirect(); });
 
 // ── DIRECTORIO DE COLABORADORES ──
 let _dirEstatusFiltro = '';
