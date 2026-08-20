@@ -3188,10 +3188,15 @@ const ONBOARDING_TABS = ['preonboarding','treinta','evaluacion','certificaciones
 const FORMACION_TABS = ['preonboarding','treinta','evaluacion','certificaciones'];
 
 // Qué tan alto tiene que ser el rol para ver cada sección de la barra izquierda. Lo que no
-// aparece aquí (Inicio, Bandeja, Calendario, Perfil, Formación, Documentos, Políticas,
-// Ausencias) lo ve cualquier colaborador. Sin simulación activa navegando el panel se ve todo,
-// como hasta ahora — el filtro solo aplica cuando alguien está "viendo como" un rol concreto.
-const ROL_MINIMO_TAB = { directorio: 'lider', desempeno: 'lider', ruta: 'admin', configuracion: 'admin' };
+// aparece aquí (Inicio, Bandeja, Calendario, Perfil, Documentos, Políticas, Ausencias) lo ve
+// cualquier colaborador. Formación (Preonboarding/30 días/Evaluación/Certificaciones) es
+// seguimiento de encuestas de TODO el roster, no algo personal de cada quien — solo admin.
+// Sin simulación activa navegando el panel se ve todo, como hasta ahora — el filtro solo
+// aplica cuando alguien está "viendo como" un rol concreto.
+const ROL_MINIMO_TAB = {
+  directorio: 'lider', desempeno: 'lider', ruta: 'admin', configuracion: 'admin',
+  preonboarding: 'admin', treinta: 'admin', evaluacion: 'admin', certificaciones: 'admin',
+};
 const ORDEN_ROLES = { colaborador: 1, lider: 2, admin: 3 };
 function rolEfectivoActual() {
   const sim = getSimulacionActiva();
@@ -3205,6 +3210,10 @@ function aplicarVisibilidadNav() {
   const rol = rolEfectivoActual();
   document.querySelectorAll('[data-tab]').forEach(el => {
     el.style.display = tabVisibleParaRol(el.dataset.tab, rol) ? '' : 'none';
+  });
+  document.querySelectorAll('.sidebar-subgroup').forEach(cont => {
+    const algunoVisible = [...cont.querySelectorAll('[data-tab]')].some(el => el.style.display !== 'none');
+    cont.style.display = algunoVisible ? '' : 'none';
   });
   document.querySelectorAll('.sidebar-group, .sidebar-bottom').forEach(cont => {
     const algunoVisible = [...cont.querySelectorAll('[data-tab]')].some(el => el.style.display !== 'none');
