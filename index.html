@@ -95,6 +95,11 @@
   .home-hero { text-align: center; padding: 48px 24px 40px; background: linear-gradient(135deg, #F5F3FF 0%, #FCE7F3 100%); border-radius: 20px; margin-bottom: 28px; }
   .home-hero h1 { font-size: 28px; font-weight: 700; color: var(--blanco); margin: 0 0 8px; }
   .home-hero p { font-size: 14px; color: var(--gris-medio); margin: 0 0 24px; }
+  .hero-nombre-prompt { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .hero-nombre-prompt input { padding: 8px 14px; border-radius: 20px; border: 1px solid #E9D5FF; font-size: 13px; font-family: 'Inter', sans-serif; background: #fff; }
+  .hero-nombre-prompt input:focus { outline: none; border-color: var(--verde-acento); }
+  .hero-nombre-prompt button { background: linear-gradient(135deg, #8B5CF6, #7C3AED); color: #fff; border: none; border-radius: 20px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .hero-cambiar-nombre { background: none; border: none; color: var(--verde-acento); font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; padding: 0; margin-left: 6px; text-decoration: underline; }
   .home-search { max-width: 460px; margin: 0 auto; position: relative; }
   .home-search input { width: 100%; padding: 14px 20px 14px 44px; border-radius: 30px; border: 1px solid #E9D5FF; font-size: 14px; font-family: 'Inter', sans-serif; background: #fff; box-sizing: border-box; box-shadow: 0 4px 16px rgba(124,58,237,.08); }
   .home-search input:focus { outline: none; border-color: var(--verde-acento); }
@@ -925,8 +930,8 @@
     <div id="inicio-content" style="display:none">
       <div class="home-wrap">
         <div class="home-hero">
-          <h1>Equipo VIVO 47</h1>
-          <p>Consulta a todo el equipo, sus roles, sucursales, cumpleaños y aniversarios.</p>
+          <h1 id="home-hero-titulo">Equipo VIVO 47</h1>
+          <p id="home-hero-sub">Consulta a todo el equipo, sus roles, sucursales, cumpleaños y aniversarios.</p>
           <div class="home-search">
             <span class="home-search-icon">🔍</span>
             <input type="text" id="home-buscar" placeholder="Buscar un colaborador…" oninput="renderHomeBusquedaDebounced()" onfocus="renderHomeBusqueda()" autocomplete="off">
@@ -1286,6 +1291,8 @@
         <div class="config-card-title">Tu vista actual</div>
         <div class="config-desc">Por defecto ves el panel completo, como Administrador. Para probar cómo se ve para alguien más, búscalo en "Roles y permisos" más abajo y dale "Ver como".</div>
         <div class="config-row"><span>Viendo como</span><span id="cfg-vista-actual">—</span></div>
+        <div class="config-row"><span>Tu nombre</span><span id="cfg-tu-nombre">—</span></div>
+        <button class="btn-clear" style="margin-top:10px" onclick="cambiarNombreUsuario()">Cambiar nombre</button>
       </div>
       <div class="config-card">
         <div class="config-card-title">Colaboradores de vista previa</div>
@@ -3537,6 +3544,7 @@ function renderPermResultados() {
 function aplicarSimulacion() {
   aplicarVisibilidadNav();
   aplicarControlesAdmin();
+  renderSaludoInicio();
   const banner = document.getElementById('sim-banner');
   if (!banner) return;
   const sim = getSimulacionActiva();
@@ -3567,6 +3575,7 @@ function renderConfiguracion() {
   document.getElementById('cfg-fuente-estatus').textContent = _estatusFuente === 'sheet' ? "Hoja 'Estatus Colaboradores'" : 'Respaldo (Excel importado)';
   const sim = getSimulacionActiva();
   document.getElementById('cfg-vista-actual').textContent = sim ? `${sim.c.nombre} (${nombreRol(sim.rol)})` : 'Administrador (sin simular)';
+  document.getElementById('cfg-tu-nombre').textContent = getNombreUsuario() || 'Sin definir';
   document.getElementById('cfg-preview-count').textContent = getColaboradoresPreview().length;
 }
 
@@ -3970,8 +3979,77 @@ function closeDirModalDirect() {
 }
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeDirModalDirect(); });
 
+// ── SALUDO PERSONALIZADO EN INICIO (vista previa — no hay login, el nombre se guarda solo
+// en este navegador; si hay una simulación activa, saluda a esa persona en vez de al usuario) ──
+const NOMBRE_USUARIO_KEY = 'geb_nombre_usuario_preview';
+function getNombreUsuario() {
+  return (localStorage.getItem(NOMBRE_USUARIO_KEY) || '').trim();
+}
+function guardarNombreUsuario(nombre) {
+  localStorage.setItem(NOMBRE_USUARIO_KEY, String(nombre || '').trim());
+}
+function saludoHora() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Buenos días';
+  if (h < 19) return 'Buenas tardes';
+  return 'Buenas noches';
+}
+const SALUDOS_INICIO = [
+  n => `${saludoHora()}, ${n}`,
+  n => `¡Hola de nuevo, ${n}!`,
+  n => `Qué gusto verte, ${n}`,
+  n => `${saludoHora()}, ${n} 👋`,
+  n => `¡Hola, ${n}!`,
+];
+function saludoAleatorio(nombre) {
+  const fn = SALUDOS_INICIO[Math.floor(Math.random() * SALUDOS_INICIO.length)];
+  return fn(nombre);
+}
+function renderSaludoInicio() {
+  const tituloEl = document.getElementById('home-hero-titulo');
+  const subEl = document.getElementById('home-hero-sub');
+  if (!tituloEl || !subEl) return;
+  const subTexto = 'Consulta a todo el equipo, sus roles, sucursales, cumpleaños y aniversarios.';
+
+  const sim = getSimulacionActiva();
+  if (sim) {
+    tituloEl.textContent = saludoAleatorio(sim.c.nombre.split(' ')[0]);
+    subEl.textContent = subTexto;
+    return;
+  }
+
+  const nombre = getNombreUsuario();
+  if (!nombre) {
+    tituloEl.textContent = '¡Hola! 👋';
+    subEl.innerHTML = `<span class="hero-nombre-prompt">¿Cómo te llamas?
+      <input type="text" id="hero-nombre-input" placeholder="Tu nombre" maxlength="40">
+      <button onclick="guardarNombreDesdeInicio()">Guardar</button>
+    </span>`;
+    const input = document.getElementById('hero-nombre-input');
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') guardarNombreDesdeInicio(); });
+    return;
+  }
+  tituloEl.textContent = saludoAleatorio(nombre);
+  subEl.innerHTML = `${subTexto} <button class="hero-cambiar-nombre" onclick="cambiarNombreUsuario()">Cambiar nombre</button>`;
+}
+function guardarNombreDesdeInicio() {
+  const input = document.getElementById('hero-nombre-input');
+  const val = input.value.trim();
+  if (!val) { input.focus(); return; }
+  guardarNombreUsuario(val);
+  renderSaludoInicio();
+}
+function cambiarNombreUsuario() {
+  const nuevo = prompt('¿Cómo te llamas?', getNombreUsuario());
+  if (nuevo === null) return;
+  guardarNombreUsuario(nuevo);
+  renderSaludoInicio();
+  if (document.getElementById('cfg-tu-nombre')) renderConfiguracion();
+}
+
 // ── INICIO ──
 function renderInicio() {
+  renderSaludoInicio();
   const hoy = new Date();
   const idx = getColabIndex().filter(c => c.estatus !== 'baja' && c.nombre);
   const sucursales = new Set(idx.map(c => c.sucursal).filter(Boolean));
