@@ -7804,6 +7804,13 @@ function renderPerfilReal() {
     ${item('Fecha de ingreso', u.fecha_ingreso ? fmtFecha(new Date(u.fecha_ingreso)) : null)}
     ${item('Fecha de nacimiento', u.fecha_nacimiento ? fmtFecha(new Date(u.fecha_nacimiento)) : null)}
     ${item('Género', u.genero)}
+    ${item('Teléfono', u.telefono)}
+    ${item('Contacto de emergencia', u.contacto_emergencia)}
+    ${item('Teléfono de emergencia', u.telefono_emergencia)}
+    <div class="modal-section-label">Documentos</div>
+    ${item('RFC', u.rfc)}
+    ${item('CURP', u.curp)}
+    ${item('NSS', u.nss)}
   `;
   const headerUsuario = document.getElementById('header-usuario');
   if (headerUsuario) headerUsuario.textContent = u.nombre || u.email;
