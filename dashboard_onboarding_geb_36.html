@@ -947,8 +947,49 @@
   .dc-hist-meta { font-size: 12px; color: #9C93AE; margin-top: 2px; }
   .dc-hist-fecha { font-size: 11px; color: #9C93AE; }
 
+  /* RECLUTAMIENTO — Vacantes, cobertura, efectividad, personas contratadas (vista previa) */
+  .recl-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; border-bottom: 1px solid #E6DFF5; }
+  .recl-tab-btn { background: transparent; border: none; padding: 10px 14px; font-size: 12.5px; font-weight: 600; color: #6B6280; cursor: pointer; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+  .recl-tab-btn:hover { color: #7C3AED; }
+  .recl-tab-btn.active { color: #7C3AED; border-bottom-color: #7C3AED; }
+  .recl-filters { display: grid; grid-template-columns: repeat(5, minmax(140px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .recl-filters select { padding: 9px 10px; border: 1px solid #E6DFF5; border-radius: 6px; background: #fff; font-size: 12.5px; font-family: 'Inter', sans-serif; color: var(--blanco); }
+  .recl-note { font-size: 12px; color: #9C93AE; }
+  .recl-badge { display: inline-block; padding: 4px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .recl-badge-green { background: var(--verde-ok-bg); color: var(--verde-ok-txt); }
+  .recl-badge-red { background: #FEE2E2; color: #B91C1C; }
+  .recl-badge-yellow { background: #FEF3C7; color: #A16207; }
+  .recl-badge-blue { background: #E3EEFB; color: #245F9E; }
+  .recl-bar-row { display: grid; grid-template-columns: 140px 1fr 42px; gap: 10px; align-items: center; margin: 11px 0; font-size: 12px; }
+  .recl-bar-row span { color: var(--blanco); }
+  .recl-bar-row b { text-align: right; color: var(--blanco); }
+  .recl-bar { height: 9px; background: #F0EBFB; border-radius: 8px; overflow: hidden; }
+  .recl-bar i { display: block; height: 100%; background: #7C3AED; border-radius: 8px; }
+  .recl-alert-box { padding: 14px 16px; border-radius: 10px; background: #FFF7ED; border: 1px solid #FDBA74; font-size: 12.5px; }
+  .recl-alert-box.crit { background: #FEF2F2; border-color: #FCA5A5; }
+  .recl-alert-box b { display: block; font-size: 15px; margin: 4px 0; color: var(--blanco); }
+  .recl-alert-box span { color: #6B6280; font-size: 11.5px; }
+  .recl-alert-box small { color: #9C93AE; }
+  .recl-people { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+  .recl-person { background: #fff; border: 1px solid #E6DFF5; border-radius: 12px; overflow: hidden; }
+  .recl-photo { height: 160px; background: #F5F2FC; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 26px; font-weight: 700; color: #7C3AED; }
+  .recl-photo img { width: 100%; height: 100%; object-fit: contain; display: block; background: #F5F2FC; }
+  .recl-photo img.rot90 { transform: rotate(90deg); transform-origin: center center; }
+  .recl-person-body { padding: 12px 14px; }
+  .recl-person-body h3 { font-size: 13.5px; margin: 0 0 4px; color: var(--blanco); }
+  .recl-person-body p { font-size: 11.5px; color: #6B6280; margin: 2px 0; }
+  .recl-upload { border: 2px dashed #C4B5FD; border-radius: 14px; padding: 46px; text-align: center; background: #fff; }
+  .recl-upload input[type=file] { margin: 14px 0; }
+  .recl-metric-line { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 6px; }
+  .recl-metric-line strong { font-size: 30px; color: var(--blanco); font-family: 'Space Grotesk', sans-serif; }
+  .recl-metric-line span { color: #6B6280; font-size: 11.5px; margin-bottom: 5px; }
+  .recl-oldest-item { padding: 9px 0; border-bottom: 1px solid #F5F2FC; }
+  .recl-oldest-item b { color: var(--blanco); font-size: 13px; }
+
   @media (max-width: 900px) {
     .panel-2col { grid-template-columns: 1fr; }
+    .recl-filters { grid-template-columns: repeat(2, 1fr); }
+    .recl-people { grid-template-columns: repeat(2, 1fr); }
     .main { padding: 16px; }
     .filters-bar, header { padding: 0 16px; }
     .filters-bar { padding: 12px 16px; }
@@ -1063,6 +1104,9 @@
       </button>
       <button class="sidebar-item" data-tab="ruta" onclick="switchTab('ruta')">
         <span class="si-icon"></span><span class="si-label">Data</span>
+      </button>
+      <button class="sidebar-item" data-tab="reclutamiento" onclick="switchTab('reclutamiento')">
+        <span class="si-icon"></span><span class="si-label">Reclutamiento</span>
       </button>
     </div>
   </div>
@@ -1680,6 +1724,47 @@
       <div class="modal-section-label" style="margin-top:20px">Ya contestadas</div>
       <div id="encuestas-colab-contestadas" class="encuestas-lista"></div>
     </div>
+  </div>
+
+  <!-- RECLUTAMIENTO — vacantes, cobertura, efectividad, personas contratadas (vista previa) -->
+  <div class="tab-panel" id="panel-reclutamiento">
+    <div class="section-header">
+      <div>
+        <h2 id="recl-pageTitle" style="font-family:'Space Grotesk',sans-serif;font-size:19px;margin-bottom:2px">Resumen ejecutivo</h2>
+        <p class="bandeja-sub" id="recl-subtitle" style="margin:0">Resultados: Enero–Julio 2026</p>
+      </div>
+      <button class="btn-nuevo-colab" id="recl-exportBtn">Exportar CSV</button>
+    </div>
+
+    <div class="recl-tabs">
+      <button class="recl-tab-btn active" data-recl-view="resumen" onclick="reclSwitchView('resumen')">Resumen ejecutivo</button>
+      <button class="recl-tab-btn" data-recl-view="vacantes" onclick="reclSwitchView('vacantes')">Vacantes</button>
+      <button class="recl-tab-btn" data-recl-view="cobertura" onclick="reclSwitchView('cobertura')">Tiempo de cobertura</button>
+      <button class="recl-tab-btn" data-recl-view="efectividad" onclick="reclSwitchView('efectividad')">Efectividad</button>
+      <button class="recl-tab-btn" data-recl-view="personas" onclick="reclSwitchView('personas')">Personas contratadas</button>
+      <button class="recl-tab-btn" data-recl-view="importar" onclick="reclSwitchView('importar')">Importar información</button>
+    </div>
+
+    <div class="recl-filters">
+      <select id="recl-periodo" onchange="reclRender()">
+        <option value="all">Enero–Julio 2026</option>
+        <option value="T1">Primer trimestre</option>
+        <option value="T2">Segundo trimestre</option>
+        <option value="7">Julio</option>
+        <option value="1">Enero</option>
+        <option value="2">Febrero</option>
+        <option value="3">Marzo</option>
+        <option value="4">Abril</option>
+        <option value="5">Mayo</option>
+        <option value="6">Junio</option>
+      </select>
+      <select id="recl-unidad" onchange="reclRender()"><option value="all">Todas las unidades</option></select>
+      <select id="recl-ubicacion" onchange="reclRender()"><option value="all">Todas las ubicaciones</option></select>
+      <select id="recl-area" onchange="reclRender()"><option value="all">Todas las áreas</option></select>
+      <select id="recl-reclutador" onchange="reclRender()"><option value="all">Todos los reclutadores</option></select>
+    </div>
+
+    <div id="recl-content"></div>
   </div>
 
   <div class="tab-panel" id="panel-configuracion">
@@ -3685,7 +3770,7 @@ const FORMACION_TABS = ['preonboarding','treinta','evaluacion','certificaciones'
 // aparece o no en la barra (ver renderDesempeno). Sin simulación activa navegando el panel se ve todo,
 // como hasta ahora — el filtro solo aplica cuando alguien está "viendo como" un rol concreto.
 const ROL_MINIMO_TAB = {
-  directorio: 'lider', ruta: 'admin', configuracion: 'admin',
+  directorio: 'lider', ruta: 'admin', configuracion: 'admin', reclutamiento: 'admin',
   preonboarding: 'admin', treinta: 'admin', evaluacion: 'admin', certificaciones: 'admin',
 };
 const ORDEN_ROLES = { colaborador: 1, lider: 2, admin: 3 };
@@ -3731,6 +3816,7 @@ function switchTab(tab) {
   updateEvFilters();
   applyFilters();
   if (tab === 'configuracion') renderConfiguracion();
+  if (tab === 'reclutamiento') reclRender();
 }
 
 function toggleSidebarGroup(id) {
@@ -6713,6 +6799,512 @@ ${_dcPlan.siguiente_contacto ? `<div class="section"><h2>Siguiente punto de cont
   win.document.close();
   setTimeout(() => win.print(), 600);
 }
+
+// ── RECLUTAMIENTO — vacantes, cobertura, efectividad, personas contratadas (vista previa) ──
+const RECL_DATA = [{"sheetMonth":"Enero","sheetMonthNum":1,"vacante":"TÉCNICO DE ORDEN Y LIMPIEZA - HOMBRE","ubicacionOriginal":"AVC","ubicacion":"ÁVILA CAMACHO","unidadOriginal":"EASY FIT","unidad":"EASY FIT","area":"Orden y Limpieza","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-01-01","estatus":"CUBIERTA","fechaIngreso":"2026-01-26","persona":"Oscar Martinez Arellano","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/1W8vd3ePm9zUQtJ7hzQ9DGhQ6FK_J12F_/view?usp=drive_link","comentario":"","id":1,"diasCobertura":25,"fueraSla":false,"diasPermanencia":186,"estadoPersona":"+90 días"},{"sheetMonth":"Enero","sheetMonthNum":1,"vacante":"ASESOR DEPORTIVO","ubicacionOriginal":"AVC","ubicacion":"ÁVILA CAMACHO","unidadOriginal":"EASY FIT","unidad":"EASY FIT","area":"Deportes","reclutador":"Patty","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-01-12","estatus":"CUBIERTA","fechaIngreso":"2026-01-26","persona":"Brandon Emmauel García Monreal","fechaBaja":"2026-04-25","urlFoto":"https://drive.google.com/file/d/1cvPGjD43awDhjfsjZyCCr0UXxDePk_aB/view?usp=drive_link","comentario":"","id":3,"diasCobertura":14,"fueraSla":false,"diasPermanencia":89,"estadoPersona":"Baja -90 días"},{"sheetMonth":"Enero","sheetMonthNum":1,"vacante":"TÉCNICO DE ORDEN Y LIMPIEZA - MUJER","ubicacionOriginal":"ALEIRA","ubicacion":"ALEIRA","unidadOriginal":"EASY FIT","unidad":"EASY FIT","area":"Orden y Limpieza","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-01-01","estatus":"CANCELADA","fechaIngreso":null,"persona":"","fechaBaja":null,"urlFoto":"","comentario":"","id":2,"diasCobertura":211,"fueraSla":true,"diasPermanencia":null,"estadoPersona":""},{"sheetMonth":"Febrero","sheetMonthNum":2,"vacante":"Técnico de Orden y limpieza (hombre)","ubicacionOriginal":"ALEIRA","ubicacion":"ALEIRA","unidadOriginal":"EASY FIT","unidad":"EASY FIT","area":"Orden y Limpieza","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-02-16","estatus":"CUBIERTA","fechaIngreso":"2026-02-24","persona":"Xander Elías Zepeda Alcaraz","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/1su0mtswvuwbIqBWxNdz6WSMRk5NTvlOI/view?usp=drive_link","comentario":"","id":8,"diasCobertura":8,"fueraSla":false,"diasPermanencia":157,"estadoPersona":"+90 días"},{"sheetMonth":"Febrero","sheetMonthNum":2,"vacante":"Mensajero","ubicacionOriginal":"EYS","ubicacion":"ESTRUCTURA Y SOPORTE","unidadOriginal":"EYS","unidad":"ESTRUCTURA Y SOPORTE","area":"Compras","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-02-12","estatus":"CUBIERTA","fechaIngreso":"2026-02-24","persona":"Christopher Cabrera Siordia","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/1Vga-TdaY5UBOH9E_F7LywoasjsqugYcw/view?usp=drive_link","comentario":"","id":7,"diasCobertura":12,"fueraSla":false,"diasPermanencia":157,"estadoPersona":"+90 días"},{"sheetMonth":"Febrero","sheetMonthNum":2,"vacante":"ARP","ubicacionOriginal":"ESTACIA","ubicacion":"ESTANCIA","unidadOriginal":"EASY FIT","unidad":"VIVO47 CENTER","area":"Ventas","reclutador":"Patty","plazas":1,"motivo":"Nueva creación","fechaSolicitud":"2026-01-24","estatus":"CUBIERTA","fechaIngreso":"2026-02-24","persona":"Marcela Arianeth Ortega Cardenas","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/1xJPYoTw-IwkV-INkIxXeaFyaLqxel4ah/view?usp=drive_link","comentario":"","id":4,"diasCobertura":31,"fueraSla":false,"diasPermanencia":157,"estadoPersona":"+90 días"},{"sheetMonth":"Marzo","sheetMonthNum":3,"vacante":"Técnico de mantenimiento","ubicacionOriginal":"ESTANCIA-ITESO","ubicacion":"ESTANCIA","unidadOriginal":"EASY FIT","unidad":"VIVO47 CENTER","area":"Mantenimiento","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-02-03","estatus":"CUBIERTA","fechaIngreso":"2026-03-30","persona":"Mario Jesús Emmanuel Rodríguez Sánchez","fechaBaja":"2026-06-30","urlFoto":"https://drive.google.com/file/d/10zGIlTU9sqBtTrjeFKITsoBW3HpPQbLi/view?usp=drive_link","comentario":"ATIENDE ESTANCIA E ITESO","id":5,"diasCobertura":55,"fueraSla":true,"diasPermanencia":92,"estadoPersona":"Baja +90 días"},{"sheetMonth":"Marzo","sheetMonthNum":3,"vacante":"Técnico de Orden y limpieza (hombre)","ubicacionOriginal":"ESTANCIA","ubicacion":"ESTANCIA","unidadOriginal":"EASY FIT","unidad":"VIVO47 CENTER","area":"Orden y Limpieza","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-03-02","estatus":"CUBIERTA","fechaIngreso":"2026-03-30","persona":"Edgar Ivan Guerrero Carlos","fechaBaja":"2026-04-13","urlFoto":"https://drive.google.com/file/d/1t08PWdd5aQGwGcWG93IKLkh-3KgqBCyK/view?usp=drive_link","comentario":"","id":9,"diasCobertura":28,"fueraSla":false,"diasPermanencia":14,"estadoPersona":"Baja -90 días"},{"sheetMonth":"Marzo","sheetMonthNum":3,"vacante":"Auxiliar KIDS","ubicacionOriginal":"Cañadas","ubicacion":"CAÑADAS","unidadOriginal":"EASY FIT","unidad":"EASY FIT","area":"KIDS","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-03-09","estatus":"CUBIERTA","fechaIngreso":"2026-03-17","persona":"Alejandra Guzmán Soto","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/19ZCVM2XBue8h67YMMH3SxAU46L9SuTcn/view?usp=drive_link","comentario":"","id":10,"diasCobertura":8,"fueraSla":false,"diasPermanencia":136,"estadoPersona":"+90 días"},{"sheetMonth":"Abril","sheetMonthNum":4,"vacante":"ASESOR DEPORTIVO","ubicacionOriginal":"Cañadas","ubicacion":"CAÑADAS","unidadOriginal":"EASY FIT","unidad":"EASY FIT","area":"Deportes","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-03-17","estatus":"CUBIERTA","fechaIngreso":"2026-04-06","persona":"Bernardo Ledón Gómez","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/15eSRh8dW85lWLY3rIzbl45xDapTEYBjE/view?usp=drive_link","comentario":"","id":13,"diasCobertura":20,"fueraSla":false,"diasPermanencia":116,"estadoPersona":"+90 días"},{"sheetMonth":"Abril","sheetMonthNum":4,"vacante":"Técnico de Orden y limpieza (mujer)","ubicacionOriginal":"ESTANCIA","ubicacion":"ESTANCIA","unidadOriginal":"EASY FIT","unidad":"VIVO47 CENTER","area":"Orden y Limpieza","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-03-19","estatus":"CUBIERTA","fechaIngreso":"2026-04-06","persona":"Cinthia Aide Ramirez Huerta","fechaBaja":"2026-07-06","urlFoto":"https://drive.google.com/file/d/1V7Ryygg4FhkuOhAcGss8UfhMDCq1W33j/view?usp=drive_link","comentario":"","id":15,"diasCobertura":18,"fueraSla":false,"diasPermanencia":91,"estadoPersona":"Baja +90 días"},{"sheetMonth":"Marzo","sheetMonthNum":3,"vacante":"Nutriologo - Vespertino","ubicacionOriginal":"Cañadas","ubicacion":"CAÑADAS","unidadOriginal":"EASY FIT","unidad":"EASY FIT","area":"Deportes","reclutador":"Tatiana","plazas":1,"motivo":"Nueva creación","fechaSolicitud":"2026-03-12","estatus":"CUBIERTA","fechaIngreso":"2026-03-31","persona":"Sarai Alejandra Aguilera Díaz","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/1o9rM4KE3lIrW97Em5MYdeX73JMHSP8OZ/view?usp=drive_link","comentario":"","id":11,"diasCobertura":19,"fueraSla":false,"diasPermanencia":122,"estadoPersona":"+90 días"},{"sheetMonth":"Marzo","sheetMonthNum":3,"vacante":"Líder de Seven Nutrition","ubicacionOriginal":"Seven","ubicacion":"SEVEN","unidadOriginal":"EYS","unidad":"ESTRUCTURA Y SOPORTE","area":"Seven","reclutador":"Tatiana","plazas":1,"motivo":"Nueva creación","fechaSolicitud":"2026-02-09","estatus":"CUBIERTA","fechaIngreso":"2026-03-09","persona":"Carlos Fernando Mantecon Siordia","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/1B-GjQg438j9GUvh7fxwFj7Sy_brSoiyB/view?usp=drive_link","comentario":"","id":6,"diasCobertura":28,"fueraSla":false,"diasPermanencia":144,"estadoPersona":"+90 días"},{"sheetMonth":"Mayo","sheetMonthNum":5,"vacante":"Auxiliar Sistemas","ubicacionOriginal":"EYS","ubicacion":"ESTRUCTURA Y SOPORTE","unidadOriginal":"EYS","unidad":"ESTRUCTURA Y SOPORTE","area":"Sistemas","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-03-17","estatus":"CUBIERTA","fechaIngreso":"2026-05-04","persona":"Jesus Eduardo Hinojosa Perez","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/1NqFg634uXy6A4jb0Y-Mu4_rDIGhyguOt/view?usp=drive_link","comentario":"","id":14,"diasCobertura":48,"fueraSla":true,"diasPermanencia":88,"estadoPersona":"Activo"},{"sheetMonth":"Mayo","sheetMonthNum":5,"vacante":"Técnico de Orden y limpieza (hombre)","ubicacionOriginal":"Cañadas","ubicacion":"CAÑADAS","unidadOriginal":"EASY FIT","unidad":"EASY FIT","area":"Orden y Limpieza","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-04-13","estatus":"CUBIERTA","fechaIngreso":"2026-05-04","persona":"Jose de Jesus Castro Castro","fechaBaja":"2026-07-19","urlFoto":"https://drive.google.com/file/d/1PRsO84FRmu6_wDh5Y6HARBvNUR1_rbJ_/view?usp=drive_link","comentario":"","id":17,"diasCobertura":21,"fueraSla":false,"diasPermanencia":76,"estadoPersona":"Baja -90 días"},{"sheetMonth":"Mayo","sheetMonthNum":5,"vacante":"Técnico de Orden y limpieza (hombre)","ubicacionOriginal":"Estancia","ubicacion":"ESTANCIA","unidadOriginal":"EASY FIT","unidad":"VIVO47 CENTER","area":"Orden y Limpieza","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-04-16","estatus":"CUBIERTA","fechaIngreso":"2026-05-25","persona":"Juan Jesus Esparza Suarez","fechaBaja":"2026-06-23","urlFoto":"https://drive.google.com/file/d/1QSZRXfPtl_PrekNCC_gVNIoGQcGFv97e/view?usp=drive_link","comentario":"","id":18,"diasCobertura":39,"fueraSla":false,"diasPermanencia":29,"estadoPersona":"Baja -90 días"},{"sheetMonth":"Abril","sheetMonthNum":4,"vacante":"Coach","ubicacionOriginal":"Estancia","ubicacion":"ESTANCIA","unidadOriginal":"EASY FIT","unidad":"VIVO47 CENTER","area":"Deportes","reclutador":"Patty","plazas":1,"motivo":"Nueva creación","fechaSolicitud":"2026-03-13","estatus":"CUBIERTA","fechaIngreso":"2026-04-13","persona":"Karen Paulina Monroy Cervantes","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/1VlJXcRrdxb0OoQfFidvANgLYLT2NtLDn/view?usp=drive_link","comentario":"","id":12,"diasCobertura":31,"fueraSla":false,"diasPermanencia":109,"estadoPersona":"+90 días"},{"sheetMonth":"Abril","sheetMonthNum":4,"vacante":"Auxiliar Contable","ubicacionOriginal":"EYS","ubicacion":"ESTRUCTURA Y SOPORTE","unidadOriginal":"EYS","unidad":"ESTRUCTURA Y SOPORTE","area":"Contabilidad","reclutador":"Patty","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-04-07","estatus":"CUBIERTA","fechaIngreso":"2026-04-20","persona":"Priscila Meza Ramirez","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/1YYVRrbDHLqHJkJOvOAslTnNxscpKhiOQ/view?usp=drive_link","comentario":"","id":16,"diasCobertura":13,"fueraSla":false,"diasPermanencia":102,"estadoPersona":"+90 días"},{"sheetMonth":"Julio","sheetMonthNum":7,"vacante":"ARP","ubicacionOriginal":"ESTANCIA","ubicacion":"ESTANCIA","unidadOriginal":"VIVO47 CENTER","unidad":"VIVO47 CENTER","area":"Ventas","reclutador":"Tatiana","plazas":1,"motivo":"Nueva creación","fechaSolicitud":"2026-05-12","estatus":"CANCELADA","fechaIngreso":null,"persona":"","fechaBaja":null,"urlFoto":"","comentario":"","id":21,"diasCobertura":80,"fueraSla":true,"diasPermanencia":null,"estadoPersona":""},{"sheetMonth":"Mayo","sheetMonthNum":5,"vacante":"Coach","ubicacionOriginal":"ESTANCIA","ubicacion":"ESTANCIA","unidadOriginal":"VIVO47 CENTER","unidad":"VIVO47 CENTER","area":"Deportes","reclutador":"Tatiana","plazas":1,"motivo":"Nueva creación","fechaSolicitud":"2026-04-25","estatus":"CUBIERTA","fechaIngreso":"2026-05-25","persona":"Juan Fernando Huerta Garcia","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/1dDjTNePZyjiDdOd-wgJCb6EoBPIRYJge/view?usp=drive_link","comentario":"","id":19,"diasCobertura":30,"fueraSla":false,"diasPermanencia":67,"estadoPersona":"Activo"},{"sheetMonth":"Mayo","sheetMonthNum":5,"vacante":"Nutriologo","ubicacionOriginal":"ESTANCIA","ubicacion":"ESTANCIA","unidadOriginal":"VIVO47 CENTER","unidad":"VIVO47 CENTER","area":"Deportes","reclutador":"Tatiana","plazas":1,"motivo":"Nueva creación","fechaSolicitud":"2026-04-25","estatus":"CUBIERTA","fechaIngreso":"2026-05-25","persona":"Rocio Navarro Aguirre","fechaBaja":"2026-07-01","urlFoto":"https://drive.google.com/file/d/1ZkrxNa7r-g_ApEkH8d0EeEq5-kcrRJ1q/view?usp=drive_link","comentario":"","id":20,"diasCobertura":30,"fueraSla":false,"diasPermanencia":37,"estadoPersona":"Baja -90 días"},{"sheetMonth":"Junio","sheetMonthNum":6,"vacante":"Coach Mobility","ubicacionOriginal":"ESTANCIA","ubicacion":"ESTANCIA","unidadOriginal":"VIVO47 CENTER","unidad":"VIVO47 CENTER","area":"Deportes","reclutador":"Tatiana","plazas":1,"motivo":"Nueva creación","fechaSolicitud":"2026-05-25","estatus":"CUBIERTA","fechaIngreso":"2026-06-15","persona":"Carlos Fernando Macias Rodríguez","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/1AaKQBnCL7jn4GVB__a5upFYq2Uz6hLDi/view?usp=drive_link","comentario":"","id":23,"diasCobertura":21,"fueraSla":false,"diasPermanencia":46,"estadoPersona":"Activo"},{"sheetMonth":"Junio","sheetMonthNum":6,"vacante":"Cajera","ubicacionOriginal":"Restaurante","ubicacion":"ONARA","unidadOriginal":"ONARA","unidad":"ONARA","area":"Restaurante","reclutador":"Tatiana","plazas":1,"motivo":"Nueva creación","fechaSolicitud":"2026-05-25","estatus":"CUBIERTA","fechaIngreso":"2026-06-08","persona":"Alondra Berenice Hernandez Andrade","fechaBaja":"2026-07-17","urlFoto":"https://drive.google.com/file/d/1j06FlNDwG2Bjmmrl6x1GTLt-g52WhUu7/view?usp=drive_link","comentario":"","id":22,"diasCobertura":14,"fueraSla":false,"diasPermanencia":39,"estadoPersona":"Baja -90 días"},{"sheetMonth":"Junio","sheetMonthNum":6,"vacante":"Técnico O&L Hombre","ubicacionOriginal":"ESTANCIA","ubicacion":"ESTANCIA","unidadOriginal":"VIVO47 CENTER","unidad":"VIVO47 CENTER","area":"Orden y Limpieza","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-06-22","estatus":"ACTIVA","fechaIngreso":null,"persona":"","fechaBaja":null,"urlFoto":"","comentario":"","id":27,"diasCobertura":39,"fueraSla":false,"diasPermanencia":null,"estadoPersona":""},{"sheetMonth":"Julio","sheetMonthNum":7,"vacante":"Técnico O&L Mujer","ubicacionOriginal":"ESTANCIA","ubicacion":"ESTANCIA","unidadOriginal":"VIVO47 CENTER","unidad":"VIVO47 CENTER","area":"Orden y Limpieza","reclutador":"Patty","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-06-29","estatus":"CUBIERTA","fechaIngreso":"2026-07-20","persona":"Maria del Rosario Barragan Del Real","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/19qY7QSeccZcMXFVsMdoaUJhxKfe_vthh/view?usp=drive_link","comentario":"","id":29,"diasCobertura":21,"fueraSla":false,"diasPermanencia":11,"estadoPersona":"Activo"},{"sheetMonth":"Julio","sheetMonthNum":7,"vacante":"Técnico en mtto","ubicacionOriginal":"ESTANCIA","ubicacion":"ESTANCIA","unidadOriginal":"VIVO47 CENTER","unidad":"VIVO47 CENTER","area":"Mantenimiento","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-06-26","estatus":"CUBIERTA","fechaIngreso":"2026-07-20","persona":"José de Jesus Medrano Ortiz","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/1KlUnKQwgRyVugLJUEA_UJUoONZtwb-o2/view?usp=drive_link","comentario":"","id":28,"diasCobertura":24,"fueraSla":false,"diasPermanencia":11,"estadoPersona":"Activo"},{"sheetMonth":"Junio","sheetMonthNum":6,"vacante":"Mesero","ubicacionOriginal":"Restaurante","ubicacion":"ONARA","unidadOriginal":"ONARA","unidad":"ONARA","area":"Restaurante","reclutador":"Patty","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-06-16","estatus":"CUBIERTA","fechaIngreso":"2026-06-22","persona":"Tania Sofia Sanchez Alamos","fechaBaja":"2026-06-30","urlFoto":"https://drive.google.com/file/d/1a8RjsZ_6SZHWolkAJyJdgn45CwyRZL_3/view?usp=drive_link","comentario":"","id":26,"diasCobertura":6,"fueraSla":false,"diasPermanencia":8,"estadoPersona":"Baja -90 días"},{"sheetMonth":"Junio","sheetMonthNum":6,"vacante":"Barista","ubicacionOriginal":"Restaurante","ubicacion":"ONARA","unidadOriginal":"ONARA","unidad":"ONARA","area":"Restaurante","reclutador":"Patty","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-06-01","estatus":"CUBIERTA","fechaIngreso":"2026-06-08","persona":"Jorge Alejandro Llamas Contreras","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/1MRPIKuW3ThwmhrY2S-_Nx9KrbAm4Qph_/view?usp=drive_link","comentario":"","id":24,"diasCobertura":7,"fueraSla":false,"diasPermanencia":53,"estadoPersona":"Activo"},{"sheetMonth":"Junio","sheetMonthNum":6,"vacante":"Recepción","ubicacionOriginal":"Clínica","ubicacion":"CLÍNICA","unidadOriginal":"CLINICA","unidad":"CLÍNICA","area":"Administración","reclutador":"Tatiana","plazas":1,"motivo":"Nueva creación","fechaSolicitud":"2026-06-15","estatus":"CUBIERTA","fechaIngreso":"2026-06-22","persona":"Hannah Pamela Hernández Escobedo","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/1t8bsIv2N9klTrVmd3gmG7JbaprcXVYYq/view?usp=drive_link","comentario":"","id":25,"diasCobertura":7,"fueraSla":false,"diasPermanencia":39,"estadoPersona":"Activo"},{"sheetMonth":"Julio","sheetMonthNum":7,"vacante":"Lider de servicio","ubicacionOriginal":"ALEIRA","ubicacion":"ALEIRA","unidadOriginal":"EASY FIT","unidad":"EASY FIT","area":"Administración","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-07-08","estatus":"ACTIVA","fechaIngreso":null,"persona":"","fechaBaja":null,"urlFoto":"","comentario":"","id":31,"diasCobertura":23,"fueraSla":false,"diasPermanencia":null,"estadoPersona":""},{"sheetMonth":"Julio","sheetMonthNum":7,"vacante":"Técnico O&L Mujer","ubicacionOriginal":"ESTANCIA","ubicacion":"ESTANCIA","unidadOriginal":"VIVO47 CENTER","unidad":"VIVO47 CENTER","area":"Orden y Limpieza","reclutador":"Tatiana","plazas":1,"motivo":"Nueva creación","fechaSolicitud":"2026-07-14","estatus":"ACTIVA","fechaIngreso":null,"persona":"","fechaBaja":null,"urlFoto":"","comentario":"","id":33,"diasCobertura":17,"fueraSla":false,"diasPermanencia":null,"estadoPersona":""},{"sheetMonth":"Julio","sheetMonthNum":7,"vacante":"Técnico O&L Hombre","ubicacionOriginal":"CAÑADAS","ubicacion":"CAÑADAS","unidadOriginal":"EASY FIT","unidad":"EASY FIT","area":"Orden y Limpieza","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-07-16","estatus":"ACTIVA","fechaIngreso":null,"persona":"","fechaBaja":null,"urlFoto":"","comentario":"","id":34,"diasCobertura":15,"fueraSla":false,"diasPermanencia":null,"estadoPersona":""},{"sheetMonth":"Julio","sheetMonthNum":7,"vacante":"Coach","ubicacionOriginal":"ESTANCIA","ubicacion":"ESTANCIA","unidadOriginal":"VIVO47 CENTER","unidad":"VIVO47 CENTER","area":"Deportes","reclutador":"Tatiana","plazas":1,"motivo":"Nueva creación","fechaSolicitud":"2026-07-22","estatus":"ACTIVA","fechaIngreso":null,"persona":"","fechaBaja":null,"urlFoto":"","comentario":"","id":35,"diasCobertura":9,"fueraSla":false,"diasPermanencia":null,"estadoPersona":""},{"sheetMonth":"Julio","sheetMonthNum":7,"vacante":"Capitan de meseros","ubicacionOriginal":"Restaurante","ubicacion":"ONARA","unidadOriginal":"ONARA","unidad":"ONARA","area":"Restaurante","reclutador":"Tatiana","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-07-06","estatus":"ACTIVA","fechaIngreso":null,"persona":"","fechaBaja":null,"urlFoto":"","comentario":"","id":30,"diasCobertura":25,"fueraSla":false,"diasPermanencia":null,"estadoPersona":""},{"sheetMonth":"Julio","sheetMonthNum":7,"vacante":"Coach","ubicacionOriginal":"AVC","ubicacion":"ÁVILA CAMACHO","unidadOriginal":"EASY FIT","unidad":"EASY FIT","area":"Deportes","reclutador":"Patty","plazas":1,"motivo":"Remplazo","fechaSolicitud":"2026-07-13","estatus":"CUBIERTA","fechaIngreso":"2026-07-27","persona":"Mara Ashai Beltran Solis","fechaBaja":null,"urlFoto":"https://drive.google.com/file/d/1nptN8pbU0WgPkF1K6gueJbmSGnG7Azhs/view?usp=drive_link","comentario":"","id":32,"diasCobertura":14,"fueraSla":false,"diasPermanencia":4,"estadoPersona":"Activo"}];
+
+function reclNormalizeVacancyName(value){
+  return (value||'')
+    .trim()
+    .toUpperCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/\b(DE|DEL|LA|EL|LOS|LAS)\b/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+function reclVacancyKey(x){
+  return [
+    reclNormalizeVacancyName(x.vacante),
+    (x.unidad||'').trim().toUpperCase(),
+    (x.ubicacion||'').trim().toUpperCase(),
+    (x.area||'').trim().toUpperCase(),
+    (x.reclutador||'').trim().toUpperCase(),
+    x.fechaSolicitud||''
+  ].join('|');
+}
+function reclRecordPriority(x){
+  if(x.fechaIngreso || x.estatus==='CUBIERTA') return 3;
+  if(x.estatus==='ACTIVA') return 2;
+  if(x.estatus==='CANCELADA') return 1;
+  return 0;
+}
+const RECL_ALL=[...RECL_DATA.reduce((map,x)=>{
+  const key=reclVacancyKey(x);
+  const current=map.get(key);
+  if(!current || reclRecordPriority(x)>reclRecordPriority(current)){
+    map.set(key,x);
+  }else if(current && reclRecordPriority(x)===reclRecordPriority(current)){
+    map.set(key,{
+      ...current,
+      ...x,
+      fechaIngreso: current.fechaIngreso || x.fechaIngreso,
+      persona: current.persona || x.persona,
+      fechaBaja: current.fechaBaja || x.fechaBaja,
+      urlFoto: current.urlFoto || x.urlFoto
+    });
+  }
+  return map;
+},new Map()).values()];
+let _reclView='resumen';
+const reclFmtDate=s=>s?new Date(s+'T00:00:00').toLocaleDateString('es-MX'):'';
+function reclDriveImageUrl(url){
+  if(!url) return '';
+  const match=url.match(/\/d\/([^/]+)/) || url.match(/[?&]id=([^&]+)/);
+  return match ? `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800` : url;
+}
+function reclPhotoClass(name){
+  const normalized=(name||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().trim();
+  return normalized==='CARLOS FERNANDO MANTECON SIORDIA' ? 'rot90' : '';
+}
+
+function reclFill(id,vals){
+  const el=document.querySelector(id);
+  [...new Set(vals.filter(Boolean))].sort().forEach(v=>
+    el.insertAdjacentHTML('beforeend',`<option>${v}</option>`)
+  );
+}
+reclFill('#recl-unidad',RECL_ALL.map(x=>x.unidad));
+reclFill('#recl-ubicacion',RECL_ALL.map(x=>x.ubicacion));
+reclFill('#recl-area',RECL_ALL.map(x=>x.area));
+reclFill('#recl-reclutador',RECL_ALL.map(x=>x.reclutador));
+
+function reclParseDate(s){return s?new Date(s+'T00:00:00'):null}
+function reclMonthOf(s){return Number(s.slice(5,7))}
+function reclDaysBetween(a,b){return Math.max(0,Math.round((reclParseDate(b)-reclParseDate(a))/86400000))}
+
+function reclPeriodBounds(){
+  const p=document.querySelector('#recl-periodo').value;
+  if(p==='T1') return {start:'2026-01-01',end:'2026-03-31',label:'Primer trimestre 2026'};
+  if(p==='T2') return {start:'2026-04-01',end:'2026-06-30',label:'Segundo trimestre 2026'};
+  if(p==='all') return {start:'2026-01-01',end:'2026-07-31',label:'Enero–Julio 2026'};
+  const m=Number(p);
+  const last=new Date(2026,m,0).getDate();
+  const names=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio'];
+  return {
+    start:`2026-${String(m).padStart(2,'0')}-01`,
+    end:`2026-${String(m).padStart(2,'0')}-${String(last).padStart(2,'0')}`,
+    label:`${names[m]} 2026`
+  };
+}
+function reclInRange(s,start,end){return !!s&&s>=start&&s<=end}
+function reclDimensionMatch(x){
+  return (document.querySelector('#recl-unidad').value==='all'||x.unidad===document.querySelector('#recl-unidad').value)&&
+    (document.querySelector('#recl-ubicacion').value==='all'||x.ubicacion===document.querySelector('#recl-ubicacion').value)&&
+    (document.querySelector('#recl-area').value==='all'||x.area===document.querySelector('#recl-area').value)&&
+    (document.querySelector('#recl-reclutador').value==='all'||x.reclutador===document.querySelector('#recl-reclutador').value);
+}
+function reclScoped(){return RECL_ALL.filter(reclDimensionMatch)}
+function reclOpenedDuring(){
+  const {start,end}=reclPeriodBounds();
+  return reclScoped().filter(x=>reclInRange(x.fechaSolicitud,start,end));
+}
+function reclCoveredDuring(){
+  const {start,end}=reclPeriodBounds();
+  return reclScoped().filter(x=>reclInRange(x.fechaIngreso,start,end));
+}
+function reclActiveAtEnd(){
+  const {end}=reclPeriodBounds();
+  return reclScoped().filter(x=>
+    x.fechaSolicitud<=end &&
+    (!x.fechaIngreso||x.fechaIngreso>end) &&
+    x.estatus!=='CANCELADA'
+  );
+}
+function reclRelevantVacancies(){
+  const map=new Map();
+  [...reclActiveAtEnd(),...reclCoveredDuring()].forEach(x=>map.set(x.id,x));
+  return [...map.values()];
+}
+function reclAgeAtEnd(x){
+  const {end}=reclPeriodBounds();
+  const finish=x.fechaIngreso&&x.fechaIngreso<=end?x.fechaIngreso:end;
+  return reclDaysBetween(x.fechaSolicitud,finish);
+}
+
+const reclPct=(a,b)=>b?Math.round(a/b*100):0;
+function reclStatusBadge(s){
+  const c=s==='+90 días'?'green':s==='Baja -90 días'?'red':s==='Activo'?'yellow':'blue';
+  return `<span class="recl-badge recl-badge-${c}">${s}</span>`;
+}
+function reclVacancyStatusBadge(isActive,days){
+  if(isActive) return `<span class="recl-badge recl-badge-yellow">ACTIVA</span>`;
+  return `<span class="recl-badge recl-badge-${days>45?'red':'green'}">CUBIERTA</span>`;
+}
+function reclBarRows(items){
+  let max=Math.max(1,...items.map(x=>x[1]));
+  return items.map(([k,v])=>`<div class="recl-bar-row"><span>${k}</span><div class="recl-bar"><i style="width:${v/max*100}%"></i></div><b>${v}</b></div>`).join('');
+}
+function reclGroup(data,key,metric=()=>1){
+  const m={};
+  data.forEach(x=>m[x[key]]=(m[x[key]]||0)+metric(x));
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+}
+function reclKpi(label,value,sub,cls='info'){
+  const map={good:'green',warn:'yellow',bad:'red',info:''};
+  const c=map[cls]||'';
+  return `<div class="kpi-card"><div class="kpi-label">${label}</div><div class="kpi-value ${c}">${value}</div><div class="kpi-sub">${sub}</div></div>`;
+}
+
+function reclSummary(){
+  const newVac=reclOpenedDuring();
+  const covered=reclCoveredDuring();
+  const active=reclActiveAtEnd();
+  const avg=covered.length?Math.round(covered.reduce((s,x)=>s+reclDaysBetween(x.fechaSolicitud,x.fechaIngreso),0)/covered.length):0;
+  const out=[
+    ...active.filter(x=>reclAgeAtEnd(x)>45),
+    ...covered.filter(x=>reclDaysBetween(x.fechaSolicitud,x.fechaIngreso)>45)
+  ];
+  const people=covered.filter(x=>x.persona);
+  const evalp=people.filter(x=>x.estadoPersona!=='Activo');
+  const good=evalp.filter(x=>x.estadoPersona==='+90 días'||x.estadoPersona==='Baja +90 días');
+  const eff=reclPct(good.length,evalp.length);
+
+  const byUnit=reclGroup(active,'unidad',x=>x.plazas);
+  const topVacancyByUnit=Object.values(active.reduce((acc,x)=>{
+    const key=x.unidad;
+    if(!acc[key]||reclAgeAtEnd(x)>reclAgeAtEnd(acc[key])) acc[key]=x;
+    return acc;
+  },{})).sort((a,b)=>a.unidad.localeCompare(b.unidad,'es',{sensitivity:'base'}));
+
+  document.querySelector('#recl-content').innerHTML=`
+    <div class="kpi-row">
+      ${reclKpi('Vacantes abiertas al cierre',active.reduce((s,x)=>s+x.plazas,0),'Incluye vacantes arrastradas de meses anteriores',active.some(x=>reclAgeAtEnd(x)>45)?'bad':'warn')}
+      ${reclKpi('Vacantes cubiertas',covered.length,'Cubiertas durante el periodo seleccionado','good')}
+      ${reclKpi('Nuevas vacantes',newVac.reduce((s,x)=>s+x.plazas,0),'Solicitadas dentro del periodo','info')}
+      ${reclKpi('Tiempo promedio',avg+' días','Meta máxima: 45 días',avg<=45?'good':'bad')}
+      ${reclKpi('Fuera de SLA',out.length,'Activas al cierre o cubiertas con más de 45 días',out.length?'bad':'good')}
+      ${reclKpi('Efectividad',eff+'%','Meta de permanencia: 80%',eff>=80?'good':'bad')}
+      ${reclKpi('Bajas -90 días',people.filter(x=>x.estadoPersona==='Baja -90 días').length,'Todas las bajas se consideran','bad')}
+      ${reclKpi('Contrataciones',people.length,'Ingresos del periodo seleccionado','info')}
+    </div>
+    <div class="panel-2col">
+      <div class="panel-box">
+        <div class="section-title">Vacantes activas por unidad de negocio</div>
+        ${reclBarRows(byUnit)}
+      </div>
+      <div class="panel-box">
+        <div class="section-title">Alertas de cobertura</div>
+        <div class="recl-note" style="margin-bottom:10px">Vacante activa con más días por unidad de negocio.</div>
+        ${topVacancyByUnit.length ? topVacancyByUnit.map((x,i)=>{
+          const days=reclAgeAtEnd(x);
+          const critical=days>45;
+          return `<div class="recl-alert-box ${critical?'crit':''}" style="margin-top:${i?10:0}px">
+            <span>${x.unidad}</span>
+            <b>${x.vacante} · ${days} días</b>
+            <small>${x.ubicacion} · ${x.area}</small>
+          </div>`;
+        }).join('') : `<div class="recl-alert-box"><span>Sin vacantes activas</span><b>No hay alertas de cobertura</b></div>`}
+      </div>
+    </div>
+    <div class="panel-box" style="margin-top:14px">
+      <div class="section-title">Evolución mensual</div>
+      <div class="recl-note" style="margin:-8px 0 12px">Vacantes activas al cierre de cada mes</div>
+      ${reclBarRows(['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio'].map((name,i)=>{
+        const end=`2026-${String(i+1).padStart(2,'0')}-${String(new Date(2026,i+1,0).getDate()).padStart(2,'0')}`;
+        const count=reclScoped().filter(x=>x.fechaSolicitud<=end&&(!x.fechaIngreso||x.fechaIngreso>end)&&x.estatus!=='CANCELADA').reduce((s,x)=>s+x.plazas,0);
+        return [name,count];
+      }))}
+    </div>`;
+}
+
+function reclVacancies(){
+  const d=reclRelevantVacancies();
+  const active=reclActiveAtEnd();
+  const covered=reclCoveredDuring();
+  const newVac=reclOpenedDuring();
+  document.querySelector('#recl-content').innerHTML=`
+    <div class="kpi-row">
+      ${reclKpi('Abiertas al cierre',active.reduce((s,x)=>s+x.plazas,0),'Incluye arrastre de periodos anteriores','warn')}
+      ${reclKpi('Nuevas',newVac.reduce((s,x)=>s+x.plazas,0),'Solicitadas en el periodo','info')}
+      ${reclKpi('Cubiertas',covered.length,'Fecha de ingreso dentro del periodo','good')}
+      ${reclKpi('Fuera de SLA',d.filter(x=>reclAgeAtEnd(x)>45).length,'Más de 45 días','bad')}
+    </div>
+    <div class="table-wrapper"><div class="table-scroll"><table>
+      <thead><tr><th>Vacante</th><th>Unidad</th><th>Ubicación</th><th>Área</th><th>Reclutador</th><th>Solicitud</th><th>Situación al cierre</th><th>Días</th><th>Comentario</th></tr></thead>
+      <tbody>${d.sort((a,b)=>reclAgeAtEnd(b)-reclAgeAtEnd(a)).map(x=>{
+        const activeNow=active.some(a=>a.id===x.id);
+        const days=reclAgeAtEnd(x);
+        return `<tr><td><b>${x.vacante}</b></td><td>${x.unidad}</td><td>${x.ubicacion}</td><td>${x.area}</td><td>${x.reclutador}</td><td>${reclFmtDate(x.fechaSolicitud)}</td><td>${reclVacancyStatusBadge(activeNow,days)}</td><td>${days}</td><td>${x.comentario}</td></tr>`;
+      }).join('')}</tbody>
+    </table></div></div>`;
+}
+
+
+const RECL_MONTHS_2026 = [
+  {num:1,label:'ENE-26',name:'ENERO'},
+  {num:2,label:'FEB-26',name:'FEBRERO'},
+  {num:3,label:'MAR-26',name:'MARZO'},
+  {num:4,label:'ABR-26',name:'ABRIL'},
+  {num:5,label:'MAY-26',name:'MAYO'},
+  {num:6,label:'JUN-26',name:'JUNIO'},
+  {num:7,label:'JUL-26',name:'JULIO'}
+];
+
+const RECL_UNIT_COLORS = {
+  'EASY FIT':'#f47b20',
+  'VIVO47 CENTER':'#18a558',
+  'VIVO47':'#2d7ff9',
+  'ONARA':'#111111',
+  'CLÍNICA':'#e4584a',
+  'ESTRUCTURA Y SOPORTE':'#8c5af5'
+};
+
+const RECL_STATUS_COLORS = {
+  '+90 días':'#1f9c86',
+  'Baja -90 días':'#cf4f4f',
+  'Activo':'#e8b744',
+  'Baja +90 días':'#3977b8'
+};
+
+function reclSvgLegend(items){
+  return `<div style="display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin:8px 0 14px">
+    ${items.map(i=>`<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#41505b">
+      <span style="display:inline-block;width:12px;height:12px;border-radius:999px;background:${i.color}"></span>${i.name}
+    </div>`).join('')}
+  </div>`;
+}
+
+function reclSvgLineChart(series, opts={}){
+  const months = opts.months || RECL_MONTHS_2026.map(m=>m.label);
+  const width = opts.width || 820;
+  const height = opts.height || 320;
+  const left = 44, right = 18, top = 20, bottom = 34;
+  const innerW = width - left - right, innerH = height - top - bottom;
+  const allVals = series.flatMap(s => s.values.filter(v => v !== null && v !== undefined));
+  const rawMax = Math.max(opts.goal || 0, ...allVals, 10);
+  const maxY = Math.ceil(rawMax / 10) * 10;
+  const tickStep = Math.max(10, Math.ceil(maxY / 5 / 10) * 10);
+  const ticks = [];
+  for(let y=0; y<=maxY; y+=tickStep){ ticks.push(y); }
+  const xAt = i => left + (months.length === 1 ? innerW/2 : (i * innerW / (months.length-1)));
+  const yAt = v => top + innerH - (v/maxY)*innerH;
+
+  function makePath(values){
+    let d = '';
+    let open = false;
+    values.forEach((v,i)=>{
+      if(v === null || v === undefined){ open = false; return; }
+      const x = xAt(i), y = yAt(v);
+      d += `${open ? ' L ' : 'M '}${x} ${y}`;
+      open = true;
+    });
+    return d;
+  }
+
+  return `<svg viewBox="0 0 ${width} ${height}" style="width:100%;height:auto">
+    ${ticks.map(t=>`<g>
+      <line x1="${left}" y1="${yAt(t)}" x2="${width-right}" y2="${yAt(t)}" stroke="#e8edf0" stroke-width="1"/>
+      <text x="${left-8}" y="${yAt(t)+4}" text-anchor="end" font-size="11" fill="#6d7c87">${t}</text>
+    </g>`).join('')}
+    ${opts.goal !== undefined ? `<line x1="${left}" y1="${yAt(opts.goal)}" x2="${width-right}" y2="${yAt(opts.goal)}" stroke="#d3a526" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="${width-right}" y="${yAt(opts.goal)-6}" text-anchor="end" font-size="11" fill="#a67700">META ${opts.goal} DÍAS</text>` : ''}
+    ${months.map((m,i)=>`<text x="${xAt(i)}" y="${height-10}" text-anchor="middle" font-size="11" fill="#53616c">${m}</text>`).join('')}
+    ${series.map(s=>`<path d="${makePath(s.values)}" fill="none" stroke="${s.color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}
+    ${series.map(s=>s.values.map((v,i)=> v===null || v===undefined ? '' : `<circle cx="${xAt(i)}" cy="${yAt(v)}" r="4" fill="${s.color}" stroke="white" stroke-width="2"/>`).join('')).join('')}
+  </svg>`;
+}
+
+function reclSvgStackedBarChart(monthLabels, stacksByMonth, order, colors, opts={}){
+  const width = opts.width || 820;
+  const height = opts.height || 320;
+  const left = 44, right = 18, top = 20, bottom = 34;
+  const innerW = width - left - right, innerH = height - top - bottom;
+  const totals = stacksByMonth.map(s=>order.reduce((acc,k)=>acc + (s[k]||0),0));
+  const maxY = Math.max(1, Math.ceil(Math.max(...totals, 5)/2)*2);
+  const ticks = [];
+  const step = Math.max(1, Math.ceil(maxY/5));
+  for(let y=0; y<=maxY; y+=step){ ticks.push(y); }
+  const band = innerW / monthLabels.length;
+  const barW = Math.min(44, band * 0.55);
+  const xAt = i => left + i*band + band/2;
+  const yAt = v => top + innerH - (v/maxY)*innerH;
+
+  return `<svg viewBox="0 0 ${width} ${height}" style="width:100%;height:auto">
+    ${ticks.map(t=>`<g>
+      <line x1="${left}" y1="${yAt(t)}" x2="${width-right}" y2="${yAt(t)}" stroke="#e8edf0" stroke-width="1"/>
+      <text x="${left-8}" y="${yAt(t)+4}" text-anchor="end" font-size="11" fill="#6d7c87">${t}</text>
+    </g>`).join('')}
+    ${monthLabels.map((m,i)=>{
+      let base = 0;
+      const parts = order.map(key=>{
+        const value = stacksByMonth[i][key] || 0;
+        const y0 = yAt(base);
+        base += value;
+        const y1 = yAt(base);
+        return value ? `<rect x="${xAt(i)-barW/2}" y="${y1}" width="${barW}" height="${Math.max(2, y0-y1)}" rx="6" fill="${colors[key]}"></rect>` : '';
+      }).join('');
+      return `<g>${parts}
+        <text x="${xAt(i)}" y="${height-10}" text-anchor="middle" font-size="11" fill="#53616c">${m}</text>
+        <text x="${xAt(i)}" y="${yAt(base)-8}" text-anchor="middle" font-size="11" fill="#30404b">${base}</text>
+      </g>`;
+    }).join('')}
+  </svg>`;
+}
+
+function reclDonut(value, goal=80){
+  const color = value >= goal ? '#1f9c86' : '#cf4f4f';
+  return `<div style="display:grid;place-items:center">
+    <div style="width:150px;height:150px;border-radius:50%;background:conic-gradient(${color} 0 ${value}%, #d9e4ea ${value}% 100%);display:grid;place-items:center">
+      <div style="width:94px;height:94px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:800;font-size:32px;color:#17212b">${value}%</div>
+    </div>
+  </div>`;
+}
+
+function reclMonthlyCoverageSeries(data){
+  const availableUnits = [...new Set(data.map(x=>x.unidad))].filter(Boolean);
+  const unitOrder = ['EASY FIT','VIVO47 CENTER','VIVO47','ONARA','CLÍNICA','ESTRUCTURA Y SOPORTE'];
+  return unitOrder.filter(u=>availableUnits.includes(u)).map(unit=>{
+    return {
+      name: unit,
+      color: RECL_UNIT_COLORS[unit] || '#7C3AED',
+      values: RECL_MONTHS_2026.map(m=>{
+        const rows = data.filter(x=>x.unidad===unit && x.fechaIngreso && reclMonthOf(x.fechaIngreso)===m.num);
+        if(!rows.length) return null;
+        return Math.round(rows.reduce((s,x)=>s+reclDaysBetween(x.fechaSolicitud,x.fechaIngreso),0)/rows.length);
+      })
+    };
+  });
+}
+
+function reclMonthlyEffectivenessStacks(data){
+  return RECL_MONTHS_2026.map(m=>{
+    const rows = data.filter(x=>x.persona && x.fechaIngreso && reclMonthOf(x.fechaIngreso)===m.num);
+    return {
+      '+90 días': rows.filter(x=>x.estadoPersona==='+90 días').length,
+      'Baja -90 días': rows.filter(x=>x.estadoPersona==='Baja -90 días').length,
+      'Activo': rows.filter(x=>x.estadoPersona==='Activo').length,
+      'Baja +90 días': rows.filter(x=>x.estadoPersona==='Baja +90 días').length
+    };
+  });
+}
+
+
+function reclCoverage(){
+  const covered=reclCoveredDuring();
+  const active=reclActiveAtEnd();
+  const avg=covered.length?Math.round(covered.reduce((s,x)=>s+reclDaysBetween(x.fechaSolicitud,x.fechaIngreso),0)/covered.length):0;
+  const area=reclGroup(covered,'area',x=>reclDaysBetween(x.fechaSolicitud,x.fechaIngreso));
+  const cnt=reclGroup(covered,'area');
+  const avgs=area.map(([a,s])=>[a,Math.round(s/(cnt.find(z=>z[0]===a)?.[1]||1))]).sort((a,b)=>b[1]-a[1]);
+  const longest=[...active].sort((a,b)=>reclAgeAtEnd(b)-reclAgeAtEnd(a));
+  const lineSeries = reclMonthlyCoverageSeries(reclScoped());
+  document.querySelector('#recl-content').innerHTML=`
+    <div class="kpi-row">
+      ${reclKpi('Promedio general',avg+' días','Vacantes cubiertas en el periodo · meta 45 días',avg<=45?'good':'bad')}
+      ${reclKpi('Área con mayor tiempo',avgs[0]?.[0]||'—',(avgs[0]?.[1]||0)+' días promedio','bad')}
+      ${reclKpi('Vacante activa más antigua',longest[0]?.vacante||'—',(longest[0]?reclAgeAtEnd(longest[0]):0)+' días · '+(longest[0]?.ubicacion||''),'bad')}
+      ${reclKpi('Activas fuera de SLA',active.filter(x=>reclAgeAtEnd(x)>45).length,'Al cierre del periodo','bad')}
+    </div>
+    <div class="panel-box" style="margin-top:14px">
+      <div class="section-title">Tiempo de reclutamiento por unidad de negocio</div>
+      <div class="recl-note" style="margin:-8px 0 12px">Comparativa mensual · enero a julio de 2026</div>
+      <div class="recl-metric-line"><strong>${avg}</strong><span>PROMEDIO TOTAL EN EL PERIODO SELECCIONADO</span></div>
+      ${reclSvgLegend(lineSeries.map(s=>({name:s.name,color:s.color})).concat([{name:'Meta 45 días',color:'#d3a526'}]))}
+      ${reclSvgLineChart(lineSeries,{goal:45})}
+    </div>
+    <div class="panel-2col">
+      <div class="panel-box"><div class="section-title">Promedio por área</div>${reclBarRows(avgs)}</div>
+      <div class="panel-box"><div class="section-title">Vacantes activas con mayor antigüedad</div>
+        ${longest.slice(0,8).map(x=>`<div class="recl-oldest-item"><b>${x.vacante}</b><div class="recl-note">${x.area} · ${x.ubicacion} · ${reclAgeAtEnd(x)} días</div></div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function reclEffectiveness(){
+  const {start,end}=reclPeriodBounds();
+  const p=reclScoped().filter(x=>x.persona&&reclInRange(x.fechaIngreso,start,end));
+  const allPeople = reclScoped().filter(x=>x.persona&&x.fechaIngreso&&x.fechaIngreso>='2026-01-01'&&x.fechaIngreso<='2026-07-31');
+  const evalp=p.filter(x=>x.estadoPersona!=='Activo');
+  const good=evalp.filter(x=>x.estadoPersona==='+90 días'||x.estadoPersona==='Baja +90 días');
+  const eff=reclPct(good.length,evalp.length);
+  const monthlyStacks = reclMonthlyEffectivenessStacks(allPeople);
+  const totalIngresos = allPeople.length;
+  const totalBajas = allPeople.filter(x=>x.fechaBaja).length;
+  const bajas90 = allPeople.filter(x=>x.estadoPersona==='Baja -90 días').length;
+  const bajasMas90 = allPeople.filter(x=>x.estadoPersona==='Baja +90 días').length;
+  const unitBars = [...new Set(allPeople.map(x=>x.unidad))].map(u=>{
+    const q=allPeople.filter(x=>x.unidad===u&&x.estadoPersona!=='Activo');
+    const g=q.filter(x=>x.estadoPersona==='+90 días'||x.estadoPersona==='Baja +90 días');
+    return [u,reclPct(g.length,q.length)];
+  }).sort((a,b)=>b[1]-a[1]);
+
+  document.querySelector('#recl-content').innerHTML=`
+    <div class="kpi-row">
+      ${reclKpi('Efectividad',eff+'%','Meta 80% · periodo seleccionado',eff>=80?'good':'bad')}
+      ${reclKpi('Ingresos enero-julio',totalIngresos,'Total acumulado de contrataciones','info')}
+      ${reclKpi('Bajas totales',totalBajas,'Incluye bajas -90 y +90 días','bad')}
+      ${reclKpi('Bajas -90 días',bajas90,'Afectan el indicador','bad')}
+    </div>
+    <div class="panel-2col">
+      <div class="panel-box" style="grid-column:1 / span 2">
+        <div class="section-title">Efectividad del reclutamiento</div>
+        <div class="recl-note" style="margin:-8px 0 12px">Evolución mensual consolidada · enero a julio de 2026</div>
+        <div style="display:grid;grid-template-columns:1.5fr 220px;gap:18px;align-items:center">
+          <div>
+            ${reclSvgLegend([
+              {name:'+90 días',color:RECL_STATUS_COLORS['+90 días']},
+              {name:'Baja -90 días',color:RECL_STATUS_COLORS['Baja -90 días']},
+              {name:'Activo',color:RECL_STATUS_COLORS['Activo']},
+              {name:'Baja +90 días',color:RECL_STATUS_COLORS['Baja +90 días']}
+            ])}
+            ${reclSvgStackedBarChart(RECL_MONTHS_2026.map(m=>m.label), monthlyStacks, ['+90 días','Baja -90 días','Activo','Baja +90 días'], RECL_STATUS_COLORS)}
+          </div>
+          <div>
+            ${reclDonut(eff,80)}
+            <div style="text-align:center;margin-top:10px;font-size:12px;color:#61707b">EFECTIVIDAD DEL PERIODO SELECCIONADO</div>
+            <div style="display:grid;gap:8px;margin-top:12px;font-size:12px">
+              <div><b>Meta:</b> 80%</div>
+              <div><b>+90 días:</b> ${allPeople.filter(x=>x.estadoPersona==='+90 días').length}</div>
+              <div><b>Baja +90 días:</b> ${bajasMas90}</div>
+              <div><b>Baja -90 días:</b> ${bajas90}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel-box"><div class="section-title">Estados de permanencia</div>${reclBarRows(['+90 días','Baja -90 días','Activo','Baja +90 días'].map(s=>[s,allPeople.filter(x=>x.estadoPersona===s).length]))}</div>
+      <div class="panel-box"><div class="section-title">Efectividad por unidad de negocio</div>${reclBarRows(unitBars)}</div>
+    </div>`;
+}
+
+function reclPeople(){
+  const {start,end}=reclPeriodBounds();
+  const p=reclScoped().filter(x=>x.persona&&reclInRange(x.fechaIngreso,start,end));
+  document.querySelector('#recl-content').innerHTML=`<div class="recl-note" style="margin-bottom:12px">Las fotografías se cargan desde Google Drive. Los archivos deben tener permiso de acceso mediante enlace.</div><div class="recl-people">${p.map(x=>{
+    const initials=x.persona.split(' ').slice(0,2).map(z=>z[0]).join('');
+    const img=x.urlFoto?`<img class="${reclPhotoClass(x.persona)}" src="${reclDriveImageUrl(x.urlFoto)}" alt="Fotografía de ${x.persona}" referrerpolicy="no-referrer" loading="lazy" onerror="this.remove();this.parentNode.textContent='${initials}'">`:initials;
+    return `<article class="recl-person"><div class="recl-photo">${img}</div><div class="recl-person-body"><h3>${x.persona}</h3><p>${x.vacante}</p><p>${x.unidad} · ${x.ubicacion}</p><p>Ingreso: ${reclFmtDate(x.fechaIngreso)}</p>${reclStatusBadge(x.estadoPersona)}</div></article>`;
+  }).join('')}</div>`;
+}
+
+function reclImporter(){
+  document.querySelector('#recl-content').innerHTML=`<div class="recl-upload"><h3 style="font-family:'Space Grotesk',sans-serif;margin-bottom:8px">Importar base histórica</h3><p class="recl-note" style="margin-bottom:14px">Selecciona el archivo Excel con las hojas mensuales.</p><input type="file" accept=".xlsx,.xls"><br><button class="btn-nuevo-colab" onclick="alert('En la versión funcional se validarán columnas, duplicados y reglas de normalización antes de importar.')">Validar archivo</button><div class="recl-note" style="margin-top:14px">Información actualizada con el archivo Reporte Vacantes EASYFIT (2), considerando enero a julio de 2026. La conexión a una base de datos real se implementará en la siguiente fase — por ahora es una vista previa.</div></div><div class="panel-box" style="margin-top:14px"><div class="section-title">Reglas de normalización activas</div><p class="recl-note">AVC → ÁVILA CAMACHO · ESTACIA → ESTANCIA · EYS → ESTRUCTURA Y SOPORTE · ESTANCIA-ITESO → ESTANCIA con comentario · Estancia se reporta como VIVO47 CENTER.</p></div>`;
+}
+
+function reclRender(){
+  document.querySelector('#recl-subtitle').textContent=`Resultados: ${reclPeriodBounds().label}`;
+  ({resumen:reclSummary,vacantes:reclVacancies,cobertura:reclCoverage,efectividad:reclEffectiveness,personas:reclPeople,importar:reclImporter}[_reclView])();
+}
+function reclSwitchView(v){
+  document.querySelectorAll('.recl-tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.reclView===v));
+  _reclView=v;
+  document.querySelector('#recl-pageTitle').textContent=document.querySelector(`.recl-tab-btn[data-recl-view="${v}"]`).textContent;
+  reclRender();
+}
+document.querySelector('#recl-exportBtn').onclick=()=>{
+  const d=reclRelevantVacancies();
+  const activeIds=new Set(reclActiveAtEnd().map(x=>x.id));
+  const cols=['vacante','unidad','ubicacion','area','reclutador','fechaSolicitud','fechaIngreso','persona','fechaBaja'];
+  const header=[...cols,'situacionAlCierre','diasAlCierre'];
+  const csv=[header.join(','),...d.map(x=>[
+    ...cols.map(c=>x[c]??''),
+    activeIds.has(x.id)?'ACTIVA':'CUBIERTA',
+    reclAgeAtEnd(x)
+  ].map(v=>'"'+String(v).replaceAll('"','""')+'"').join(','))].join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'}));
+  a.download='GEB_Reclutamiento_Seleccion.csv';
+  a.click();
+};
 
 aplicarControlesAdmin();
 loadAll();
