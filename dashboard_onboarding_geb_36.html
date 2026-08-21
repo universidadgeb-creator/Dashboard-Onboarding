@@ -2227,15 +2227,23 @@ function tituloCase(s) {
   }).join(' ');
 }
 
-// 'OFC' tiene que resolver igual que en CLUB_NOMBRES (más abajo) — es el mismo código de
-// sucursal usado por "Empleados"/"Seguimiento Certificaciones", solo que aquí llega desde
-// otra hoja. Si algún día cambia uno, hay que cambiar el otro.
+// El resto de estos códigos tiene que resolver igual que en CLUB_NOMBRES (más abajo) — son
+// los mismos códigos de sucursal usados por "Empleados"/"Seguimiento Certificaciones", solo
+// que aquí llegan desde otra hoja. Si algún día cambia uno, hay que cambiar el otro.
+// "EYS" es Estructura y Soporte (GEB) tal cual. "OFC" es distinto: en Empleados/Certificaciones
+// siempre es la oficina central de Vivo 47, pero en Hoja 5 también lo usan colaboradores de
+// EasyFit y de GEB sin un código aparte — por eso aquí se resuelve con la Unidad de Negocio.
 const HOJA5_SUCURSAL_NOMBRES = {
-  'EYS': 'Estructura y Soporte', 'OFC': 'Estructura y Soporte', 'ESTANCIA': 'La Estancia',
-  'LEON': 'León', 'CLINICA': 'Clínica',
+  'EYS': 'Estructura y Soporte', 'ESTANCIA': 'La Estancia',
+  'LEON': 'León', 'CLINICA': 'Clínica', 'ITESO': 'ITESO', 'SEVEN': 'Sev7n Nutrition',
+  'CAÑADAS': 'Cañadas', 'ÁVILA CAMACHO': 'Ávila Camacho', 'ALEIRA': 'Aleira',
 };
 function sucursalHoja5(codigo, uNegocio) {
   const c = String(codigo||'').trim().toUpperCase();
+  if (c === 'OFC') {
+    return String(uNegocio||'').trim().toUpperCase() === 'EASY FIT'
+      ? 'EasyFit (Oficina Central)' : 'Vivo 47 (Oficina Central)';
+  }
   if (HOJA5_SUCURSAL_NOMBRES[c]) return HOJA5_SUCURSAL_NOMBRES[c];
   if (c && c !== 'N/A') return tituloCase(c);
   return tituloCase(uNegocio) || null;
@@ -2858,10 +2866,16 @@ function renderEv() {
 }
 
 // ── CERTIFICACIONES ──
+// "OFC" y "OFC EASY" son oficinas centrales distintas (Vivo 47 y EasyFit respectivamente) —
+// ninguna de las dos es lo mismo que "Estructura y Soporte" (GEB, ver HOJA5_SUCURSAL_NOMBRES).
 const CLUB_NOMBRES = {
   'NAC': 'Naciones Unidas', 'VR': 'Valle Real', 'GMT': 'Gourmetería',
-  'CAÑ': 'Cañadas', 'OFC': 'Estructura y Soporte', 'AVC': 'Ávila Camacho',
-  'ALE': 'Aleira', 'EST': 'La Estancia'
+  'CAÑ': 'Cañadas', 'CAÑADAS': 'Cañadas',
+  'AVC': 'Ávila Camacho', 'ÁVILA CAMACHO': 'Ávila Camacho',
+  'ALE': 'Aleira', 'ALEIRA': 'Aleira',
+  'EST': 'La Estancia', 'ESTANCIA': 'La Estancia',
+  'ITESO': 'ITESO', 'SEVEN': 'Sev7n Nutrition', 'ONARA': 'Onara', 'CLINICA': 'Clínica', 'LEON': 'León',
+  'OFC': 'Vivo 47 (Oficina Central)', 'OFC EASY': 'EasyFit (Oficina Central)',
 };
 function clubNombre(c) {
   const key = String(c||'').trim().toUpperCase();
@@ -3171,7 +3185,7 @@ function buildColabIndex() {
     const nom = getNombre(r); if (nom==='—') return;
     const c = findOrCreate(nom);
     considerarNombre(c, nom, 1);
-    c.sucursal = c.sucursal || r['Sucursal'];
+    c.sucursal = c.sucursal || (r['Sucursal'] ? clubNombre(r['Sucursal']) : undefined);
     c.unidadNegocio = c.unidadNegocio || r['Unidad de Negocio'];
     c.pre = r;
   });
@@ -3179,7 +3193,7 @@ function buildColabIndex() {
     const nom = r['Nombre']; if (!nom) return;
     const c = findOrCreate(nom);
     considerarNombre(c, nom, 1);
-    c.sucursal = c.sucursal || r['Sucursal'];
+    c.sucursal = c.sucursal || (r['Sucursal'] ? clubNombre(r['Sucursal']) : undefined);
     c.unidadNegocio = c.unidadNegocio || r['Unidad de Negocio'];
     c.rol = c.rol || r['Rol'];
     c.fechaIngresoSrc = c.fechaIngresoSrc || parseFecha(r['Fecha de Ingreso']);
@@ -3189,7 +3203,7 @@ function buildColabIndex() {
     const nom = r['Nombre completo']; if (!nom) return;
     const c = findOrCreate(nom);
     considerarNombre(c, nom, 1);
-    c.sucursal = c.sucursal || r['Sucursal'];
+    c.sucursal = c.sucursal || (r['Sucursal'] ? clubNombre(r['Sucursal']) : undefined);
     c.rol = c.rol || r['Rol'];
     c.d60 = r;
   });
@@ -3203,7 +3217,7 @@ function buildColabIndex() {
     const nom = r['Nombre completo']; if (!nom) return;
     const c = findOrCreate(nom);
     considerarNombre(c, nom, 1);
-    c.sucursal = c.sucursal || r['Sucursal'];
+    c.sucursal = c.sucursal || (r['Sucursal'] ? clubNombre(r['Sucursal']) : undefined);
     c.rol = c.rol || r['Rol / puesto'];
     c.d90 = r;
   });
@@ -3212,7 +3226,7 @@ function buildColabIndex() {
     const c = findOrCreate(nom);
     considerarNombre(c, nom, 1);
     c.rol = c.rol || r['Rol'];
-    c.sucursal = c.sucursal || r['Sucursal'];
+    c.sucursal = c.sucursal || (r['Sucursal'] ? clubNombre(r['Sucursal']) : undefined);
     c.ev = r;
   });
   DATA.cert.forEach(r => {
@@ -3234,7 +3248,7 @@ function buildColabIndex() {
     // correctos), pero solo gana si no es menos completo — un "Juan" de aquí no debe pisar un
     // "Juan Pérez López" que ya haya llegado de otra hoja.
     considerarNombre(c, nom, 3);
-    c.sucursal = c.sucursal || clubNombre(r['Sucursal']);
+    c.sucursal = c.sucursal || (r['Sucursal'] ? clubNombre(r['Sucursal']) : undefined);
     c.rol = c.rol || r['Puesto'];
     c.turno = c.turno || r['Turno'];
     c.area = c.area || r['Equipos'];
@@ -3256,7 +3270,7 @@ function buildColabIndex() {
     if (!r.nombre) return;
     const c = findOrCreate(r.nombre);
     considerarNombre(c, r.nombre, 3);
-    c.sucursal = c.sucursal || r.sucursal;
+    if (r.sucursal) c.sucursal = c.sucursal || clubNombre(r.sucursal);
     c.rol = c.rol || r.puesto;
     c.area = c.area || r.area;
     c.correo = c.correo || r.correo;
