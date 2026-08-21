@@ -1743,7 +1743,40 @@
     </div>
     <div class="avisos-lista" id="perfil-bandeja-lista"></div>
   </div>
-  <div class="tab-panel" id="panel-ausencias"><div class="soon-box"><div class="soon-icon"></div><div class="soon-title">Permisos y Vacaciones</div><div class="soon-desc">Vacaciones, incapacidades y permisos por colaborador. Sección en construcción, todavía sin datos reales.</div></div></div>
+  <div class="tab-panel" id="panel-ausencias">
+    <div class="section-header">
+      <div class="section-title">Permisos y Vacaciones</div>
+    </div>
+
+    <div class="panel-box" style="margin-bottom:20px">
+      <div class="modal-section-label">Nueva solicitud</div>
+      <div class="alta-grid">
+        <label class="alta-campo">Tipo
+          <select id="aus-tipo">
+            <option value="vacaciones">Vacaciones</option>
+            <option value="incapacidad">Incapacidad</option>
+            <option value="permiso">Permiso</option>
+            <option value="otro">Otro</option>
+          </select>
+        </label>
+        <label class="alta-campo">Fecha inicio<input type="date" id="aus-inicio"></label>
+        <label class="alta-campo">Fecha fin<input type="date" id="aus-fin"></label>
+      </div>
+      <label class="alta-campo alta-campo-full">Motivo (opcional)<textarea id="aus-motivo" rows="2" placeholder="Cuéntanos brevemente el motivo…"></textarea></label>
+      <div class="dc-actions">
+        <button class="btn-nuevo-colab" onclick="enviarSolicitudAusencia()">Enviar solicitud</button>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-bottom:12px">Mis solicitudes</div>
+    <div id="aus-mias-lista"></div>
+
+    <div id="aus-admin-wrap" style="display:none">
+      <div class="section-title" style="margin:20px 0 12px">Solicitudes del equipo</div>
+      <p class="bandeja-sub">Cualquier administrador puede aprobar o rechazar — todavía no está ligado a un líder específico (ver nota en Perfil/Colaboradores sobre datos de líder incompletos).</p>
+      <div id="aus-admin-lista"></div>
+    </div>
+  </div>
   <div class="tab-panel" id="panel-documentos"><div class="soon-box"><div class="soon-icon"></div><div class="soon-title">Expediente</div><div class="soon-desc">Repositorio de documentos por colaborador (contratos, identificaciones, comprobantes). Sección en construcción, todavía sin datos reales.</div></div></div>
   <div class="tab-panel" id="panel-politicas"><div class="soon-box"><div class="soon-icon"></div><div class="soon-title">Políticas</div><div class="soon-desc">Políticas y reglamentos de la empresa, disponibles para consulta. Sección en construcción, todavía sin datos reales.</div></div></div>
   <div class="tab-panel" id="panel-desempeno">
@@ -3899,6 +3932,7 @@ function switchTab(tab) {
   applyFilters();
   if (tab === 'configuracion') renderConfiguracion();
   if (tab === 'reclutamiento') reclRender();
+  if (tab === 'ausencias') renderAusencias();
 }
 
 function toggleSidebarGroup(id) {
@@ -7773,6 +7807,101 @@ function renderPerfilReal() {
   `;
   const headerUsuario = document.getElementById('header-usuario');
   if (headerUsuario) headerUsuario.textContent = u.nombre || u.email;
+}
+
+// ── PERMISOS Y VACACIONES — solicitudes reales (Supabase) ──
+const AUS_TIPO_LABELS = { vacaciones: 'Vacaciones', incapacidad: 'Incapacidad', permiso: 'Permiso', otro: 'Otro' };
+const AUS_ESTATUS_LABELS = { pendiente: 'Pendiente', aprobada: 'Aprobada', rechazada: 'Rechazada' };
+const AUS_ESTATUS_CLASE = { pendiente: 'estatus-desconocido', aprobada: 'estatus-activo', rechazada: 'estatus-baja' };
+
+function ausSolicitudCardHtml(s, esAdmin) {
+  const badge = `<span class="estatus-badge ${AUS_ESTATUS_CLASE[s.estatus]}">${AUS_ESTATUS_LABELS[s.estatus] || s.estatus}</span>`;
+  const nombre = esAdmin ? `<div style="font-weight:700;font-size:13px;margin-bottom:2px">${escapeHtml(s.nombreColaborador || s.colaborador_email)}</div>` : '';
+  const acciones = (esAdmin && s.estatus === 'pendiente') ? `
+    <div class="encuesta-card-acciones">
+      <button class="btn-nuevo-colab" onclick="resolverSolicitud('${s.id}','aprobada')">Aprobar</button>
+      <button class="btn-refresh" onclick="resolverSolicitud('${s.id}','rechazada')">Rechazar</button>
+    </div>` : '';
+  const cancelar = (!esAdmin && s.estatus === 'pendiente') ? `<button class="btn-clear" onclick="cancelarSolicitud('${s.id}')">Cancelar solicitud</button>` : '';
+  return `<div class="encuesta-card" style="margin-bottom:10px">
+    <div class="encuesta-card-head">
+      <div>
+        ${nombre}
+        <div style="font-weight:700;font-size:13.5px">${AUS_TIPO_LABELS[s.tipo] || s.tipo}</div>
+        <div class="encuesta-card-meta">${fmtFecha(new Date(s.fecha_inicio+'T00:00:00'))} — ${fmtFecha(new Date(s.fecha_fin+'T00:00:00'))}</div>
+      </div>
+      ${badge}
+    </div>
+    ${s.motivo ? `<div class="bandeja-sub" style="margin-top:8px">${escapeHtml(s.motivo)}</div>` : ''}
+    ${acciones}${cancelar}
+  </div>`;
+}
+
+async function enviarSolicitudAusencia() {
+  const tipo = document.getElementById('aus-tipo').value;
+  const inicio = document.getElementById('aus-inicio').value;
+  const fin = document.getElementById('aus-fin').value;
+  const motivo = document.getElementById('aus-motivo').value.trim();
+  if (!inicio || !fin) { alert('Pon la fecha de inicio y de fin.'); return; }
+  if (fin < inicio) { alert('La fecha de fin no puede ser antes que la de inicio.'); return; }
+  const { error } = await supabaseClient.from('solicitudes_ausencia').insert({
+    colaborador_email: _usuarioActual.email,
+    tipo, fecha_inicio: inicio, fecha_fin: fin, motivo: motivo || null,
+  });
+  if (error) { alert('No se pudo enviar la solicitud: ' + error.message); return; }
+  document.getElementById('aus-inicio').value = '';
+  document.getElementById('aus-fin').value = '';
+  document.getElementById('aus-motivo').value = '';
+  renderAusencias();
+}
+
+async function renderAusencias() {
+  if (!_usuarioActual) return;
+  const miasWrap = document.getElementById('aus-mias-lista');
+  miasWrap.innerHTML = '<div class="bandeja-sub">Cargando…</div>';
+  const { data: mias, error } = await supabaseClient
+    .from('solicitudes_ausencia')
+    .select('*')
+    .eq('colaborador_email', _usuarioActual.email)
+    .order('created_at', { ascending: false });
+  if (error) miasWrap.innerHTML = `<div class="bandeja-sub">Error al cargar: ${escapeHtml(error.message)}</div>`;
+  else if (!mias.length) miasWrap.innerHTML = '<div class="bandeja-sub">Todavía no tienes solicitudes.</div>';
+  else miasWrap.innerHTML = mias.map(s => ausSolicitudCardHtml(s, false)).join('');
+
+  const esAdmin = _usuarioActual.rol_acceso === 'admin';
+  document.getElementById('aus-admin-wrap').style.display = esAdmin ? '' : 'none';
+  if (!esAdmin) return;
+
+  const adminWrap = document.getElementById('aus-admin-lista');
+  adminWrap.innerHTML = '<div class="bandeja-sub">Cargando…</div>';
+  const { data: todas, error: errAdmin } = await supabaseClient
+    .from('solicitudes_ausencia')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (errAdmin) { adminWrap.innerHTML = `<div class="bandeja-sub">Error al cargar: ${escapeHtml(errAdmin.message)}</div>`; return; }
+  if (!todas.length) { adminWrap.innerHTML = '<div class="bandeja-sub">No hay solicitudes todavía.</div>'; return; }
+  const idx = getColabIndex();
+  todas.forEach(s => {
+    const c = idx.find(x => x.correo === s.colaborador_email);
+    s.nombreColaborador = c ? c.nombre : s.colaborador_email;
+  });
+  adminWrap.innerHTML = todas.map(s => ausSolicitudCardHtml(s, true)).join('');
+}
+
+async function resolverSolicitud(id, estatus) {
+  const { error } = await supabaseClient
+    .from('solicitudes_ausencia')
+    .update({ estatus, aprobador_email: _usuarioActual.email, updated_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) { alert('No se pudo actualizar: ' + error.message); return; }
+  renderAusencias();
+}
+
+async function cancelarSolicitud(id) {
+  if (!confirm('¿Cancelar esta solicitud?')) return;
+  const { error } = await supabaseClient.from('solicitudes_ausencia').delete().eq('id', id);
+  if (error) { alert('No se pudo cancelar: ' + error.message); return; }
+  renderAusencias();
 }
 
 async function cargarUsuarioActual(session) {
