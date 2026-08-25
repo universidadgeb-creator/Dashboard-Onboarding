@@ -6,6 +6,8 @@
 <title>Plenia</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><rect width='48' height='48' rx='10' fill='%23241B3D'/><path d='M 10 35 L 18 25' stroke='%23A78BFA' stroke-width='4' fill='none' stroke-linecap='round'/><path d='M 20 35 L 28 18' stroke='%238B5CF6' stroke-width='4' fill='none' stroke-linecap='round'/><path d='M 30 35 L 38 10' stroke='%237C3AED' stroke-width='4' fill='none' stroke-linecap='round'/></svg>">
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap');
   :root {
@@ -1022,6 +1024,620 @@
     .sidebar-item, .sidebar-subitem { width: auto; white-space: nowrap; flex-shrink: 0; }
     .sidebar-subgroup-body { padding-left: 4px; margin-top: 0; }
   }
+
+  /* ===== Servicio > Política de Apariencia (ported from apariencia.html) ===== */
+    :root {
+      --apar-teal: #7C3AED;
+      --apar-teal-dark: #6D28D9;
+      --apar-teal-soft: #C4B5FD;
+      --apar-aqua: #DDD6FE;
+      --apar-bg: #f3f7fb;
+      --apar-surface: #ffffff;
+      --apar-surface-2: #f8fbfd;
+      --apar-text: #102033;
+      --apar-muted: #667085;
+      --apar-border: #d9e3ea;
+      --apar-green: #16A34A;
+      --apar-yellow: #F59E0B;
+      --apar-red: #DC2626;
+      --apar-gray: #98a2b3;
+      --apar-shadow: 0 18px 45px rgba(16, 32, 51, 0.10);
+      --apar-shadow-soft: 0 10px 26px rgba(16, 32, 51, 0.07);
+      --apar-radius-xl: 26px;
+      --apar-radius-lg: 20px;
+      --apar-radius-md: 14px;
+    }
+
+    .apar-hero {
+      background:
+        linear-gradient(135deg, rgba(124, 58, 237, 0.96), rgba(109, 40, 217, 0.98)),
+        radial-gradient(circle at top right, rgba(158, 225, 225, 0.35), transparent 34%);
+      color: white;
+      padding: 28px 24px 42px;
+      border-bottom-left-radius: 34px;
+      border-bottom-right-radius: 34px;
+      box-shadow: var(--apar-shadow);
+    }
+
+    .apar-hero-inner {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 22px;
+      align-items: center;
+    }
+
+    .apar-logo-box {
+      width: 112px;
+      height: 112px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      backdrop-filter: blur(8px);
+    }
+
+    .apar-logo-box img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .apar-hero-title-block {
+      min-width: 0;
+    }
+
+    .apar-eyebrow {
+      margin: 0 0 10px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1.8px;
+      color: rgba(255, 255, 255, 0.76);
+      font-weight: 700;
+    }
+
+    .apar-hero h1 {
+      margin: 0;
+      font-size: clamp(30px, 4.6vw, 50px);
+      line-height: 1;
+      letter-spacing: -1.1px;
+    }
+
+    .apar-hero p {
+      margin: 12px 0 0;
+      max-width: 760px;
+      font-size: 16px;
+      line-height: 1.55;
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    .apar-hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .apar-page {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0 0 24px;
+    }
+
+    .apar-section {
+      margin-top: 24px;
+    }
+
+    .apar-section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 18px;
+      margin: 0 0 14px;
+    }
+
+    .apar-section-title {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -0.4px;
+    }
+
+    .apar-section-subtitle {
+      margin: 7px 0 0;
+      color: var(--apar-muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .apar-panel {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(217, 227, 234, 0.9);
+      border-radius: var(--apar-radius-xl);
+      box-shadow: var(--apar-shadow-soft);
+      padding: 22px;
+      backdrop-filter: blur(10px);
+    }
+
+    .apar-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .apar-grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    /* [NUEVO] apar-clubCards ahora puede mostrar 4 sucursales (se agregó Center);
+       auto-fit evita que la 4ª tarjeta quede sola en una fila aparte. */
+    #apar-clubCards {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .apar-grid-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .apar-grid-7 {
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    .apar-club-card {
+      background: var(--apar-surface);
+      border: 1px solid var(--apar-border);
+      border-radius: var(--apar-radius-xl);
+      box-shadow: var(--apar-shadow-soft);
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 116px 1fr;
+      gap: 18px;
+      align-items: center;
+      min-height: 180px;
+    }
+
+    .apar-donut {
+      width: 116px;
+      height: 116px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at center, #fff 0 58%, transparent 59%),
+        conic-gradient(var(--apar-gray) 0deg, var(--apar-gray) 0deg, #e8eef2 0deg 360deg);
+      box-shadow: inset 0 0 0 1px rgba(16, 32, 51, 0.04);
+    }
+
+    .apar-donut strong {
+      font-size: 24px;
+      letter-spacing: -0.6px;
+    }
+
+    .apar-club-card h3 {
+      margin: 0 0 8px;
+      font-size: 19px;
+      letter-spacing: -0.2px;
+    }
+
+    .apar-club-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 0 0 12px;
+      color: var(--apar-muted);
+      font-size: 13px;
+    }
+
+    .apar-club-meta strong {
+      color: var(--apar-text);
+    }
+
+    .apar-badge {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .apar-badge.apar-green { background: var(--apar-green); }
+    .apar-badge.apar-yellow { background: var(--apar-yellow); }
+    .apar-badge.apar-red { background: var(--apar-red); }
+    .apar-badge.apar-gray { background: var(--apar-gray); }
+
+    .apar-filters-panel {
+      margin-top: 22px;
+    }
+
+    .apar-filters-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+      align-items: end;
+    }
+
+    .apar-field label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--apar-muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    .apar-scope select,
+    .apar-scope input {
+      width: 100%;
+      border: 1px solid var(--apar-border);
+      background: #fff;
+      color: var(--apar-text);
+      border-radius: var(--apar-radius-md);
+      min-height: 46px;
+      padding: 11px 12px;
+      font-size: 14px;
+      outline: none;
+      transition: border .15s ease, box-shadow .15s ease, transform .15s ease;
+    }
+
+    .apar-scope select:focus,
+    .apar-scope input:focus {
+      border-color: var(--apar-teal);
+      box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
+    }
+
+    .apar-scope select[multiple] {
+      min-height: 104px;
+      padding: 6px;
+    }
+
+    .apar-scope select[multiple] option {
+      padding: 6px 8px;
+      border-radius: 8px;
+    }
+
+    .apar-field-hint {
+      display: block;
+      margin-top: 3px;
+      font-size: 11px;
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: normal;
+      color: var(--apar-muted);
+    }
+
+    .apar-button-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .apar-scope button {
+      border: 0;
+      border-radius: var(--apar-radius-md);
+      min-height: 46px;
+      padding: 12px 16px;
+      background: var(--apar-teal);
+      color: white;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(124, 58, 237, 0.22);
+      transition: transform .15s ease, opacity .15s ease, box-shadow .15s ease;
+    }
+
+    .apar-scope button:hover {
+      transform: translateY(-1px);
+      opacity: .96;
+      box-shadow: 0 14px 28px rgba(124, 58, 237, 0.26);
+    }
+
+    .apar-scope button.apar-secondary {
+      background: #102033;
+      box-shadow: 0 10px 24px rgba(16, 32, 51, 0.18);
+    }
+
+    .apar-chart-wrap {
+      height: 360px;
+      width: 100%;
+    }
+
+    .apar-kpi-card {
+      background: var(--apar-surface);
+      border: 1px solid var(--apar-border);
+      border-radius: var(--apar-radius-xl);
+      padding: 22px;
+      box-shadow: var(--apar-shadow-soft);
+    }
+
+    .apar-kpi-card h3 {
+      margin: 0 0 10px;
+      color: var(--apar-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .apar-kpi-value {
+      margin: 0;
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: -1px;
+    }
+
+    .apar-kpi-note {
+      margin: 8px 0 0;
+      color: var(--apar-muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .apar-criterion-card {
+      background: var(--apar-surface);
+      border: 1px solid var(--apar-border);
+      border-radius: var(--apar-radius-xl);
+      padding: 18px;
+      box-shadow: var(--apar-shadow-soft);
+      min-height: 318px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .apar-criterion-card .apar-donut {
+      width: 104px;
+      height: 104px;
+      margin: 0 auto;
+    }
+
+    .apar-criterion-card .apar-donut strong {
+      font-size: 21px;
+    }
+
+    .apar-criterion-card h3 {
+      margin: 0;
+      text-align: center;
+      font-size: 16px;
+      line-height: 1.2;
+      letter-spacing: -0.2px;
+    }
+
+    .apar-criterion-card p {
+      margin: 0;
+      color: var(--apar-muted);
+      font-size: 13px;
+      line-height: 1.42;
+      text-align: center;
+      flex: 1;
+    }
+
+    .apar-criterion-card .apar-badge {
+      margin: 0 auto;
+    }
+
+    .apar-comments-panel {
+      margin-top: 24px;
+    }
+
+    .apar-unlock-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 420px) auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .apar-comments-filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .apar-table-wrap {
+      margin-top: 18px;
+      border: 1px solid var(--apar-border);
+      border-radius: var(--apar-radius-lg);
+      overflow-x: auto;
+      background: white;
+    }
+
+    .apar-scope table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: collapse;
+    }
+
+    .apar-scope th,
+    .apar-scope td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--apar-border);
+      text-align: left;
+      font-size: 13px;
+      vertical-align: top;
+    }
+
+    .apar-scope th {
+      background: #F5F2FC;
+      color: var(--apar-teal);
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      font-size: 12px;
+    }
+
+    .apar-scope tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .apar-empty {
+      background: #fff;
+      border: 1px dashed var(--apar-border);
+      border-radius: var(--apar-radius-lg);
+      padding: 26px;
+      color: var(--apar-muted);
+      text-align: center;
+    }
+
+    .apar-toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 100;
+      background: #102033;
+      color: white;
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: var(--apar-shadow);
+      font-size: 14px;
+      max-width: 380px;
+    }
+
+    .apar-hidden {
+      display: none !important;
+    }
+
+    .apar-is-loading {
+      cursor: progress;
+    }
+
+    .apar-is-loading button,
+    .apar-is-loading select,
+    .apar-is-loading input {
+      pointer-events: none;
+      opacity: .72;
+    }
+
+    @media (max-width: 1120px) {
+      .apar-hero-inner {
+        grid-template-columns: auto 1fr;
+      }
+
+      .apar-hero-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+      }
+
+      .apar-grid-3,
+      .apar-grid-4,
+      .apar-grid-7,
+      .apar-filters-grid,
+      .apar-comments-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 700px) {
+      .apar-hero {
+        padding: 22px 16px 36px;
+        border-bottom-left-radius: 24px;
+        border-bottom-right-radius: 24px;
+      }
+
+      .apar-hero-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .apar-logo-box {
+        width: 96px;
+        height: 96px;
+      }
+
+      .apar-page {
+        padding: 0 12px 36px;
+      }
+
+      .apar-grid-3,
+      .apar-grid-4,
+      .apar-grid-7,
+      .apar-filters-grid,
+      .apar-comments-filters,
+      .apar-unlock-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .apar-club-card {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .apar-club-meta {
+        justify-content: center;
+      }
+
+      .apar-badge {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .apar-section-head {
+        display: block;
+      }
+
+      .apar-chart-wrap {
+        height: 310px;
+      }
+    }
+  
+    .apar-comment-row { border:1px solid #e0e8ee; border-radius:10px; padding:16px; margin-bottom:12px; background:#fff; }
+    .apar-comment-row.apar-resolved { background:#f0faf5; border-color:#b2dfc8; }
+    .apar-comment-meta { display:flex; flex-wrap:wrap; gap:8px 20px; font-size:13px; color:#5a7080; margin-bottom:8px; }
+    .apar-comment-meta strong { color:#102033; }
+    .apar-comment-body { font-size:14px; color:#102033; margin-bottom:12px; line-height:1.5; }
+    .apar-comment-actions { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+    .apar-comment-actions label { font-size:13px; font-weight:600; color:#102033; display:flex; align-items:center; gap:6px; cursor:pointer; }
+    .apar-comment-actions input[type="checkbox"] { width:16px; height:16px; cursor:pointer; accent-color:#7C3AED; }
+    .apar-comment-actions input[type="date"] { font-size:13px; padding:4px 8px; border:1px solid #c5d4de; border-radius:6px; color:#102033; }
+    .apar-days-badge { font-size:12px; font-weight:700; padding:3px 10px; border-radius:20px; background:#e8f4f8; color:#7C3AED; }
+    .apar-days-badge.apar-overdue { background:#fdecea; color:#DC2626; }
+    .apar-progress-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .apar-progress-table th { background:#7C3AED; color:#fff; padding:10px 12px; text-align:left; }
+    .apar-progress-table td { padding:9px 12px; border-bottom:1px solid #e8eef2; }
+    .apar-progress-table tr:last-child td { border-bottom:none; }
+    .apar-progress-table tr:hover td { background:#f5f9fb; }
+    .apar-prog-bar-wrap { width:100px; background:#e8eef2; border-radius:20px; height:8px; display:inline-block; vertical-align:middle; margin-right:6px; }
+    .apar-prog-bar { height:8px; border-radius:20px; background:#7C3AED; }
+    .apar-prog-bar.apar-yellow { background:#F59E0B; }
+    .apar-prog-bar.apar-red    { background:#DC2626; }
+    .apar-tab-row { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+    .apar-tab-btn { padding:8px 20px; border-radius:20px; border:2px solid #7C3AED; background:#fff; color:#7C3AED; font-weight:700; cursor:pointer; font-size:13px; }
+    .apar-tab-btn.active { background:#7C3AED; color:#fff; }
+    .apar-tab-content { display:none; }
+    .apar-tab-content.active { display:block; }
+
+    /* [NUEVO] (4) Panel de detalle de Gafete */
+    .apar-criterion-card-clickable:hover { box-shadow: var(--apar-shadow); transform: translateY(-2px); transition: all .15s ease; }
+    .apar-gafete-modal-overlay {
+      position: fixed; inset: 0; background: rgba(16,32,51,0.55);
+      display:flex; align-items:center; justify-content:center; z-index: 1000; padding: 20px;
+    }
+    .apar-gafete-modal-overlay.apar-hidden { display:none; }
+    .apar-gafete-modal {
+      background: var(--apar-surface); border-radius: var(--apar-radius-lg); box-shadow: var(--apar-shadow);
+      max-width: 760px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 24px;
+    }
+    .apar-gafete-modal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+    .apar-gafete-modal-head h3 { margin:0; font-size:20px; }
+    .apar-gafete-modal-head button {
+      border:none; background:#f3f7fb; border-radius:50%; width:32px; height:32px;
+      cursor:pointer; font-size:16px; color:#5a7080;
+    }
+    .apar-gafete-modal-body { display:grid; grid-template-columns: 260px 1fr; gap:24px; align-items:center; }
+    .apar-gafete-chart-wrap { position:relative; height:260px; }
+    .apar-gafete-motivos-list { display:flex; flex-direction:column; gap:8px; }
+    .apar-gafete-motivo-row { display:flex; justify-content:space-between; align-items:center;
+      padding:8px 12px; background:var(--apar-surface-2); border-radius:10px; font-size:13px; }
+    .apar-gafete-motivo-row .apar-swatch { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:8px; }
+    @media (max-width: 640px) { .apar-gafete-modal-body { grid-template-columns: 1fr; } }
+
 </style>
 
 </head>
@@ -1150,6 +1766,9 @@
       </button>
       <button class="sidebar-item" data-tab="reclutamiento" onclick="switchTab('reclutamiento')">
         <span class="si-icon"></span><span class="si-label">Reclutamiento</span>
+      </button>
+      <button class="sidebar-item" data-tab="servicio" onclick="switchTab('servicio')">
+        <span class="si-icon"></span><span class="si-label">Servicio</span>
       </button>
     </div>
   </div>
@@ -1843,6 +2462,164 @@
     </div>
 
     <div id="recl-content"></div>
+  </div>
+
+  <div class="tab-panel" id="panel-servicio">
+    <div class="section-header">
+      <div class="section-title">Servicio</div>
+      <button class="btn-nuevo-colab" id="apar-refreshTopBtn">Actualizar datos</button>
+    </div>
+    <p class="bandeja-sub" style="margin-bottom:16px">Seguimiento de política de apariencia y ambiente físico por sucursal.</p>
+
+    <div class="recl-tabs">
+      <button class="recl-tab-btn active" data-serv-view="apariencia" onclick="servSwitchView('apariencia')">Política de Apariencia</button>
+      <button class="recl-tab-btn" data-serv-view="ambiente" onclick="servSwitchView('ambiente')">Ambiente Físico</button>
+    </div>
+
+    <div class="dc-subpanel active" id="serv-subpanel-apariencia">
+      <div class="apar-scope">
+        <div class="apar-page">
+
+            <!-- FILTROS -->
+            <section class="apar-section apar-panel apar-filters-panel">
+              <div class="apar-section-head"><div>
+                <h2 class="apar-section-title">Filtros</h2>
+                <p class="apar-section-subtitle">La información se recalcula con base en la selección aplicada.</p>
+              </div></div>
+              <div class="apar-filters-grid">
+                <div class="apar-field"><label for="apar-filterMonth">Mes</label><select id="apar-filterMonth"></select></div>
+                <div class="apar-field"><label for="apar-filterClub">Club</label><select id="apar-filterClub"></select></div>
+                <div class="apar-field"><label for="apar-filterRole">Rol<span class="apar-field-hint">Ctrl/Cmd + clic para elegir varios</span></label><select id="apar-filterRole" multiple></select></div>
+                <div class="apar-field"><label for="apar-filterShift">Turno</label><select id="apar-filterShift"></select></div>
+                <div class="apar-field"><label for="apar-filterCriterion">Criterio</label><select id="apar-filterCriterion"></select></div>
+              </div>
+              <div class="apar-button-row" style="margin-top:16px;">
+                <button id="apar-clearFiltersBtn" class="apar-secondary">Limpiar filtros</button>
+              </div>
+            </section>
+        
+            <!-- CARDS APAR_CLUBS -->
+            <section class="apar-section">
+              <div class="apar-section-head"><div>
+                <h2 class="apar-section-title">Cumplimiento mensual de caminatas por club</h2>
+                <p class="apar-section-subtitle">Porcentaje de cumplimiento según los filtros aplicados.</p>
+              </div></div>
+              <div id="apar-clubCards" class="apar-grid apar-grid-3"></div>
+            </section>
+        
+            <!-- GRÁFICA -->
+            <section class="apar-section apar-panel">
+              <div class="apar-section-head"><div>
+                <h2 class="apar-section-title">Cumplimiento mensual</h2>
+                <p class="apar-section-subtitle">Comparativo de cumplimiento por club.</p>
+              </div></div>
+              <div class="apar-chart-wrap"><canvas id="aparMonthlyChart"></canvas></div>
+            </section>
+        
+            <!-- KPIs -->
+            <section class="apar-section">
+              <div class="apar-section-head"><div>
+                <h2 class="apar-section-title">Resultado de Política de Apariencia</h2>
+                <p class="apar-section-subtitle">Lectura general de cumplimiento de acuerdo con los filtros seleccionados.</p>
+              </div></div>
+              <div id="apar-kpiCards" class="apar-grid apar-grid-3"></div>
+            </section>
+        
+            <!-- [NUEVO] RESULTADO MENSUAL COMPARATIVO -->
+            <section class="apar-section apar-panel">
+              <div class="apar-section-head"><div>
+                <h2 class="apar-section-title">Resultado mensual comparativo</h2>
+                <p class="apar-section-subtitle">Promedio de cumplimiento de Política de Apariencia por mes y club. Pasa el cursor sobre un punto para ver el criterio más alto y más bajo de ese mes.</p>
+              </div></div>
+              <div class="apar-chart-wrap"><canvas id="aparResultsMonthlyChart"></canvas></div>
+            </section>
+        
+            <!-- CRITERIOS -->
+            <section class="apar-section">
+              <div class="apar-section-head"><div>
+                <h2 class="apar-section-title">Resultados por criterio</h2>
+                <p class="apar-section-subtitle">Cada criterio muestra su porcentaje, descripción y estado visual.</p>
+              </div></div>
+              <div id="apar-criteriaCards" class="apar-grid apar-grid-7"></div>
+            </section>
+        
+            <!-- AVANCE CAMINATAS POR ROL -->
+            <section class="apar-section apar-panel">
+              <div class="apar-section-head"><div>
+                <h2 class="apar-section-title">Avance de caminatas por rol</h2>
+                <p class="apar-section-subtitle">Comparativo de caminatas realizadas vs meta mensual por rol y club.</p>
+              </div></div>
+              <div class="apar-filters-grid" style="margin-bottom:16px;">
+                <div class="apar-field"><label for="apar-avanceMonth">Mes</label><select id="apar-avanceMonth"></select></div>
+                <div class="apar-field"><label for="apar-avanceClub">Club</label><select id="apar-avanceClub"></select></div>
+              </div>
+              <div id="apar-avanceTable"></div>
+            </section>
+        
+            <!-- COMENTARIOS CH -->
+            <section class="apar-section apar-panel apar-comments-panel">
+              <div class="apar-section-head"><div>
+                <h2 class="apar-section-title">Capital Humano | Comentarios relevantes</h2>
+                <p class="apar-section-subtitle">Acceso interno — seguimiento y resolución de comentarios accionables.</p>
+              </div></div>
+        
+              <div id="apar-unlockBox" class="apar-unlock-grid">
+                <div class="apar-field">
+                  <label for="apar-commentsPassword">Contraseña</label>
+                  <input id="apar-commentsPassword" type="password" placeholder="Ingresa la contraseña" />
+                </div>
+                <button id="apar-unlockCommentsBtn">Entrar</button>
+              </div>
+        
+              <div id="apar-commentsPanel" class="apar-hidden">
+                <div class="apar-tab-row">
+                  <button class="apar-tab-btn active" data-tab="pendientes">⏳ Pendientes</button>
+                  <button class="apar-tab-btn" data-tab="resueltos">✅ Resueltos</button>
+                  <button class="apar-tab-btn" data-tab="todos">Todos</button>
+                </div>
+        
+                <!-- [MODIFICADO 2026-07-02] Resumen simple: cuántas incidencias vs cuántas atendidas -->
+                <div id="apar-tipoIncidenciaSummary"></div>
+        
+                <div class="apar-comments-filters">
+                  <div class="apar-field"><label for="apar-commentClub">Sucursal</label><select id="apar-commentClub"></select></div>
+                  <div class="apar-field"><label for="apar-commentMonth">Mes</label><select id="apar-commentMonth"></select></div>
+                  <div class="apar-field"><label for="apar-commentRole">Rol</label><select id="apar-commentRole"></select></div>
+                  <div class="apar-field"><label for="apar-commentShift">Turno</label><select id="apar-commentShift"></select></div>
+                  <div class="apar-field"><label for="apar-commentTipo">Tipo de incidencia</label><select id="apar-commentTipo"></select></div>
+                </div>
+        
+                <div id="apar-commentsContainer"></div>
+              </div>
+            </section>
+
+          </div>
+
+          <!-- [NUEVO] (4) Panel de detalle: motivos de falla de Gafete -->
+          <div id="apar-gafeteModalOverlay" class="apar-gafete-modal-overlay apar-hidden" onclick="aparCloseGafeteModalOnOverlay(event)">
+            <div class="apar-gafete-modal">
+              <div class="apar-gafete-modal-head">
+                <h3>Desglose de motivos — Gafete</h3>
+                <button type="button" id="apar-gafeteModalClose" onclick="aparCloseGafeteModal()">✕</button>
+              </div>
+              <p class="apar-section-subtitle" style="margin:0 0 14px;">
+                Distribución de motivos de falla, calculada sobre la selección de filtros globales
+                (Mes, Sucursal, Rol, Turno) vigente en el dashboard.
+              </p>
+              <div class="apar-gafete-modal-body">
+                <div class="apar-gafete-chart-wrap"><canvas id="apar-gafeteDonutChart"></canvas></div>
+                <div id="apar-gafeteMotivosList" class="apar-gafete-motivos-list"></div>
+              </div>
+            </div>
+          </div>
+        
+          <div id="apar-toast" class="apar-toast apar-hidden"></div>
+      </div>
+    </div>
+
+    <div class="dc-subpanel" id="serv-subpanel-ambiente">
+      <div class="soon-box"><div class="soon-icon"></div><div class="soon-title">Ambiente Físico</div><div class="soon-desc">Seguimiento de condiciones de ambiente físico por sucursal. Sección en construcción, pendiente de integrar.</div></div>
+    </div>
   </div>
 
   <div class="tab-panel" id="panel-configuracion">
@@ -3884,9 +4661,1558 @@ const FORMACION_TABS = ['preonboarding','treinta','evaluacion','certificaciones'
 // contestar sus evaluaciones pendientes) — lo que cambia por rol es el contenido dentro, no si
 // aparece o no en la barra (ver renderDesempeno). Sin simulación activa navegando el panel se ve todo,
 // como hasta ahora — el filtro solo aplica cuando alguien está "viendo como" un rol concreto.
+// ══════════════════════════════════════════════════════════════════════════
+// SERVICIO > POLÍTICA DE APARIENCIA (ported from apariencia.html)
+// ══════════════════════════════════════════════════════════════════════════
+// [MODIFICADO] (2) Este objeto se usaba antes como única fuente de metas por
+  // rol. Ahora es solo un RESPALDO por si el backend no responde: la fuente
+  // real y dinámica es la pestaña "Plantilla y Meta", leída vía APAR_APPS_SCRIPT_URL
+  // (ver aparGetMetaRolPara() más abajo).
+  const APAR_META_FALLBACK = {
+    "Naciones Unidas": {
+      "Caja": 2, "Caja estacionamiento": 2, "Coach deportivo": 8,
+      "Concierge vestidores": 3, "Ejecutivo": 3, "Estiramiento": 4,
+      "Instructor Acuática": 9, "Kids": 4, "Mobility": 2,
+      "Nutrición": 2, "Recepción": 2, "Recepción Acuática": 2,
+      "Vestidores / técnico de Orden y Limpieza": 15
+    },
+    "Gourmetería": {
+      "Caja": 2, "Caja estacionamiento": 0, "Coach deportivo": 7,
+      "Concierge vestidores": 2, "Ejecutivo": 2, "Estiramiento": 5,
+      "Instructor Acuática": 0, "Kids": 2, "Mobility": 1,
+      "Nutrición": 2, "Recepción": 0, "Recepción Acuática": 0,
+      "Vestidores / técnico de Orden y Limpieza": 9
+    },
+    "Valle Real": {
+      "Caja": 1, "Caja estacionamiento": 0, "Coach deportivo": 8,
+      "Concierge vestidores": 2, "Ejecutivo": 2, "Estiramiento": 3,
+      "Instructor Acuática": 0, "Kids": 3, "Mobility": 2,
+      "Nutrición": 2, "Recepción": 0, "Recepción Acuática": 0,
+      "Vestidores / técnico de Orden y Limpieza": 10
+    },
+    // [NUEVO] Sucursal Center. Sin metas propias todavía: mientras el backend
+    // no traiga sus valores reales desde "Plantilla y Meta", queda en 0/vacío
+    // en vez de heredar por error las metas de otro club.
+    "Center": {}
+  };
+
+  // ─── CONFIG ─────────────────────────────────────────────────────────────────
+  const APAR_SHEET_ID      = "1tGCCClzUE0WBPJJ5TWZMmB35Vq_41BXvwl5LYAokKwg";
+  const APAR_GID_FORM      = "0";   // Respuestas de formulario 1
+  const APAR_COMMENTS_PWD  = "ch1234";
+  const APAR_JSONP_TIMEOUT = 20000;
+
+  // [NUEVO] URL del Web App de Apps Script (Codigo.gs) publicado como
+  // "Cualquier usuario, incluso anónimo". Reemplaza por tu URL real de
+  // despliegue (Implementar > Nueva implementación > Aplicación web).
+  // Alimenta: (1) cumplimiento real de caminatas por club, (2) metas por rol
+  // desde "Plantilla y Meta", (3) persistencia de resolución de comentarios,
+  // (4) motivos de falla de Gafete.
+  const APAR_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby8e1vk137rCOGYpaSkX1jBrcrlktfhlAeq8t2CQHCeARKd014keHngDtt62cW-hRVsgQ/exec";
+
+  // [FIX] Antes aparLoadData() leía directamente el endpoint público (gviz) de
+  // Google Sheets, sin autenticación. Ese endpoint anónimo puede quedarse
+  // "atorado" sirviendo una copia vieja/recortada del Sheet cuando crece
+  // mucho (se vieron solo 37 de 593+ filas reales). Ahora los datos se piden
+  // a través de este mismo Apps Script (acceso autenticado y completo), que
+  // entrega la hoja "Respuestas de formulario 1" ya empaquetada con la misma
+  // forma que gviz (cols/rows), para no tener que tocar aparParseGvizTable().
+  const APAR_FORM_RESPONSES_ACTION = "formResponses";
+
+  const APAR_MONTHS  = ["Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+  const APAR_CLUBS   = ["Naciones Unidas","Gourmetería","Valle Real","Center"];
+  const APAR_CRITERIA = [
+    { key:"H",  name:"Higiene de manos",             description:"Manos limpias, uñas cuidadas y apariencia alineada al estándar." },
+    { key:"P",  name:"Peinado",                      description:"Cabello limpio, peinado o estilizado conforme a la imagen esperada." },
+    { key:"A",  name:"Accesorios",                   description:"Accesorios discretos, apropiados y acordes a una imagen profesional." },
+    { key:"LU", name:"Limpieza y estado del uniforme",description:"Uniforme limpio, sin manchas, arrugas o daños visibles." },
+    { key:"U",  name:"Uniforme",                     description:"Uniforme completo, correctamente colocado y ajustado al protocolo." },
+    { key:"C",  name:"Calzado",                      description:"Calzado del color establecido, limpio y en buen estado." },
+    { key:"G",  name:"Gafete",                       description:"Gafete visible, limpio, alineado y portado correctamente." }
+  ];
+  const APAR_CLUB_COLORS = { "Naciones Unidas":"#7C3AED", "Gourmetería":"#F59E0B", "Valle Real":"#06B6D4", "Center":"#EC4899" };
+
+  // [MODIFICADO 2026-07-02] Mismas categorías que el Google Form/Sheet, con
+  // "Otro" permitiendo texto libre para que el colaborador de CH escriba su
+  // propia categoría cuando ninguna de las anteriores aplique.
+  const APAR_TIPOS_INCIDENCIA = ["Gafete", "Reposición de uniforme", "Duda en uniforme", "Alineación al colaborador", "Felicitación al colaborador", "Otro"];
+
+  // [FIX 2026-07-02] La comparación exacta fallaba en casos como el Sheet
+  // trayendo "Reposición uniforme" contra el catálogo "Reposición de
+  // uniforme" (una palabra conectora de diferencia) — el select caía siempre
+  // en "Otro" mostrando además el texto original al lado, dando la impresión
+  // de "doble clasificación". Ahora se ignoran palabras conectoras al
+  // comparar, así ambas formas emparejan con la misma categoría fija.
+  function aparNormalizeTipoParaComparar_(v) {
+    return aparNormalizeText(v)
+      .split(" ")
+      .filter(w => !["DE", "DEL", "LA", "EL", "LOS", "LAS", "AL"].includes(w))
+      .join(" ");
+  }
+
+  // Empareja la clasificación cruda del Sheet (columna R) con una de las
+  // categorías fijas de arriba (comparación sin acentos/mayúsculas/palabras
+  // conectoras). Si no coincide con ninguna pero sí trae texto, se trata como
+  // "Otro" con ese texto como valor personalizado.
+  function aparMatchTipoIncidencia_(rawTipo) {
+    const raw = aparCleanText(rawTipo);
+    if (!raw) return { select: "", custom: "" };
+    const norm = aparNormalizeTipoParaComparar_(raw);
+    const found = APAR_TIPOS_INCIDENCIA.find(t => t !== "Otro" && aparNormalizeTipoParaComparar_(t) === norm);
+    if (found) return { select: found, custom: "" };
+    return { select: "Otro", custom: raw };
+  }
+
+  // ─── ESTADO ──────────────────────────────────────────────────────────────────
+  let aparRespuestas    = [];
+  let aparComentStates  = {};  // { [commentId]: { resolved, resolvedDate, tipo } }
+  let aparHiddenComments = {}; // [NUEVO] (3) { [commentId]: true } — "Ocultar de la vista"
+  let aparMonthlyChart  = null;
+  let aparResultsMonthlyChart = null; // [NUEVO] Resultado mensual comparativo (Política de Apariencia)
+  let aparActiveTab     = "pendientes";
+
+  // [NUEVO] (1) Cumplimiento real de caminatas por club/mes, leído de la hoja
+  // "Caminatas realizadas" a través del backend (Codigo.gs).
+  let aparCaminatasClubData = []; // [{club, clubCode, mes, meta, real, porcentaje, estado}, ...]
+
+  // [NUEVO] (2) Metas por rol leídas dinámicamente de "Plantilla y Meta".
+  // null hasta que el backend responda; se usa APAR_META_FALLBACK mientras tanto.
+  let aparMetasRolData = null; // { "Naciones Unidas": { "Caja": 3, ... }, ... }
+
+  // [NUEVO] (4) Motivos de falla de Gafete, conteos brutos por club/mes/turno.
+  let aparMotivosGafeteData = []; // [{club, mes, turno, motivo, conteo}, ...]
+  let aparGafeteChart = null;
+
+  // [FIX 2026-07-02] aparLoadData() (gviz) y aparLoadBackendData() (Apps Script) corren
+  // en paralelo. Si el backend responde antes de que "aparRespuestas" esté lista,
+  // se guarda aquí para reintentar el merge en cuanto gviz termine, sin
+  // importar el orden de llegada.
+  let aparPendingResoluciones = null;
+
+  // Devuelve las metas por rol de un club: usa datos dinámicos del backend si
+  // ya llegaron, si no, cae de vuelta al respaldo estático.
+  function aparGetMetaRolPara(club) {
+    if (aparMetasRolData && aparMetasRolData[club] && Object.keys(aparMetasRolData[club]).length) {
+      return aparMetasRolData[club];
+    }
+    return APAR_META_FALLBACK[club] || {};
+  }
+
+  Chart.register(ChartDataLabels);
+
+  // ─── STORAGE ─────────────────────────────────────────────────────────────────
+  const APAR_STORAGE_KEY = "ch_comment_states";
+
+  async function aparLoadCommentStates() {
+    try {
+      const raw = localStorage.getItem(APAR_STORAGE_KEY);
+      aparComentStates = raw ? JSON.parse(raw) : {};
+    } catch(e) { aparComentStates = {}; }
+  }
+
+  async function aparSaveCommentStates() {
+    try {
+      localStorage.setItem(APAR_STORAGE_KEY, JSON.stringify(aparComentStates));
+    } catch(e) { console.error("Error guardando estados:", e); }
+  }
+
+  // [NUEVO] (3) Botón "Ocultar de la vista" — solo local, no se persiste en Excel.
+  const APAR_HIDDEN_STORAGE_KEY = "ch_hidden_comments";
+  async function aparLoadHiddenComments() {
+    try {
+      const raw = localStorage.getItem(APAR_HIDDEN_STORAGE_KEY);
+      aparHiddenComments = raw ? JSON.parse(raw) : {};
+    } catch(e) { aparHiddenComments = {}; }
+  }
+  async function aparSaveHiddenComments() {
+    try {
+      localStorage.setItem(APAR_HIDDEN_STORAGE_KEY, JSON.stringify(aparHiddenComments));
+    } catch(e) { console.error("Error guardando comentarios ocultos:", e); }
+  }
+  function aparHideComment(id) {
+    aparHiddenComments[id] = true;
+    aparSaveHiddenComments();
+    aparRenderComments();
+  }
+
+  // ─── INIT ────────────────────────────────────────────────────────────────────
+  let _servAparInitDone = false;
+  async function servAparInit() {
+    if (_servAparInitDone) return;
+    _servAparInitDone = true;
+    await aparLoadCommentStates();
+    await aparLoadHiddenComments();
+    aparBindEvents();
+    aparSetupEmptyDashboard();
+    aparLoadData();
+    aparLoadBackendData(); // [NUEVO] (1)(2)(3)(4) — en paralelo, no bloquea la carga principal
+  }
+  function servInit() {
+    servAparInit();
+  }
+  function servSwitchView(view) {
+    document.querySelectorAll('#panel-servicio .recl-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.servView === view));
+    document.querySelectorAll('#panel-servicio .dc-subpanel').forEach(p => p.classList.remove('active'));
+    document.getElementById('serv-subpanel-' + view).classList.add('active');
+  }
+
+  function aparBindEvents() {
+    ["apar-filterMonth","apar-filterClub","apar-filterRole","apar-filterShift","apar-filterCriterion"]
+      .forEach(id => document.getElementById(id).addEventListener("change", aparRenderAll));
+    ["apar-commentClub","apar-commentMonth","apar-commentRole","apar-commentShift","apar-commentTipo"]
+      .forEach(id => document.getElementById(id).addEventListener("change", aparRenderComments));
+    document.getElementById("apar-avanceMonth").addEventListener("change", aparRenderAvance);
+    document.getElementById("apar-avanceClub").addEventListener("change", aparRenderAvance);
+    document.getElementById("apar-refreshTopBtn").addEventListener("click", () => { aparLoadData(); aparLoadBackendData(); });
+    document.getElementById("apar-clearFiltersBtn").addEventListener("click", () => {
+      ["apar-filterMonth","apar-filterClub","apar-filterShift","apar-filterCriterion"]
+        .forEach(id => document.getElementById(id).value = "Todos");
+      Array.from(document.getElementById("apar-filterRole").options).forEach(o => o.selected = false);
+      aparRenderAll();
+    });
+    document.getElementById("apar-unlockCommentsBtn").addEventListener("click", aparUnlockComments);
+    document.getElementById("apar-commentsPassword").addEventListener("keydown", e => {
+      if (e.key === "Enter") aparUnlockComments();
+    });
+    document.querySelectorAll(".apar-tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".apar-tab-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        aparActiveTab = btn.dataset.tab;
+        aparRenderComments();
+      });
+    });
+  }
+
+  function aparSetupEmptyDashboard() {
+    aparFillSelect("apar-filterMonth",     ["Todos",...APAR_MONTHS], "Todos");
+    aparFillSelect("apar-filterClub",      ["Todos",...APAR_CLUBS],  "Todos");
+    aparFillMultiSelect("apar-filterRole", []);
+    aparFillSelect("apar-filterShift",     ["Todos"],            "Todos");
+    aparFillSelect("apar-filterCriterion", ["Todos",...APAR_CRITERIA.map(c=>c.name)], "Todos");
+    aparFillSelect("apar-commentClub",     ["Todos",...APAR_CLUBS],  "Todos");
+    aparFillSelect("apar-commentMonth",    ["Todos",...APAR_MONTHS], "Todos");
+    aparFillSelect("apar-commentRole",     ["Todos"],            "Todos");
+    aparFillSelect("apar-commentShift",    ["Todos"],            "Todos");
+    // El apartado de Avance arranca mostrando el mes en curso automáticamente
+    const currentMonth = aparGetCurrentMonthName();
+    aparFillSelect("apar-avanceMonth",     ["Todos",...APAR_MONTHS], currentMonth);
+    aparFillSelect("apar-avanceClub",      ["Todos",...APAR_CLUBS],  "Todos");
+  }
+
+  // ─── CARGA DE DATOS ──────────────────────────────────────────────────────────
+  // [FIX] Antes esta función armaba su propio JSONP directo a
+  // docs.google.com/.../gviz (acceso público/anónimo). Ahora reutiliza
+  // aparCallAppsScript() para pedir la misma información, pero autenticada, a
+  // través del Web App de Codigo.gs — evita el límite/recorte del endpoint
+  // público. El resto del parseo (aparParseGvizTable) no cambia porque el
+  // backend entrega la tabla en la misma forma {cols, rows} que gviz.
+  async function aparLoadData() {
+    aparSetLoading(true);
+    aparShowToast("Cargando datos...");
+    try {
+      const result = await aparCallAppsScript(APAR_FORM_RESPONSES_ACTION);
+      if (!result || !result.table) {
+        throw new Error("Sin datos");
+      }
+      const table = result.table;
+      console.log("[formResponses] Tabla recibida:", table);
+      if (!table.rows) throw new Error("Sin datos");
+      aparRespuestas = aparParseGvizTable(table);
+      if (aparPendingResoluciones) aparMergeResolucionesPersistidas_(aparPendingResoluciones);
+      aparPopulateFilters();
+      aparRenderAll();
+      aparRenderAvance();
+      if (aparRespuestas.length === 0 && table.rows.length > 0) {
+        // [NUEVO] Conexión OK pero el parseo descartó todo: probablemente
+        // cambiaron los encabezados del Form. Ver detalle en consola.
+        aparShowToast(`⚠️ Se conectó al Sheet (${table.rows.length} filas) pero 0 pasaron el filtro. Revisa la consola (F12) para ver el detalle de columnas.`);
+      } else {
+        aparShowToast("✓ " + aparRespuestas.length + " registros cargados.");
+      }
+    } catch (err) {
+      console.error("[formResponses] Error procesando datos:", err);
+      aparShowToast("Error al procesar datos: " + err.message + " Verifica APAR_APPS_SCRIPT_URL y que el Web App esté implementado con la última versión.");
+    } finally {
+      aparSetLoading(false);
+    }
+  }
+
+  /* ============================================================================
+   * [NUEVO] CARGA DEL BACKEND (Codigo.gs) — puntos (1), (2), (3) y (4)
+   * Se llama vía JSONP (igual patrón que aparLoadData) para evitar problemas de
+   * CORS, tanto para lectura como para "escritura" (saveResolution).
+   * ==========================================================================*/
+  function aparCallAppsScript(action, extraParams) {
+    return new Promise((resolve) => {
+      if (!APAR_APPS_SCRIPT_URL || APAR_APPS_SCRIPT_URL.indexOf("TU_ID_DE_DESPLIEGUE") >= 0) {
+        // No configurado todavía: falla silenciosamente y se usan respaldos locales.
+        resolve(null);
+        return;
+      }
+      const cbName = "_appsScriptCb_" + Date.now() + "_" + Math.floor(Math.random()*1e6);
+      let timer = null;
+      function cleanup() {
+        clearTimeout(timer);
+        const s = document.getElementById(cbName);
+        if (s) s.remove();
+        try { delete window[cbName]; } catch(e) {}
+      }
+      window[cbName] = function(data) {
+        cleanup();
+        if (!data) {
+          console.warn(`[Codigo.gs] action=${action} devolvió una respuesta vacía/nula.`);
+        } else if (!data.ok) {
+          console.error(`[Codigo.gs] action=${action} falló:`, data.message || data);
+        }
+        resolve(data && data.ok ? data.data : null);
+      };
+      timer = setTimeout(() => {
+        cleanup();
+        console.warn(`[Codigo.gs] action=${action} agotó el tiempo de espera (${APAR_JSONP_TIMEOUT}ms). Verifica APAR_APPS_SCRIPT_URL y que el Web App esté implementado con acceso "Cualquier usuario".`);
+        resolve(null);
+      }, APAR_JSONP_TIMEOUT);
+      const params = new URLSearchParams({ action, callback: cbName, t: Date.now(), ...(extraParams||{}) });
+      const script = document.createElement("script");
+      script.id = cbName;
+      script.onerror = () => {
+        cleanup();
+        console.error(`[Codigo.gs] No se pudo cargar el script de action=${action}. Verifica APAR_APPS_SCRIPT_URL:`, APAR_APPS_SCRIPT_URL);
+        resolve(null);
+      };
+      script.src = `${APAR_APPS_SCRIPT_URL}?${params.toString()}`;
+      document.body.appendChild(script);
+    });
+  }
+
+  async function aparLoadBackendData() {
+    const [cumplimiento, metasRol, motivos, resoluciones] = await Promise.all([
+      aparCallAppsScript("cumplimientoMensualSucursal"), // (1)
+      aparCallAppsScript("metasRol"),                    // (2)
+      aparCallAppsScript("motivosGafete"),                // (4)
+      aparCallAppsScript("resoluciones")                  // (3)
+    ]);
+
+    if (cumplimiento && cumplimiento.cumplimientoMensualSucursal) {
+      aparCaminatasClubData = cumplimiento.cumplimientoMensualSucursal;
+    }
+    if (metasRol && metasRol.metasRol) {
+      aparMetasRolData = metasRol.metasRol;
+    }
+    if (motivos && motivos.motivosGafete) {
+      aparMotivosGafeteData = motivos.motivosGafete;
+    }
+    if (resoluciones && resoluciones.resoluciones) {
+      aparPendingResoluciones = resoluciones.resoluciones;
+      aparMergeResolucionesPersistidas_(aparPendingResoluciones);
+    }
+
+    // Vuelve a pintar todo con los datos ya corregidos/dinámicos.
+    aparRenderAll();
+    aparRenderAvance();
+  }
+
+  // [NUEVO] (3) Cruza las resoluciones ya guardadas en Excel (por índice de
+  // fila gviz) con los comentarios ya parseados (por commentId), para que el
+  // dashboard reclasifique automáticamente lo ya resuelto sin depender solo
+  // de localStorage.
+  function aparMergeResolucionesPersistidas_(resolucionesBackend) {
+    if (!aparRespuestas.length) return;
+    // [FIX] Antes, si resolucionesBackend venía vacío (0 filas resueltas de
+    // verdad en el Excel), la función se salía sin hacer nada — dejando
+    // "pegados" para siempre en localStorage estados de "resuelto" viejos
+    // (p.ej. de pruebas anteriores o de un bug ya corregido). Ahora el
+    // backend manda SIEMPRE la última palabra: se recorren TODAS las
+    // aparRespuestas y se sobreescribe su estado local según lo que diga (o no
+    // diga) el Excel, así una fila sin resolución real siempre queda
+    // desmarcada, sin importar lo que haya quedado guardado antes.
+    const byRowIndex = {};
+    (resolucionesBackend || []).forEach(res => { byRowIndex[res.gvizRowIndex] = res; });
+
+    aparRespuestas.forEach(r => {
+      const res = byRowIndex[r.gvizRowIndex];
+      aparComentStates[r.commentId] = {
+        resolved: !!(res && res.fecha),
+        resolvedDate: (res && res.fecha) || "",
+        tipo: (res && res.tipo) || "",
+        nota: (res && res.nota) || ""
+      };
+    });
+    aparSaveCommentStates();
+  }
+
+  // ─── PARSEO GVIZ ─────────────────────────────────────────────────────────────
+  // [MODIFICADO — FIX 2026-07-02] Antes los índices de columna estaban
+  // "quemados" en el código (ej. MES = índice 19), basados en una copia
+  // exportada del Excel en un momento dado. Si el Google Form real agrega,
+  // quita o reordena una pregunta, esos índices quedan desalineados y TODAS
+  // las filas se descartan silenciosamente (mes="" → se ignora la fila),
+  // lo que se ve como "0 registros cargados" con los selectores vacíos.
+  //
+  // Ahora los índices se resuelven de forma DINÁMICA leyendo los encabezados
+  // reales que manda gviz (table.cols[i].label), y solo se usa el índice fijo
+  // como último recurso si no se encuentra el encabezado esperado. Así el
+  // dashboard sigue funcionando aunque cambie el orden de las columnas.
+  function aparResolveGvizColumns_(table) {
+    const cols = (table.cols || []).map(c => aparNormalizeText(c && c.label || ""));
+
+    function find(matcher, fallbackIdx, fieldName) {
+      for (let i = 0; i < cols.length; i++) {
+        if (matcher(cols[i])) return i;
+      }
+      console.warn(`[gviz] No se encontró encabezado para "${fieldName}", usando índice de respaldo ${fallbackIdx}. Encabezados detectados:`, cols);
+      return fallbackIdx;
+    }
+    // [NUEVO 2026-07-21] Igual que find(), pero devuelve TODAS las columnas que
+    // coinciden en vez de solo la primera. El Google Form real fue editado
+    // reemplazando la pregunta de Rol/Turno/Nombre del colaborador por una
+    // nueva con etiqueta parecida: la columna vieja queda vacía para las
+    // aparRespuestas nuevas y la columna nueva queda vacía para las aparRespuestas
+    // viejas. find() (solo la primera coincidencia) se quedaba pegado a la
+    // columna vieja y esos campos llegaban vacíos para todas las aparRespuestas
+    // posteriores al cambio del Form (se veía como "julio sin ningún avance").
+    // getFirst() en aparParseGvizTable prueba cada columna candidata fila por fila
+    // y usa la primera que tenga dato, sin importar en cuál haya quedado.
+    function findAll(matcher, fallbackIdx, fieldName) {
+      const found = [];
+      for (let i = 0; i < cols.length; i++) {
+        if (matcher(cols[i])) found.push(i);
+      }
+      if (!found.length) {
+        console.warn(`[gviz] No se encontró encabezado para "${fieldName}", usando índice de respaldo ${fallbackIdx}. Encabezados detectados:`, cols);
+        return [fallbackIdx];
+      }
+      return found;
+    }
+    const eq  = (txt) => (label) => label === txt;
+    const has = (txt) => (label) => label.indexOf(txt) >= 0;
+
+    const idx = {
+      timestamp: 0,
+      club:      find(has("SUCURSAL"), 2, "Club/Sucursal"),
+      emb1:      find((l) => has("SELECCIONA TU NOMBRE")(l) && !/[23]/.test(l), 3, "Embajador (bloque 1)"),
+      emb2:      find((l) => has("SELECCIONA TU NOMBRE")(l) && l.indexOf("2") >= 0, 4, "Embajador (bloque 2)"),
+      emb3:      find((l) => has("SELECCIONA TU NOMBRE")(l) && l.indexOf("3") >= 0, 5, "Embajador (bloque 3)"),
+      colaboradorCols: findAll(has("NOMBRE DEL EVALUADO"), 6, "Colaborador evaluado"),
+      rolCols:         findAll(has("ROL"), 7, "Rol"),
+      turnoCols:       findAll(has("TURNO"), 8, "Turno"),
+      H:         find(has("HIGIENE DE MANOS"), 9, "Higiene de manos"),
+      P:         find(eq("PEINADO"), 10, "Peinado"),
+      A:         find(eq("ACCESORIOS"), 11, "Accesorios"),
+      LU:        find(has("LIMPIEZA Y ESTADO DEL UNIFORME"), 12, "Limpieza y estado del uniforme"),
+      U:         find(eq("UNIFORME"), 13, "Uniforme"),
+      C:         find(eq("CALZADO"), 14, "Calzado"),
+      G:         find(eq("GAFETE"), 15, "Gafete"),
+      motivoGafete: find(has("MOTIVO DE INASISTENCIA"), 16, "Motivo de inasistencia del gafete"),
+      comentarios:  find((l) => has("TIPO DE REPORTE")(l) || has("CAPITAL HUMANO")(l), 17, "Comentarios de Capital Humano"),
+      // [NUEVO 2026-07-02] Columna S: explicación libre de la incidencia. Antes
+      // se ignoraba; ahora se combina con la clasificación (columna R) para
+      // formar el texto completo del comentario.
+      explicaIncidencia: find(has("EXPLICA INCIDENCIA"), 18, "Explica incidencia"),
+      mes:       find(eq("MES"), 19, "Mes")
+    };
+
+    console.log("[gviz] Encabezados reales:", cols);
+    console.log("[gviz] Índices de columna resueltos:", idx);
+
+    return idx;
+  }
+
+  function aparParseGvizTable(table) {
+    const rows = [];
+    const idx = aparResolveGvizColumns_(table); // [MODIFICADO] resolución dinámica de columnas
+    let gvizIndex = -1; // [NUEVO] (3) índice 0-based dentro de table.rows, para persistencia
+    let droppedNoClub = 0, droppedNoMes = 0;
+    for (const row of table.rows) {
+      gvizIndex++;
+      const get = (i) => {
+        const cell = row.c && row.c[i];
+        if (!cell || cell.v === null || cell.v === undefined) return "";
+        return String(cell.v).trim();
+      };
+      // [NUEVO 2026-07-21] Prueba cada columna candidata (ver findAll más arriba)
+      // en orden y devuelve la primera que tenga dato en ESTA fila. Necesario
+      // porque, tras el cambio del Form, cada fila solo tiene dato en UNA de
+      // las dos columnas candidatas (la vieja o la nueva), nunca en ambas.
+      const getFirst = (idxArr) => {
+        for (const i of idxArr) {
+          const v = get(i);
+          if (v) return v;
+        }
+        return "";
+      };
+      const getDate = (i) => {
+        const cell = row.c && row.c[i];
+        if (!cell || cell.v === null) return null;
+        // gviz dates come as "Date(year,month,day,...)"
+        if (typeof cell.v === "string" && cell.v.startsWith("Date(")) {
+          const parts = cell.v.replace("Date(","").replace(")","").split(",").map(Number);
+          return new Date(parts[0], parts[1], parts[2]);
+        }
+        if (cell.f) return cell.f; // formatted string
+        return null;
+      };
+
+      const clubRaw    = get(idx.club);
+      const club       = aparNormalizeClub(clubRaw);
+      if (!club) { droppedNoClub++; continue; }
+
+      const emb1 = get(idx.emb1), emb2 = get(idx.emb2), emb3 = get(idx.emb3);
+      const embajador  = aparCleanText(emb1 || emb2 || emb3);
+      const colaborador= aparCleanText(getFirst(idx.colaboradorCols));
+      const rol        = aparCleanText(getFirst(idx.rolCols));
+      const turno      = aparNormalizeShift(getFirst(idx.turnoCols));
+      const mes        = aparNormalizeMonth(get(idx.mes));
+      if (!mes) { droppedNoMes++; continue; }
+
+      // [MODIFICADO 2026-07-02] La clasificación (col R: Gafete/Uniforme/...) ya
+      // NO se mezcla con el texto del comentario — se guarda aparte
+      // (tipoReporteSheet) para usarse como valor por defecto del selector
+      // "Tipo" en el panel de Comentarios CH. El texto del comentario es la
+      // explicación libre (col S); si no hay explicación, se usa la
+      // clasificación como respaldo para no perder el registro.
+      const tipoReporte = aparCleanText(get(idx.comentarios));
+      const explicaIncidencia = aparCleanText(get(idx.explicaIncidencia));
+      const comentarios = explicaIncidencia || tipoReporte;
+
+      // Fecha del registro (col 0 — timestamp del formulario)
+      let fecha = null;
+      const tsCell = row.c && row.c[idx.timestamp];
+      if (tsCell) {
+        if (typeof tsCell.v === "string" && tsCell.v.startsWith("Date(")) {
+          const parts = tsCell.v.replace("Date(","").replace(")","").split(",").map(Number);
+          fecha = new Date(parts[0], parts[1], parts[2]);
+        } else if (tsCell.f) {
+          fecha = tsCell.f.split(" ")[0]; // take date part of formatted timestamp
+        }
+      }
+
+      const criterios = {
+        H:  aparScoreH(get(idx.H)),
+        P:  aparScoreP(get(idx.P)),
+        A:  aparScoreA(get(idx.A)),
+        LU: aparScoreLU(get(idx.LU)),
+        U:  aparScoreU(get(idx.U)),
+        C:  aparScoreC(get(idx.C)),
+        G:  aparScoreG(get(idx.G))
+      };
+
+      // [FIX 2026-07-02] Antes el ID se generaba con fecha+club+colaborador+
+      // inicio del comentario. Si dos comentarios del mismo colaborador (p.ej.
+      // evaluado varias veces en distintos meses por el mismo embajador) tenían
+      // texto parecido, el ID colisionaba y ambos compartían el mismo estado:
+      // marcar uno como "atendido" con fecha marcaba también al otro. Ahora se
+      // usa el índice real de fila dentro de gviz (gvizRowIndex), que es único
+      // por definición y además es el mismo valor que ya se usa para escribir
+      // la resolución en la hoja de origen — no hay forma de que colisione.
+      const commentId = "row" + gvizIndex;
+
+      rows.push({ club, mes, embajador, colaborador, rol, turno,
+                  criterios, comentarios, tipoReporteSheet: tipoReporte, fecha, commentId, gvizRowIndex: gvizIndex });
+    }
+    // [NUEVO] Diagnóstico visible en consola si el resultado queda en 0 filas
+    if (!rows.length && table.rows.length) {
+      console.error(
+        `[gviz] Se recibieron ${table.rows.length} filas de Google Sheets pero 0 pasaron el parseo ` +
+        `(${droppedNoClub} sin club válido, ${droppedNoMes} sin mes válido). ` +
+        `Revisa los encabezados reales logueados arriba contra los que espera aparResolveGvizColumns_().`
+      );
+    }
+    return rows;
+  }
+
+  // ─── SCORING ─────────────────────────────────────────────────────────────────
+  function aparScoreH(t)  { return t.toUpperCase().includes("LIMPIAS Y BIEN CUIDADAS") ? 1 : 0; }
+  function aparScoreP(t)  { return t.toUpperCase().includes("LIMPIO, PEINADO") ? 1 : 0; }
+  function aparScoreA(t)  {
+    const u = t.toUpperCase();
+    return (u.includes("NO APLICA") || u.includes("DISCRETOS Y APROPIADOS")) ? 1 : 0;
+  }
+  function aparScoreLU(t) { return t.toUpperCase().includes("COMPLETAMENTE LIMPIO") ? 1 : 0; }
+  function aparScoreU(t)  { return t.toUpperCase().includes("COMPLETAMENTE AJUSTADO") ? 1 : 0; }
+  function aparScoreC(t)  {
+    const u = t.toUpperCase();
+    return (u.includes("COLOR ADECUADO") && u.includes("COMPLETAMENTE LIMPIO")) ? 1 : 0;
+  }
+  function aparScoreG(t)  {
+    const u = t.toUpperCase();
+    return (u.includes("LADO DERECHO") && u.includes("COMPLETAMENTE VISIBLE")) ? 1 : 0;
+  }
+
+  // ─── FILTROS ─────────────────────────────────────────────────────────────────
+  function aparPopulateFilters() {
+    aparKeepOrFill("apar-filterMonth",    ["Todos",...APAR_MONTHS]);
+    aparKeepOrFill("apar-filterClub",     ["Todos",...APAR_CLUBS]);
+    aparKeepOrFillMulti("apar-filterRole", aparUnique(aparRespuestas.map(d=>d.rol)).sort());
+    aparKeepOrFill("apar-filterShift",    ["Todos",...aparUnique(aparRespuestas.map(d=>d.turno)).sort()]);
+    aparKeepOrFill("apar-filterCriterion",["Todos",...APAR_CRITERIA.map(c=>c.name)]);
+    aparKeepOrFill("apar-commentClub",    ["Todos",...APAR_CLUBS]);
+    aparKeepOrFill("apar-commentMonth",   ["Todos",...APAR_MONTHS]);
+    const comRows = aparRespuestas.filter(r=>aparIsRelevantComment(r.comentarios));
+    aparKeepOrFill("apar-commentRole",  ["Todos",...aparUnique(comRows.map(d=>d.rol)).sort()]);
+    aparKeepOrFill("apar-commentShift", ["Todos",...aparUnique(comRows.map(d=>d.turno)).sort()]);
+    aparKeepOrFill("apar-commentTipo",  ["Todos",...APAR_TIPOS_INCIDENCIA]);
+    aparKeepOrFill("apar-avanceMonth",  ["Todos",...APAR_MONTHS]);
+    aparKeepOrFill("apar-avanceClub",   ["Todos",...APAR_CLUBS]);
+  }
+
+  function aparKeepOrFill(id, opts) {
+    const s = document.getElementById(id);
+    const prev = s.value || "Todos";
+    aparFillSelect(id, opts, opts.includes(prev) ? prev : "Todos");
+  }
+  function aparFillSelect(id, opts, selected) {
+    const s = document.getElementById(id);
+    s.innerHTML = "";
+    opts.filter(Boolean).forEach(v => {
+      const o = document.createElement("option");
+      o.value = o.textContent = v;
+      s.appendChild(o);
+    });
+    s.value = selected || "Todos";
+  }
+
+  // Select múltiple de Rol: sin selección = "Todos los roles". Permite
+  // elegir varios roles a la vez para ver el promedio de un área completa
+  // en vez de un rol a la vez. Preserva la selección previa si sigue vigente.
+  function aparFillMultiSelect(id, opts) {
+    const s = document.getElementById(id);
+    const prevSelected = aparGetSelectedValues(id).filter(v => opts.includes(v));
+    s.innerHTML = "";
+    opts.filter(Boolean).forEach(v => {
+      const o = document.createElement("option");
+      o.value = o.textContent = v;
+      o.selected = prevSelected.includes(v);
+      s.appendChild(o);
+    });
+  }
+  function aparKeepOrFillMulti(id, opts) {
+    aparFillMultiSelect(id, opts);
+  }
+  function aparGetSelectedValues(id) {
+    return Array.from(document.getElementById(id).selectedOptions).map(o => o.value);
+  }
+
+  // ─── RENDER PRINCIPAL ─────────────────────────────────────────────────────────
+  function aparRenderAll() {
+    const filtered = aparGetFilteredData();
+    aparRenderClubCards(filtered);
+    aparRenderMonthlyChart();
+    aparRenderKpis(filtered);
+    aparRenderResultsMonthlyChart(); // [NUEVO] Resultado mensual comparativo
+    aparRenderCriteriaCards(filtered);
+    aparRenderComments();
+    // [NUEVO] (4) si el panel de Gafete está abierto, se actualiza con los filtros vigentes
+    if (aparIsGafeteModalOpen()) aparRenderGafeteDonut();
+  }
+
+  function aparGetFilteredData() {
+    const month    = document.getElementById("apar-filterMonth").value;
+    const club     = document.getElementById("apar-filterClub").value;
+    const roles    = aparGetSelectedValues("apar-filterRole");
+    const shift    = document.getElementById("apar-filterShift").value;
+    const critName = document.getElementById("apar-filterCriterion").value;
+    const crit     = APAR_CRITERIA.find(c => c.name === critName);
+    return aparRespuestas.filter(item => {
+      if (month !== "Todos" && item.mes   !== month) return false;
+      if (club  !== "Todos" && item.club  !== club)  return false;
+      if (roles.length && !roles.includes(item.rol)) return false;
+      if (shift !== "Todos" && item.turno !== shift) return false;
+      if (crit) { const v = item.criterios[crit.key]; if (v!==0&&v!==1) return false; }
+      return true;
+    });
+  }
+
+  // [MODIFICADO] (1) CORRECCIÓN DE ORIGEN: esta tarjeta antes mostraba el
+  // cumplimiento de la política de APARIENCIA (aparCalcGeneral, criterios H/P/A/...)
+  // rotulado como "Cumplimiento mensual de caminatas", lo que producía el
+  // desfase reportado (p.ej. 98% en vez de 28%). Ahora usa el conteo real de
+  // caminatas contra la Meta mensual del club, leído de la hoja
+  // "Caminatas realizadas" a través del backend (aparCaminatasClubData).
+  function aparGetCumplimientoCaminatasClub_(club) {
+    const month = document.getElementById("apar-filterMonth").value;
+    const registros = aparCaminatasClubData.filter(r => r.club === club && (month === "Todos" || r.mes === month));
+
+    if (!registros.length) {
+      return { pct: 0, real: 0, meta: 0, estado: "Sin datos" };
+    }
+
+    const meta = registros.reduce((s, r) => s + (r.meta || 0), 0);
+    const real = registros.reduce((s, r) => s + (r.real || 0), 0);
+    const pct  = meta > 0 ? Math.round((real / meta) * 100) : 0;
+    const estado = registros.length === 1 ? registros[0].estado : aparGetState(pct, real);
+
+    return { pct, real, meta, estado };
+  }
+
+  function aparRenderClubCards(filtered) {
+    const c = document.getElementById("apar-clubCards");
+    c.innerHTML = "";
+    APAR_CLUBS.forEach(club => {
+      const rows = filtered.filter(r=>r.club===club);
+      const cam  = aparGetCumplimientoCaminatasClub_(club);
+      const pct  = cam.pct;
+      const st   = aparCaminatasClubData.length ? cam.estado : "Sin datos";
+      const col  = aparStateColor(st);
+      const deg  = Math.min(pct,100)*3.6;
+      const card = document.createElement("article");
+      card.className = "club-card";
+      card.innerHTML = `
+        <div class="apar-donut" style="background:radial-gradient(circle at center,#fff 0 58%,transparent 59%),
+          conic-gradient(${col} 0deg,${col} ${deg}deg,#e8eef2 ${deg}deg 360deg);">
+          <strong>${pct}%</strong>
+        </div>
+        <div>
+          <h3>${club}</h3>
+          <p class="apar-club-meta"><span><strong>Caminatas:</strong> ${cam.real}${cam.meta?(' / '+cam.meta):''}</span></p>
+          <span class="apar-badge ${aparBadgeClass(st)}">${st}</span>
+        </div>`;
+      c.appendChild(card);
+    });
+  }
+
+  // [CORREGIDO] Antes esta gráfica calculaba el cumplimiento contando
+  // aparRespuestas del formulario por rol/mes contra la meta por rol (una
+  // aproximación), mientras que las tarjetas de arriba (club-cards) ya usaban
+  // el dato real de la hoja "Caminatas realizadas" vía aparCaminatasClubData —
+  // por eso ambas secciones no coincidían y salían números "raros". Ahora
+  // esta gráfica usa exactamente la misma fuente (aparCaminatasClubData), así
+  // que muestra el mismo % ya redondeado que entrega el backend. Si un club
+  // no tiene registro ese mes (ej. Center antes de agosto, que arrancó su
+  // seguimiento después), el punto queda vacío (null) en vez de mostrar un
+  // falso 0%.
+  function aparRenderMonthlyChart() {
+    const ctx = document.getElementById("aparMonthlyChart").getContext("2d");
+    const cf  = document.getElementById("apar-filterClub").value;
+    const cls = cf==="Todos" ? APAR_CLUBS : [cf];
+    const datasets = cls.map(club => ({
+      label: club,
+      data: APAR_MONTHS.map(m => {
+        const registro = aparCaminatasClubData.find(r => r.club === club && r.mes === m);
+        if (!registro || (!registro.meta && !registro.real)) return null;
+        return registro.porcentaje;
+      }),
+      borderColor: APAR_CLUB_COLORS[club], backgroundColor: APAR_CLUB_COLORS[club],
+      tension:0.42, borderWidth:3, pointRadius:4, pointHoverRadius:6, fill:false,
+      spanGaps:false
+    }));
+    if (aparMonthlyChart) aparMonthlyChart.destroy();
+    aparMonthlyChart = new Chart(ctx, {
+      type:"line", data:{labels:APAR_MONTHS, datasets},
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        interaction:{mode:"index",intersect:false},
+        plugins:{
+          legend:{position:"bottom",labels:{usePointStyle:true,boxWidth:8}},
+          datalabels:{align:"top",anchor:"end",color:"#102033",
+            font:{weight:"700",size:11}, formatter:v=>v===null||v===undefined?"":Math.round(v)+"%"},
+          tooltip:{callbacks:{label:ctx=>ctx.parsed.y===null?`${ctx.dataset.label}: Sin datos`:`${ctx.dataset.label}: ${Math.round(ctx.parsed.y)}%`}}
+        },
+        scales:{
+          y:{min:0,ticks:{callback:v=>v+"%"},grid:{color:"#e8eef2"}},
+          x:{grid:{display:false}}
+        }
+      }
+    });
+  }
+
+  // [NUEVO] Filas de "aparRespuestas" para un club y mes puntual, respetando los
+  // filtros globales de Rol y Turno (no el de Mes/Club, que aquí los define
+  // la propia gráfica; tampoco el de Criterio, para no colapsar el promedio
+  // general a un solo criterio).
+  function aparGetRowsForMonthClub_(club, month) {
+    const roles = aparGetSelectedValues("apar-filterRole");
+    const shift = document.getElementById("apar-filterShift").value;
+    return aparRespuestas.filter(r => {
+      if (r.club !== club || r.mes !== month) return false;
+      if (roles.length && !roles.includes(r.rol)) return false;
+      if (shift !== "Todos" && r.turno !== shift) return false;
+      return true;
+    });
+  }
+
+  // [NUEVO] "Resultado mensual comparativo": promedio de cumplimiento de
+  // Política de Apariencia (criterios H/P/A/U/LU/C/G) por mes y club — a
+  // diferencia de "Cumplimiento mensual" (que es de caminatas), esta gráfica
+  // sí lee de las aparRespuestas del formulario. En el tooltip de cada punto se
+  // muestra, para ese mes, cuál fue el criterio con mejor y peor resultado
+  // (considerando el/los club(es) visibles y los filtros de Rol/Turno).
+  function aparRenderResultsMonthlyChart() {
+    const canvas = document.getElementById("aparResultsMonthlyChart");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const cf  = document.getElementById("apar-filterClub").value;
+    const cls = cf==="Todos" ? APAR_CLUBS : [cf];
+
+    const monthCriteriaDetail = {};
+    APAR_MONTHS.forEach(m => {
+      let rows = [];
+      cls.forEach(club => { rows = rows.concat(aparGetRowsForMonthClub_(club, m)); });
+      const avgs = APAR_CRITERIA
+        .map(cr => ({ name: cr.name, percent: aparCalcCriterion(rows, cr.key).percent }))
+        .filter(a => a.percent !== null);
+      monthCriteriaDetail[m] = avgs.length
+        ? { top: avgs.slice().sort((a,b)=>b.percent-a.percent)[0], bottom: avgs.slice().sort((a,b)=>a.percent-b.percent)[0] }
+        : null;
+    });
+
+    const datasets = cls.map(club => ({
+      label: club,
+      data: APAR_MONTHS.map(m => {
+        const rows = aparGetRowsForMonthClub_(club, m);
+        return rows.length ? aparCalcGeneral(rows).percent : null;
+      }),
+      borderColor: APAR_CLUB_COLORS[club], backgroundColor: APAR_CLUB_COLORS[club],
+      tension:0.42, borderWidth:3, pointRadius:4, pointHoverRadius:6, fill:false,
+      spanGaps:false
+    }));
+
+    if (aparResultsMonthlyChart) aparResultsMonthlyChart.destroy();
+    aparResultsMonthlyChart = new Chart(ctx, {
+      type:"line", data:{labels:APAR_MONTHS, datasets},
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        interaction:{mode:"index",intersect:false},
+        plugins:{
+          legend:{position:"bottom",labels:{usePointStyle:true,boxWidth:8}},
+          datalabels:{align:"top",anchor:"end",color:"#102033",
+            font:{weight:"700",size:11}, formatter:v=>v===null||v===undefined?"":Math.round(v)+"%"},
+          tooltip:{
+            callbacks:{
+              label: ctx => ctx.parsed.y===null ? `${ctx.dataset.label}: Sin datos` : `${ctx.dataset.label}: ${Math.round(ctx.parsed.y)}%`,
+              afterBody: items => {
+                if (!items.length) return [];
+                const detail = monthCriteriaDetail[items[0].label];
+                if (!detail) return ["", "Sin datos de criterios para este mes."];
+                return [
+                  "",
+                  `▲ Criterio más alto: ${detail.top.name} (${detail.top.percent}%)`,
+                  `▼ Criterio más bajo: ${detail.bottom.name} (${detail.bottom.percent}%)`
+                ];
+              }
+            }
+          }
+        },
+        scales:{
+          y:{min:0,max:100,ticks:{callback:v=>v+"%"},grid:{color:"#e8eef2"}},
+          x:{grid:{display:false}}
+        }
+      }
+    });
+  }
+
+  function aparRenderKpis(filtered) {
+    const c   = document.getElementById("apar-kpiCards");
+    const gen = aparCalcGeneral(filtered);
+    const pct = gen.percent;
+    const st  = pct===null?"Sin datos":aparGetState(pct,filtered.length);
+    const low = aparGetLowestCriterion(filtered);
+    c.innerHTML = `
+      <article class="apar-kpi-card">
+        <h3>Cumplimiento general</h3>
+        <p class="apar-kpi-value">${pct===null?"0":pct}%</p>
+        <p class="apar-kpi-note">${filtered.length} caminatas filtradas</p>
+      </article>
+      <article class="apar-kpi-card">
+        <h3>Estado</h3>
+        <p class="apar-kpi-value" style="font-size:30px;">${st}</p>
+        <p class="apar-kpi-note">Resultado de la selección actual.</p>
+      </article>
+      <article class="apar-kpi-card">
+        <h3>Criterio más bajo</h3>
+        <p class="apar-kpi-value" style="font-size:27px;">${low.name}</p>
+        <p class="apar-kpi-note">${low.percent===null?"Sin datos":low.percent+"% de cumplimiento"}</p>
+      </article>`;
+  }
+
+  function aparRenderCriteriaCards(filtered) {
+    const c       = document.getElementById("apar-criteriaCards");
+    const selName = document.getElementById("apar-filterCriterion").value;
+    const toRender = selName==="Todos" ? APAR_CRITERIA : APAR_CRITERIA.filter(cr=>cr.name===selName);
+    c.innerHTML = "";
+    if (!filtered.length) {
+      c.innerHTML = `<div class="apar-empty" style="grid-column:1/-1;">Sin datos para los filtros seleccionados.</div>`;
+      return;
+    }
+    toRender.forEach(cr => {
+      const res = aparCalcCriterion(filtered, cr.key);
+      const pct = res.percent;
+      const st  = pct===null?"Sin datos":aparGetState(pct,res.valid);
+      const col = aparStateColor(st);
+      const deg = (pct||0)*3.6;
+      const card = document.createElement("article");
+      card.className = "criterion-card";
+      // [NUEVO] (4) La tarjeta de Gafete es cliqueable: abre el panel de detalle
+      const isGafete = cr.key === "G";
+      if (isGafete) {
+        card.classList.add("apar-criterion-card-clickable");
+        card.style.cursor = "pointer";
+        card.title = "Ver desglose de motivos de Gafete";
+        card.addEventListener("click", aparOpenGafeteModal);
+      }
+      card.innerHTML = `
+        <div class="apar-donut" style="background:radial-gradient(circle at center,#fff 0 58%,transparent 59%),
+          conic-gradient(${col} 0deg,${col} ${deg}deg,#e8eef2 ${deg}deg 360deg);">
+          <strong>${pct===null?"0":pct}%</strong>
+        </div>
+        <h3>${cr.name}${isGafete ? ' 🔍' : ''}</h3><p>${cr.description}</p>
+        <span class="apar-badge ${aparBadgeClass(st)}">${st}</span>`;
+      c.appendChild(card);
+    });
+  }
+
+  // ─── (4) PANEL DE DETALLE DE GAFETE ─────────────────────────────────────────
+  function aparOpenGafeteModal() {
+    document.getElementById("apar-gafeteModalOverlay").classList.remove("apar-hidden");
+    aparRenderGafeteDonut();
+  }
+  function aparCloseGafeteModal() {
+    document.getElementById("apar-gafeteModalOverlay").classList.add("apar-hidden");
+  }
+  function aparCloseGafeteModalOnOverlay(evt) {
+    if (evt.target.id === "apar-gafeteModalOverlay") aparCloseGafeteModal();
+  }
+  function aparIsGafeteModalOpen() {
+    const el = document.getElementById("apar-gafeteModalOverlay");
+    return el && !el.classList.contains("apar-hidden");
+  }
+
+  // Lee los conteos brutos (aparMotivosGafeteData) y calcula el % de cada motivo
+  // en tiempo real, respetando los filtros globales del dashboard.
+  // [MODIFICADO] (4) Ahora también respeta el filtro global de Rol
+  // (#filterRole), ya que la hoja "Gafete" ya trae el desglose por
+  // rol/turno/sucursal/motivo y el backend (Codigo.gs) expone el campo "rol".
+  function aparRenderGafeteDonut() {
+    const month = document.getElementById("apar-filterMonth").value;
+    const club  = document.getElementById("apar-filterClub").value;
+    const shift = document.getElementById("apar-filterShift").value;
+    const roles = aparGetSelectedValues("apar-filterRole");
+
+    const filtered = aparMotivosGafeteData.filter(m =>
+      (month === "Todos" || m.mes   === month) &&
+      (club  === "Todos" || m.club  === club)  &&
+      (shift === "Todos" || m.turno === shift) &&
+      (!roles.length || roles.includes(m.rol))
+    );
+
+    const totals = {};
+    filtered.forEach(m => { totals[m.motivo] = (totals[m.motivo]||0) + m.conteo; });
+    const totalSum = Object.values(totals).reduce((a,b)=>a+b, 0);
+
+    const listEl = document.getElementById("apar-gafeteMotivosList");
+    const colors = ["#7C3AED","#7cd4d2","#9ee1e1","#F59E0B","#DC2626","#16A34A","#5a7080","#98a2b3"];
+
+    if (!totalSum) {
+      listEl.innerHTML = `<div class="apar-empty">Sin incidencias de Gafete para esta selección de Mes/Sucursal/Rol/Turno.</div>`;
+      if (aparGafeteChart) { aparGafeteChart.destroy(); aparGafeteChart = null; }
+      return;
+    }
+
+    const labels = Object.keys(totals);
+    const values = labels.map(k => totals[k]);
+    const pcts   = values.map(v => Math.round((v/totalSum)*100));
+
+    listEl.innerHTML = labels.map((label, i) => `
+      <div class="apar-gafete-motivo-row">
+        <span><span class="apar-swatch" style="background:${colors[i%colors.length]}"></span>${escapeHtml(label)}</span>
+        <strong>${pcts[i]}% <span style="color:#98a2b3;font-weight:400;">(${values[i]})</span></strong>
+      </div>`).join("");
+
+    const ctx = document.getElementById("apar-gafeteDonutChart").getContext("2d");
+    if (aparGafeteChart) aparGafeteChart.destroy();
+    aparGafeteChart = new Chart(ctx, {
+      type: "doughnut",
+      data: { labels, datasets: [{ data: values, backgroundColor: labels.map((_,i)=>colors[i%colors.length]) }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display:false },
+          datalabels: { color:"#fff", font:{weight:"700",size:11}, formatter:(v)=> Math.round((v/totalSum)*100)+"%" },
+          tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.parsed} (${Math.round((ctx.parsed/totalSum)*100)}%)` } }
+        }
+      }
+    });
+  }
+
+  // ─── AVANCE CAMINATAS ─────────────────────────────────────────────────────────
+  function aparRenderAvance() {
+    const mes  = document.getElementById("apar-avanceMonth").value;
+    const club = document.getElementById("apar-avanceClub").value;
+    const container = document.getElementById("apar-avanceTable");
+
+    const clubsToShow = club==="Todos" ? APAR_CLUBS : [club];
+    const mesesToShow = mes==="Todos" ? APAR_MONTHS : [mes];
+
+    // ── Resumen de totales por club (como reporte mensual) ──
+    let summaryHtml = "";
+    if (mes !== "Todos") {
+      const summaryCards = clubsToShow.map(cl => {
+        const metaClub = aparGetMetaRolPara(cl); // [MODIFICADO] (2) fuente dinámica
+        let metaTotal = 0, realTotal = 0;
+        Object.keys(metaClub).forEach(rol => {
+          metaTotal += metaClub[rol];
+          realTotal += aparRespuestas.filter(r => r.club===cl && r.rol===rol && r.mes===mes).length;
+        });
+        const pct = metaTotal > 0 ? Math.round((realTotal/metaTotal)*100) : 0;
+        const color = pct >= 100 ? "#16A34A" : pct >= 60 ? "#F59E0B" : "#DC2626";
+        return `
+          <div style="flex:1; min-width:160px; background:#fff; border:1px solid #e0e8ee; border-radius:10px; padding:14px 16px;">
+            <div style="font-size:12px; color:#5a7080; font-weight:700; margin-bottom:6px;">${cl}</div>
+            <div style="font-size:13px; color:#102033; margin-bottom:2px;">Meta: <strong>${metaTotal}</strong></div>
+            <div style="font-size:13px; color:#102033; margin-bottom:2px;">Real: <strong>${realTotal}</strong></div>
+            <div style="font-size:20px; font-weight:800; color:${color}; margin-top:4px;">${pct}%</div>
+          </div>`;
+      }).join("");
+      summaryHtml = `<div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">${summaryCards}</div>`;
+    }
+
+    // Collect rows
+    const results = [];
+    for (const cl of clubsToShow) {
+      const metaClub = aparGetMetaRolPara(cl); // [MODIFICADO] (2) fuente dinámica
+      for (const rol of Object.keys(metaClub)) {
+        const meta = metaClub[rol];
+        if (meta === 0) continue;
+        for (const m of mesesToShow) {
+          const real = aparRespuestas.filter(r => r.club===cl && r.rol===rol && r.mes===m).length;
+          const pct  = Math.round((real/meta)*100);
+          results.push({ club:cl, rol, mes:m, meta, real, pct });
+        }
+      }
+    }
+
+    if (!results.length) {
+      container.innerHTML = summaryHtml + `<div class="apar-empty">Sin datos para la selección.</div>`;
+      return;
+    }
+
+    // Sort: incomplete first
+    results.sort((a,b) => a.pct - b.pct);
+
+    const rows = results.map(r => {
+      const barPct = Math.min(r.pct, 100);
+      const barClass = r.pct >= 100 ? "" : r.pct >= 60 ? "apar-yellow" : "apar-red";
+      const statusClass = r.pct >= 100 ? "prog-complete" : r.pct >= 60 ? "prog-pending" : "prog-low";
+      const statusText  = r.pct >= 100 ? "✅ Completo" : r.pct >= 60 ? "⚠️ En progreso" : "❌ Por debajo";
+      return `<tr>
+        <td>${r.club}</td>
+        <td>${r.mes}</td>
+        <td>${r.rol}</td>
+        <td style="text-align:center;">${r.real} / ${r.meta}</td>
+        <td>
+          <div class="apar-prog-bar-wrap">
+            <div class="apar-prog-bar ${barClass}" style="width:${barPct}%;"></div>
+          </div>
+          ${r.pct}%
+        </td>
+        <td class="${statusClass}">${statusText}</td>
+      </tr>`;
+    }).join("");
+
+    container.innerHTML = summaryHtml + `
+      <div class="apar-table-wrap">
+        <table class="apar-progress-table">
+          <thead><tr>
+            <th>Club</th><th>Mes</th><th>Rol</th>
+            <th style="text-align:center;">Real / Meta</th>
+            <th>Progreso</th><th>Estado</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  // ─── COMENTARIOS CH ───────────────────────────────────────────────────────────
+  function aparUnlockComments() {
+    if (document.getElementById("apar-commentsPassword").value.trim() !== APAR_COMMENTS_PWD) {
+      aparShowToast("Contraseña incorrecta."); return;
+    }
+    document.getElementById("apar-unlockBox").classList.add("apar-hidden");
+    document.getElementById("apar-commentsPanel").classList.remove("apar-hidden");
+    aparRenderComments();
+  }
+
+  function aparRenderComments() {
+    const panel = document.getElementById("apar-commentsPanel");
+    if (!panel || panel.classList.contains("apar-hidden")) return;
+
+    const club  = document.getElementById("apar-commentClub").value  || "Todos";
+    const month = document.getElementById("apar-commentMonth").value || "Todos";
+    const role  = document.getElementById("apar-commentRole").value  || "Todos";
+    const shift = document.getElementById("apar-commentShift").value || "Todos";
+    const tipoFiltro = document.getElementById("apar-commentTipo").value || "Todos";
+
+    // Categoría efectiva de un comentario: lo que CH haya editado manualmente,
+    // o si no, la clasificación que trae el Sheet.
+    const categoriaEfectiva = (item) => {
+      const state = aparComentStates[item.commentId] || {};
+      const efectivo = state.tipo || item.tipoReporteSheet || "";
+      if (!efectivo) return "";
+      const { select } = aparMatchTipoIncidencia_(efectivo);
+      return select || "Otro";
+    };
+
+    // [MODIFICADO 2026-07-02] "base" = todo lo que cumple los filtros de
+    // arriba (club/mes/rol/turno/tipo), antes de separar por pestaña
+    // pendientes/resueltos/todos — se usa para el resumen de incidencias.
+    const base = aparRespuestas.filter(item =>
+      (club  ==="Todos" || item.club  ===club)  &&
+      (month ==="Todos" || item.mes   ===month) &&
+      (role  ==="Todos" || item.rol   ===role)  &&
+      (shift ==="Todos" || item.turno ===shift) &&
+      (tipoFiltro === "Todos" || categoriaEfectiva(item) === tipoFiltro) &&
+      aparIsRelevantComment(item.comentarios) &&
+      !aparHiddenComments[item.commentId] // [NUEVO] (3) Botón "Ocultar de la vista"
+    );
+
+    aparRenderResumenIncidencias_(base);
+
+    // Filter by tab
+    let rows = base;
+    if (aparActiveTab === "pendientes") {
+      rows = rows.filter(r => !aparComentStates[r.commentId]?.resolved);
+    } else if (aparActiveTab === "resueltos") {
+      rows = rows.filter(r => !!aparComentStates[r.commentId]?.resolved);
+    }
+
+    const container = document.getElementById("apar-commentsContainer");
+    if (!rows.length) {
+      container.innerHTML = `<div class="apar-empty">Sin comentarios para esta selección.</div>`;
+      return;
+    }
+
+    container.innerHTML = rows.map(r => {
+      const state       = aparComentStates[r.commentId] || {};
+      const isResolved  = !!state.resolved;
+      const resolvedDate= state.resolvedDate || "";
+      // [MODIFICADO 2026-07-02] Si CH ya editó manualmente el tipo (state.tipo),
+      // eso manda. Si no, se usa por defecto la clasificación que viene del
+      // Google Sheet (columna R), pero sigue siendo editable desde el select.
+      const tipoEfectivo = state.tipo || r.tipoReporteSheet || "";
+      const { select: tipoSelect, custom: tipoCustom } = aparMatchTipoIncidencia_(tipoEfectivo);
+      // [NUEVO] Nota libre que escribe Capital Humano sobre cómo se atendió.
+      const notaCH      = state.nota || "";
+      // [MODIFICADO] (3) el checkbox solo puede habilitarse si ya hay fecha
+      const canCheck    = !!resolvedDate;
+
+      // Format fecha del comentario
+      let fechaStr = "—";
+      if (r.fecha instanceof Date && !isNaN(r.fecha)) {
+        fechaStr = r.fecha.toLocaleDateString("es-MX", {day:"2-digit",month:"short",year:"numeric"});
+      } else if (typeof r.fecha === "string" && r.fecha) {
+        fechaStr = r.fecha;
+      }
+
+      // Days elapsed
+      // [FIX] Antes exigía que además de poner la fecha, se marcara aparte la
+      // casilla "Atendido por CH" para que se calculara el tiempo de
+      // resolución. Ahora basta con capturar la fecha.
+      // [NUEVO] Si la fecha de resolución queda ANTES del registro (típico
+      // error de captura, p.ej. un año mal tecleado), se avisa en vez de
+      // mostrar un número de días negativo sin sentido.
+      let daysHtml = "";
+      let minResolucion = "";
+      if (r.fecha instanceof Date && !isNaN(r.fecha)) {
+        minResolucion = aparToYMD_(r.fecha);
+
+        if (resolvedDate) {
+          const rd = new Date(resolvedDate + "T00:00:00");
+          const diff = Math.round((rd - r.fecha) / (1000*60*60*24));
+          if (diff < 0) {
+            daysHtml = `<span class="apar-days-badge apar-overdue" title="La fecha de resolución (${resolvedDate}) es anterior a la fecha del registro (${fechaStr}). Revisa el año/fecha capturados.">⚠️ Fecha inválida</span>`;
+          } else {
+            const cls = diff > 14 ? "apar-overdue" : "";
+            daysHtml = `<span class="apar-days-badge ${cls}">${aparFormatDuracion_(diff)} de resolución</span>`;
+          }
+        }
+      }
+
+      const tipoOptions = ["", ...APAR_TIPOS_INCIDENCIA].map(t =>
+        `<option value="${t}" ${t===tipoSelect?"selected":""}>${t || "Tipo de incidencia..."}</option>`
+      ).join("");
+
+      return `
+        <div class="apar-comment-row${isResolved?" apar-resolved":""}" id="apar-cr_${r.commentId}">
+          <div class="apar-comment-meta">
+            <span>📅 <strong>Fecha:</strong> ${fechaStr}</span>
+            <span>🏢 <strong>Club:</strong> ${escapeHtml(r.club)}</span>
+            <span>📋 <strong>Mes:</strong> ${escapeHtml(r.mes)}</span>
+            <span>👤 <strong>Embajador:</strong> ${escapeHtml(r.embajador)}</span>
+            <span>🎯 <strong>Evaluado:</strong> ${escapeHtml(r.colaborador)}</span>
+            <span>💼 <strong>Rol:</strong> ${escapeHtml(r.rol)}</span>
+            <span>🕐 <strong>Turno:</strong> ${escapeHtml(r.turno)}</span>
+          </div>
+          <div class="apar-comment-body">💬 ${escapeHtml(r.comentarios)}</div>
+          <div class="apar-comment-actions">
+            <label title="${canCheck?'':'Primero ingresa la fecha de resolución'}">
+              <input type="checkbox" onchange="aparToggleResolved('${r.commentId}', this.checked)"
+                ${isResolved?"checked":""} ${!canCheck?"disabled":""}>
+              Atendido por CH
+            </label>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="font-weight:400;color:#5a7080;">Fecha resolución:</label>
+              <input type="date" value="${resolvedDate}"
+                ${minResolucion ? `min="${minResolucion}"` : ""} max="${aparToYMD_(new Date())}"
+                onchange="aparSetResolvedDate('${r.commentId}', '${r.gvizRowIndex}', this.value)" />
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="font-weight:400;color:#5a7080;">Tipo:</label>
+              <select onchange="aparSetTipoIncidencia('${r.commentId}', '${r.gvizRowIndex}', this.value)">
+                ${tipoOptions}
+              </select>
+              <input type="text" placeholder="Especifica el tipo..."
+                value="${escapeHtml(tipoCustom)}"
+                style="display:${tipoSelect==='Otro'?'inline-block':'none'};width:160px;
+                  border:1px solid #d9e3ea;border-radius:8px;padding:6px 8px;font-size:13px;"
+                onchange="aparSetTipoIncidenciaOtro('${r.commentId}', '${r.gvizRowIndex}', this.value)" />
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:8px;flex:1 1 260px;min-width:220px;">
+              <label style="font-weight:400;color:#5a7080;white-space:nowrap;padding-top:6px;">Nota CH:</label>
+              <textarea rows="1" placeholder="Comentario sobre cómo se atendió..."
+                style="flex:1;border:1px solid #d9e3ea;border-radius:8px;padding:6px 8px;
+                  font-size:13px;font-family:inherit;resize:vertical;"
+                onchange="aparSetNotaCH('${r.commentId}', '${r.gvizRowIndex}', this.value)">${escapeHtml(notaCH)}</textarea>
+            </div>
+            ${daysHtml}
+            <button type="button" class="hide-comment-btn" onclick="aparHideComment('${r.commentId}')"
+              style="margin-left:auto;background:none;border:1px solid #c5d4de;border-radius:6px;
+              padding:4px 10px;font-size:12px;color:#5a7080;cursor:pointer;">
+              Ocultar de la vista
+            </button>
+          </div>
+        </div>`;
+    }).join("");
+  }
+
+  // [MODIFICADO 2026-07-02] Resumen simple: cuántas incidencias cumplen los
+  // filtros actuales (club/mes/rol/turno/tipo) y cuántas de esas ya están
+  // atendidas por CH. Reemplaza la tabla de desglose por tipo/mes, que no
+  // aportaba valor.
+  function aparRenderResumenIncidencias_(base) {
+    const el = document.getElementById("apar-tipoIncidenciaSummary");
+    if (!el) return;
+
+    const total = base.length;
+    const atendidas = base.filter(r => !!aparComentStates[r.commentId]?.resolved).length;
+    const pendientes = total - atendidas;
+    const pct = total > 0 ? Math.round((atendidas / total) * 100) : 0;
+
+    // [NUEVO] Promedio de días de resolución: solo sobre incidencias
+    // atendidas con fecha de resolución válida (posterior o igual al
+    // registro) — las inválidas (ver "⚠️ Fecha inválida" en cada tarjeta)
+    // se excluyen para no descuadrar el promedio.
+    const diasValidos = base.reduce((acc, r) => {
+      const state = aparComentStates[r.commentId];
+      if (!state || !state.resolved || !state.resolvedDate) return acc;
+      if (!(r.fecha instanceof Date) || isNaN(r.fecha)) return acc;
+      const rd = new Date(state.resolvedDate + "T00:00:00");
+      const diff = Math.round((rd - r.fecha) / (1000*60*60*24));
+      if (diff < 0) return acc;
+      acc.push(diff);
+      return acc;
+    }, []);
+    const promedioDias = diasValidos.length
+      ? Math.round(diasValidos.reduce((a,b) => a+b, 0) / diasValidos.length)
+      : null;
+    const promedioHtml = promedioDias === null
+      ? "—"
+      : aparFormatDuracion_(promedioDias);
+
+    if (!total) {
+      el.innerHTML = `<div class="apar-empty" style="margin-bottom:16px;">No hay incidencias para la selección actual.</div>`;
+      return;
+    }
+
+    el.innerHTML = `
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
+        <div style="flex:1;min-width:140px;background:#fff;border:1px solid #e0e8ee;border-radius:10px;padding:14px 16px;">
+          <div style="font-size:12px;color:#5a7080;font-weight:700;margin-bottom:6px;">Incidencias</div>
+          <div style="font-size:24px;font-weight:800;color:#102033;">${total}</div>
+        </div>
+        <div style="flex:1;min-width:140px;background:#fff;border:1px solid #e0e8ee;border-radius:10px;padding:14px 16px;">
+          <div style="font-size:12px;color:#5a7080;font-weight:700;margin-bottom:6px;">Atendidas</div>
+          <div style="font-size:24px;font-weight:800;color:#16A34A;">${atendidas} <span style="font-size:14px;font-weight:700;color:#5a7080;">(${pct}%)</span></div>
+        </div>
+        <div style="flex:1;min-width:140px;background:#fff;border:1px solid #e0e8ee;border-radius:10px;padding:14px 16px;">
+          <div style="font-size:12px;color:#5a7080;font-weight:700;margin-bottom:6px;">Pendientes</div>
+          <div style="font-size:24px;font-weight:800;color:#DC2626;">${pendientes}</div>
+        </div>
+        <div style="flex:1;min-width:140px;background:#fff;border:1px solid #e0e8ee;border-radius:10px;padding:14px 16px;">
+          <div style="font-size:12px;color:#5a7080;font-weight:700;margin-bottom:6px;">Promedio de resolución</div>
+          <div style="font-size:24px;font-weight:800;color:#7C3AED;">${promedioHtml}</div>
+          ${diasValidos.length ? `<div style="font-size:11px;color:#5a7080;margin-top:2px;">sobre ${diasValidos.length} incidencia${diasValidos.length!==1?'s':''} con fecha válida</div>` : ""}
+        </div>
+      </div>`;
+  }
+
+  // [MODIFICADO] (3) El checkbox solo puede marcarse una vez que ya existe una
+  // fecha de resolución (ver "canCheck" en aparRenderComments / disabled del input).
+  async function aparToggleResolved(id, checked) {
+    if (!aparComentStates[id]) aparComentStates[id] = {};
+    aparComentStates[id].resolved = checked;
+    await aparSaveCommentStates();
+    aparRenderComments();
+  }
+
+  // [MODIFICADO] (3) Al capturar la fecha: habilita el checkbox y persiste en
+  // Excel (columna nueva en la hoja de origen) vía el backend.
+  // [FIX] Antes, si CH solo ponía la fecha y nunca tocaba el select de
+  // "Tipo" (que ya mostraba por defecto la clasificación de la columna R),
+  // ese tipo nunca se mandaba a guardar porque el onchange del select no se
+  // disparaba. Ahora se usa como respaldo el tipo por defecto (tipoReporteSheet)
+  // si CH no eligió uno manualmente.
+  async function aparSetResolvedDate(id, gvizRowIndex, date) {
+    if (!aparComentStates[id]) aparComentStates[id] = {};
+    aparComentStates[id].resolvedDate = date;
+    // [FIX] Antes, poner la fecha no marcaba "resolved" — había que además
+    // tocar la casilla "Atendido por CH" aparte. Como el backend ya
+    // considera atendido en cuanto hay fecha (ver aparMergeResolucionesPersistidas_),
+    // aquí se refleja lo mismo de inmediato para no depender de un segundo paso.
+    aparComentStates[id].resolved = !!date;
+    await aparSaveCommentStates();
+    const item = aparRespuestas.find(r => r.commentId === id);
+    const tipoEfectivo = aparComentStates[id].tipo || (item && item.tipoReporteSheet) || "";
+    await aparPersistirResolucion_(gvizRowIndex, date, tipoEfectivo, aparComentStates[id].nota || "");
+    aparRenderComments();
+  }
+
+  // [MODIFICADO 2026-07-02] Clasificación rápida del tipo de incidencia.
+  // Si elige "Otro" no se persiste todavía — se espera a que escriba el texto
+  // en el campo que aparece al lado (ver aparSetTipoIncidenciaOtro). Para el resto
+  // de las categorías fijas, se persiste de inmediato.
+  async function aparSetTipoIncidencia(id, gvizRowIndex, tipo) {
+    if (!aparComentStates[id]) aparComentStates[id] = {};
+    if (tipo === "Otro") {
+      aparRenderComments(); // solo muestra el input de texto, sin persistir aún
+      return;
+    }
+    aparComentStates[id].tipo = tipo;
+    await aparSaveCommentStates();
+    await aparPersistirResolucion_(gvizRowIndex, aparComentStates[id].resolvedDate || "", tipo, aparComentStates[id].nota || "");
+    aparRenderComments();
+  }
+
+  // [NUEVO 2026-07-02] Persiste la categoría personalizada escrita cuando el
+  // select está en "Otro".
+  async function aparSetTipoIncidenciaOtro(id, gvizRowIndex, texto) {
+    if (!aparComentStates[id]) aparComentStates[id] = {};
+    const tipo = aparCleanText(texto);
+    aparComentStates[id].tipo = tipo || "Otro";
+    await aparSaveCommentStates();
+    await aparPersistirResolucion_(gvizRowIndex, aparComentStates[id].resolvedDate || "", aparComentStates[id].tipo, aparComentStates[id].nota || "");
+    aparRenderComments();
+  }
+
+  // [NUEVO] Nota libre de Capital Humano sobre cómo se atendió la incidencia.
+  async function aparSetNotaCH(id, gvizRowIndex, texto) {
+    if (!aparComentStates[id]) aparComentStates[id] = {};
+    aparComentStates[id].nota = aparCleanText(texto);
+    await aparSaveCommentStates();
+    await aparPersistirResolucion_(gvizRowIndex, aparComentStates[id].resolvedDate || "", aparComentStates[id].tipo || "", aparComentStates[id].nota);
+    aparRenderComments();
+  }
+
+  // [MODIFICADO] Escribe fecha de resolución + tipo en la hoja de seguimiento
+  // dedicada ("Seguimiento de Incidencias", separada de las aparRespuestas del
+  // Form) a través del backend, para que no se pierda al recargar. Se manda
+  // también club/colaborador/comentario/timestamp de contexto, tomados de
+  // `aparRespuestas`, solo para que la hoja de seguimiento sea legible — la
+  // llave real sigue siendo gvizRowIndex.
+  async function aparPersistirResolucion_(gvizRowIndex, fecha, tipo, nota) {
+    if (gvizRowIndex === undefined || gvizRowIndex === null || gvizRowIndex === "undefined") return;
+    const item = aparRespuestas.find(r => String(r.gvizRowIndex) === String(gvizRowIndex));
+    const result = await aparCallAppsScript("saveResolution", {
+      row: gvizRowIndex,
+      fecha: fecha || "",
+      tipo: tipo || "",
+      nota: nota || "",
+      club: item ? item.club : "",
+      colaborador: item ? item.colaborador : "",
+      comentario: item ? item.comentarios : "",
+      timestamp: item && item.fecha ? String(item.fecha) : ""
+    });
+    if (!result) {
+      aparShowToast("No se pudo guardar en el Excel (revisa la URL del backend). Se guardó localmente.");
+    }
+  }
+
+  // ─── CÁLCULOS ─────────────────────────────────────────────────────────────────
+  function aparCalcGeneral(rows) {
+    let valid=0, compliant=0;
+    rows.forEach(row => {
+      APAR_CRITERIA.forEach(c => {
+        const v = row.criterios[c.key];
+        if (v===0||v===1) { valid++; if(v===1) compliant++; }
+      });
+    });
+    return { valid, compliant, percent: valid>0 ? Math.round((compliant/valid)*100) : null };
+  }
+  function aparCalcCriterion(rows, key) {
+    let valid=0, compliant=0;
+    rows.forEach(row => {
+      const v = row.criterios[key];
+      if (v===0||v===1) { valid++; if(v===1) compliant++; }
+    });
+    return { valid, compliant, percent: valid>0 ? Math.round((compliant/valid)*100) : null };
+  }
+  function aparGetLowestCriterion(rows) {
+    if (!rows.length) return { name:"Sin datos", percent:null };
+    const r = APAR_CRITERIA.map(c => ({ name:c.name, percent:aparCalcCriterion(rows,c.key).percent }))
+                      .filter(r=>r.percent!==null);
+    if (!r.length) return { name:"Sin datos", percent:null };
+    r.sort((a,b)=>a.percent-b.percent);
+    return r[0];
+  }
+
+  // ─── ESTADOS ─────────────────────────────────────────────────────────────────
+  function aparGetState(pct,count) {
+    if (!count||pct===null||isNaN(pct)) return "Sin datos";
+    if (pct>=90) return "Excelente";
+    if (pct>=80) return "En seguimiento";
+    return "Requiere atención";
+  }
+  function aparStateColor(st) {
+    if (st==="Excelente") return "#16A34A";
+    if (st==="En seguimiento") return "#F59E0B";
+    if (st==="Requiere atención") return "#DC2626";
+    return "#98a2b3";
+  }
+  function aparBadgeClass(st) {
+    if (st==="Excelente") return "apar-green";
+    if (st==="En seguimiento") return "apar-yellow";
+    if (st==="Requiere atención") return "apar-red";
+    return "apar-gray";
+  }
+
+  // ─── NORMALIZACIÓN ────────────────────────────────────────────────────────────
+  // [NUEVO] Helper genérico de normalización de texto (usado por aparResolveGvizColumns_)
+  function aparNormalizeText(v) {
+    return String(v||"").trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ");
+  }
+  function aparNormalizeClub(v) {
+    const t = String(v||"").trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+    if (t.includes("NACIONES UNIDAS")||t==="NAC"||t==="NU") return "Naciones Unidas";
+    if (t.includes("GOURMETERIA")||t.includes("GOURMETERÍA")||t==="GMT") return "Gourmetería";
+    if (t.includes("VALLE REAL")||t==="VR") return "Valle Real";
+    if (t.includes("CENTER")||t==="CTR") return "Center";
+    return "";
+  }
+  function aparNormalizeMonth(v) {
+    const t = String(v||"").trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+    const m = {"4":"Abril","04":"Abril","ABRIL":"Abril","5":"Mayo","05":"Mayo","MAYO":"Mayo",
+      "6":"Junio","06":"Junio","JUNIO":"Junio","7":"Julio","07":"Julio","JULIO":"Julio",
+      "8":"Agosto","08":"Agosto","AGOSTO":"Agosto","9":"Septiembre","09":"Septiembre",
+      "SEPTIEMBRE":"Septiembre","10":"Octubre","OCTUBRE":"Octubre","11":"Noviembre",
+      "NOVIEMBRE":"Noviembre","12":"Diciembre","DICIEMBRE":"Diciembre"};
+    return m[t]||"";
+  }
+  function aparNormalizeShift(v) {
+    const t = String(v||"").trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+    if (t.includes("MATUTINO")||t==="M") return "Matutino";
+    if (t.includes("VESPERTINO")||t==="V") return "Vespertino";
+    if (t.includes("MIXTO")) return "Mixto";
+    return String(v||"").trim();
+  }
+  function aparCleanText(v) { return String(v||"").trim().replace(/\s+/g," "); }
+  function aparUnique(arr)  { return [...new Set(arr.map(aparCleanText).filter(Boolean))]; }
+
+  // [NUEVO] Formatea una fecha local (evita desfases de zona horaria del
+  // típico toISOString()) como yyyy-MM-dd, para usarla en atributos
+  // min/max de <input type="date">.
+  function aparToYMD_(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  // [NUEVO] Convierte una cantidad de días a un texto legible: días si es
+  // poco tiempo, meses si ya pasó más de un mes, años (+ meses) si es más
+  // de un año — para no mostrar cosas como "62 días" cuando son "2 meses".
+  function aparFormatDuracion_(diffDays) {
+    if (diffDays <= 31) {
+      return diffDays + " día" + (diffDays !== 1 ? "s" : "");
+    }
+    if (diffDays < 365) {
+      const months = Math.round(diffDays / 30);
+      return months + " mes" + (months !== 1 ? "es" : "");
+    }
+    const years = Math.floor(diffDays / 365);
+    const remDays = diffDays % 365;
+    const months = Math.round(remDays / 30);
+    let out = years + " año" + (years !== 1 ? "s" : "");
+    if (months > 0) out += " y " + months + " mes" + (months !== 1 ? "es" : "");
+    return out;
+  }
+
+  // Detecta el mes actual del sistema y lo mapea al nombre en español usado en el dashboard
+  function aparGetCurrentMonthName() {
+    const idx = new Date().getMonth(); // 0=enero, 3=abril, 4=mayo...
+    const allMonths = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio",
+                        "Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+    const name = allMonths[idx];
+    return APAR_MONTHS.includes(name) ? name : APAR_MONTHS[APAR_MONTHS.length-1];
+  }
+  function aparIsRelevantComment(c) {
+    // Normaliza: quita acentos, signos de puntuación, emojis y espacios extra
+    let t = String(c||"").trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+    t = t.replace(/[.,!¡?¿:;()"'*\-_/\\]/g, " ");
+    t = t.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, " ");
+    t = t.replace(/\s+/g, " ").trim();
+
+    if (!t || t.length <= 2) return false;
+
+    const irrelevantPhrases = [
+      "NO APLICA","N A","NA","NO","NINGUNO","NINGUNA","NADA","NADA EN PARTICULAR",
+      "NADA EN ABSOLUTO","SIN COMENTARIOS","SIN NOTAS","SIN NOTA",
+      "TODO BIEN","TODO BIEB","TOD BIEN","TODO BN","TODO CORRECTO","TODO MUY BIEN",
+      "TODO EXCELENTE","TODO PERFECTO","TODO SUPER BIEN","TODO MUCHO BIEN",
+      "OK","CORRECTO","BIEN","BUENO","BUENA","BUEN TRABAJO",
+      "DE MOMENTO NO","DE MOMENTO NADA","POR EL MOMENTO NO","HASTA EL MOMENTO NO",
+      "NO TODO BIEN","NO TODO MUY BIEN","NO TODO CORRECTO","NO TODO PERFECTO",
+      "NO TODO SUPER BIEN","NO TODO MUCHO BIEN","NO NADA","NO POR AHORA",
+      "POR AHORA NO","POR AHORA NADA",
+      // [NUEVO] (3) Filtro de comentarios basura: frases exactas solicitadas
+      "EJECUTIVA PREMIUM EXCELENTE",
+      "POR EL MOMENTO ESTA ALINEADA CORRECTAMENTE",
+      "NADA EN ABSOLUTO EL COLABORADOR PORTA TODO APROPIADAMENTE",
+      "NADA TODO MUY BIEN",
+      "NINGUNO EN PARTICULAR"
+    ];
+
+    if (irrelevantPhrases.includes(t)) return false;
+
+    const words = t.split(" ").filter(Boolean);
+    if (words.length <= 3) {
+      const onlyFiller = words.every(w =>
+        ["NO","SI","TODO","BIEN","BIEB","BN","OK","CORRECTO","NADA","MUY",
+         "SUPER","EXCELENTE","PERFECTO","MOMENTO","AHORA","POR","DE","AHORITA"
+        ].includes(w)
+      );
+      if (onlyFiller) return false;
+    }
+
+    return true;
+  }
+  
+  // ─── UI ───────────────────────────────────────────────────────────────────────
+  function aparSetLoading(on) {
+    document.body.classList.toggle("apar-is-loading", on);
+    const rb = document.getElementById("apar-refreshTopBtn");
+    if (rb) rb.textContent = on ? "Cargando..." : "Actualizar datos";
+  }
+  function aparShowToast(msg) {
+    const t = document.getElementById("apar-toast");
+    t.textContent = msg;
+    t.classList.remove("apar-hidden");
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(()=>t.classList.add("apar-hidden"), 4500);
+  }
+
 const ROL_MINIMO_TAB = {
   directorio: 'lider', ruta: 'admin', configuracion: 'admin', reclutamiento: 'admin',
   preonboarding: 'admin', treinta: 'admin', evaluacion: 'admin', certificaciones: 'admin',
+  servicio: 'admin',
 };
 const ORDEN_ROLES = { colaborador: 1, lider: 2, admin: 3 };
 function rolEfectivoActual() {
@@ -3933,6 +6259,7 @@ function switchTab(tab) {
   if (tab === 'configuracion') renderConfiguracion();
   if (tab === 'reclutamiento') reclRender();
   if (tab === 'ausencias') renderAusencias();
+  if (tab === 'servicio') servInit();
 }
 
 function toggleSidebarGroup(id) {
