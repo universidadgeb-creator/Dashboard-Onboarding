@@ -8036,8 +8036,11 @@ function afShowTeamToast(msg){
 const ROL_MINIMO_TAB = {
   directorio: 'lider', ruta: 'admin', configuracion: 'admin', reclutamiento: 'admin',
   preonboarding: 'admin', treinta: 'admin', evaluacion: 'admin', certificaciones: 'admin',
-  apariencia: 'admin', ambientefisico: 'admin',
 };
+// Servicio (Política de Apariencia / Ambiente Físico) no tiene mínimo de rol a propósito:
+// cualquier colaborador puede consultar sus resultados generales por sucursal. Los paneles
+// internos de Comentarios CH / Incidencias por equipo siguen protegidos con su propia
+// contraseña, sin cambios.
 const ORDEN_ROLES = { colaborador: 1, lider: 2, admin: 3 };
 function rolEfectivoActual() {
   const sim = getSimulacionActiva();
