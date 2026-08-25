@@ -2461,8 +2461,19 @@
       <button class="sidebar-item" data-tab="reclutamiento" onclick="switchTab('reclutamiento')">
         <span class="si-icon"></span><span class="si-label">Reclutamiento</span>
       </button>
-      <button class="sidebar-item" data-tab="servicio" onclick="switchTab('servicio')">
-        <span class="si-icon"></span><span class="si-label">Servicio</span>
+    </div>
+  </div>
+
+  <div class="sidebar-group" id="sg-servicio">
+    <button class="sidebar-group-header" onclick="toggleSidebarGroup('sg-servicio')">
+      <span>Servicio</span><span class="sg-chevron">⌄</span>
+    </button>
+    <div class="sidebar-group-body">
+      <button class="sidebar-item" data-tab="apariencia" onclick="switchTab('apariencia')">
+        <span class="si-icon"></span><span class="si-label">Política de Apariencia</span>
+      </button>
+      <button class="sidebar-item" data-tab="ambientefisico" onclick="switchTab('ambientefisico')">
+        <span class="si-icon"></span><span class="si-label">Ambiente Físico</span>
       </button>
     </div>
   </div>
@@ -3158,19 +3169,13 @@
     <div id="recl-content"></div>
   </div>
 
-  <div class="tab-panel" id="panel-servicio">
+  <div class="tab-panel" id="panel-apariencia">
     <div class="section-header">
-      <div class="section-title">Servicio</div>
+      <div class="section-title">Política de Apariencia</div>
       <button class="btn-nuevo-colab" id="apar-refreshTopBtn">Actualizar datos</button>
     </div>
-    <p class="bandeja-sub" style="margin-bottom:16px">Seguimiento de política de apariencia y ambiente físico por sucursal.</p>
+    <p class="bandeja-sub" style="margin-bottom:16px">Seguimiento de política de apariencia por sucursal.</p>
 
-    <div class="recl-tabs">
-      <button class="recl-tab-btn active" data-serv-view="apariencia" onclick="servSwitchView('apariencia')">Política de Apariencia</button>
-      <button class="recl-tab-btn" data-serv-view="ambiente" onclick="servSwitchView('ambiente')">Ambiente Físico</button>
-    </div>
-
-    <div class="dc-subpanel active" id="serv-subpanel-apariencia">
       <div class="apar-scope">
         <div class="apar-page">
 
@@ -3309,9 +3314,14 @@
         
           <div id="apar-toast" class="apar-toast apar-hidden"></div>
       </div>
-    </div>
+  </div>
 
-    <div class="dc-subpanel" id="serv-subpanel-ambiente">
+  <div class="tab-panel" id="panel-ambientefisico">
+    <div class="section-header">
+      <div class="section-title">Ambiente Físico</div>
+    </div>
+    <p class="bandeja-sub" style="margin-bottom:16px">Seguimiento de ambiente físico por sucursal.</p>
+
       <div class="af-scope">
         <div class="af-container">
             <div id="af-error" class="af-error"></div>
@@ -3493,7 +3503,6 @@
         
           <div id="af-teamToast" class="af-team-toast af-hidden"></div>
       </div>
-    </div>
   </div>
 
   <div class="tab-panel" id="panel-configuracion">
@@ -5721,16 +5730,6 @@ const FORMACION_TABS = ['preonboarding','treinta','evaluacion','certificaciones'
     aparLoadData();
     aparLoadBackendData(); // [NUEVO] (1)(2)(3)(4) — en paralelo, no bloquea la carga principal
   }
-  function servInit() {
-    servAparInit();
-  }
-  function servSwitchView(view) {
-    document.querySelectorAll('#panel-servicio .recl-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.servView === view));
-    document.querySelectorAll('#panel-servicio .dc-subpanel').forEach(p => p.classList.remove('active'));
-    document.getElementById('serv-subpanel-' + view).classList.add('active');
-    if (view === 'ambiente') servAfInit();
-  }
-
   function aparBindEvents() {
     ["apar-filterMonth","apar-filterClub","apar-filterRole","apar-filterShift","apar-filterCriterion"]
       .forEach(id => document.getElementById(id).addEventListener("change", aparRenderAll));
@@ -8037,7 +8036,7 @@ function afShowTeamToast(msg){
 const ROL_MINIMO_TAB = {
   directorio: 'lider', ruta: 'admin', configuracion: 'admin', reclutamiento: 'admin',
   preonboarding: 'admin', treinta: 'admin', evaluacion: 'admin', certificaciones: 'admin',
-  servicio: 'admin',
+  apariencia: 'admin', ambientefisico: 'admin',
 };
 const ORDEN_ROLES = { colaborador: 1, lider: 2, admin: 3 };
 function rolEfectivoActual() {
@@ -8091,7 +8090,8 @@ function switchTab(tab) {
   if (tab === 'configuracion') renderConfiguracion();
   if (tab === 'reclutamiento') reclRender();
   if (tab === 'ausencias') renderAusencias();
-  if (tab === 'servicio') servInit();
+  if (tab === 'apariencia') servAparInit();
+  if (tab === 'ambientefisico') servAfInit();
 }
 
 function toggleSidebarGroup(id) {
