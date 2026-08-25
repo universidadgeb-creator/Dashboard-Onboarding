@@ -8044,7 +8044,14 @@ const ROL_MINIMO_TAB = {
 const ORDEN_ROLES = { colaborador: 1, lider: 2, admin: 3 };
 function rolEfectivoActual() {
   const sim = getSimulacionActiva();
-  return sim ? sim.rol : 'admin';
+  if (sim) return sim.rol;
+  // Antes de que existiera login real, cualquiera que abriera Plenia era del equipo
+  // administrativo, así que "sin simulación" caía en 'admin' por defecto. Con login real
+  // por correo, ese default abría el panel completo a cualquier colaborador que iniciara
+  // sesión. Ahora se usa el rol real guardado en Supabase, con 'colaborador' (el de menor
+  // privilegio) como respaldo si _usuarioActual todavía no cargó.
+  if (_usuarioActual && _usuarioActual.rol_acceso) return _usuarioActual.rol_acceso;
+  return 'colaborador';
 }
 function tabVisibleParaRol(tab, rol) {
   const minimo = ROL_MINIMO_TAB[tab];
@@ -12081,6 +12088,7 @@ async function mostrarAppAutenticada() {
   renderPerfilReal();
   if (_appMostrada) return;
   _appMostrada = true;
+  aplicarVisibilidadNav();
   aplicarControlesAdmin();
   loadAll();
   iniciarBenito();
