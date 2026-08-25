@@ -5818,46 +5818,44 @@ const FORMACION_TABS = ['preonboarding','treinta','evaluacion','certificaciones'
    * Se llama vía JSONP (igual patrón que aparLoadData) para evitar problemas de
    * CORS, tanto para lectura como para "escritura" (saveResolution).
    * ==========================================================================*/
+  // [FIX] Antes esto se hacía vía JSONP (una etiqueta <script src="...&callback=...">),
+  // pensado para "evitar problemas de CORS". En la práctica, los Web Apps de Apps Script
+  // publicados con acceso "Cualquier usuario" ya responden con los headers CORS necesarios
+  // para un fetch() normal — el mismo patrón que ya usa Ambiente Físico sin problema. El
+  // problema real de JSONP es que redes corporativas frecuentemente filtran justo ese
+  // patrón (<script> + parámetro "callback=") por parecerse a rastreo publicitario, aunque
+  // el backend esté sano — causando que Apariencia se vea "sin datos" solo en esas redes,
+  // mientras Ambiente Físico (ya con fetch) seguía funcionando igual de bien.
   function aparCallAppsScript(action, extraParams) {
-    return new Promise((resolve) => {
-      if (!APAR_APPS_SCRIPT_URL || APAR_APPS_SCRIPT_URL.indexOf("TU_ID_DE_DESPLIEGUE") >= 0) {
-        // No configurado todavía: falla silenciosamente y se usan respaldos locales.
-        resolve(null);
-        return;
-      }
-      const cbName = "_appsScriptCb_" + Date.now() + "_" + Math.floor(Math.random()*1e6);
-      let timer = null;
-      function cleanup() {
-        clearTimeout(timer);
-        const s = document.getElementById(cbName);
-        if (s) s.remove();
-        try { delete window[cbName]; } catch(e) {}
-      }
-      window[cbName] = function(data) {
-        cleanup();
+    if (!APAR_APPS_SCRIPT_URL || APAR_APPS_SCRIPT_URL.indexOf("TU_ID_DE_DESPLIEGUE") >= 0) {
+      // No configurado todavía: falla silenciosamente y se usan respaldos locales.
+      return Promise.resolve(null);
+    }
+    const params = new URLSearchParams({ action, t: Date.now(), ...(extraParams||{}) });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), APAR_JSONP_TIMEOUT);
+    return fetch(`${APAR_APPS_SCRIPT_URL}?${params.toString()}`, { signal: controller.signal })
+      .then(res => {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(data => {
         if (!data) {
           console.warn(`[Codigo.gs] action=${action} devolvió una respuesta vacía/nula.`);
         } else if (!data.ok) {
           console.error(`[Codigo.gs] action=${action} falló:`, data.message || data);
         }
-        resolve(data && data.ok ? data.data : null);
-      };
-      timer = setTimeout(() => {
-        cleanup();
-        console.warn(`[Codigo.gs] action=${action} agotó el tiempo de espera (${APAR_JSONP_TIMEOUT}ms). Verifica APAR_APPS_SCRIPT_URL y que el Web App esté implementado con acceso "Cualquier usuario".`);
-        resolve(null);
-      }, APAR_JSONP_TIMEOUT);
-      const params = new URLSearchParams({ action, callback: cbName, t: Date.now(), ...(extraParams||{}) });
-      const script = document.createElement("script");
-      script.id = cbName;
-      script.onerror = () => {
-        cleanup();
-        console.error(`[Codigo.gs] No se pudo cargar el script de action=${action}. Verifica APAR_APPS_SCRIPT_URL:`, APAR_APPS_SCRIPT_URL);
-        resolve(null);
-      };
-      script.src = `${APAR_APPS_SCRIPT_URL}?${params.toString()}`;
-      document.body.appendChild(script);
-    });
+        return data && data.ok ? data.data : null;
+      })
+      .catch(err => {
+        if (err.name === 'AbortError') {
+          console.warn(`[Codigo.gs] action=${action} agotó el tiempo de espera (${APAR_JSONP_TIMEOUT}ms). Verifica APAR_APPS_SCRIPT_URL y que el Web App esté implementado con acceso "Cualquier usuario".`);
+        } else {
+          console.error(`[Codigo.gs] No se pudo pedir action=${action}. Verifica APAR_APPS_SCRIPT_URL:`, APAR_APPS_SCRIPT_URL, err);
+        }
+        return null;
+      })
+      .finally(() => clearTimeout(timer));
   }
 
   async function aparLoadBackendData() {
