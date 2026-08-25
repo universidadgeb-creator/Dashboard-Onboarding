@@ -2332,6 +2332,382 @@
       .af-criterion-btn{grid-template-columns:auto 1fr auto}
       .af-criterion-pct{display:none}
     }
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     CAPA PREMIUM — refinamiento visual y de UX
+     ──────────────────────────────────────────────────────────────────────────
+     Va al final del <style> a propósito: reescribe apariencia (color, sombra,
+     ritmo, movimiento) sin tocar el HTML ni el JS, así ninguna funcionalidad
+     existente cambia de comportamiento. Los nombres de clase de arriba se
+     conservan tal cual; aquí solo se les da un mejor acabado.
+     ══════════════════════════════════════════════════════════════════════════ */
+
+  :root {
+    /* Escala de elevación en capas — una sombra "real" tiene un contacto duro
+       y cerrado (la 1ª) más una difusa y amplia (la 2ª). Una sola sombra suelta
+       siempre se ve plana. */
+    --pl-shadow-xs: 0 1px 2px rgba(30,27,46,.05);
+    --pl-shadow-sm: 0 1px 2px rgba(30,27,46,.05), 0 2px 6px rgba(76,29,149,.05);
+    --pl-shadow-md: 0 1px 3px rgba(30,27,46,.06), 0 6px 16px rgba(76,29,149,.07);
+    --pl-shadow-lg: 0 2px 6px rgba(30,27,46,.07), 0 14px 34px rgba(76,29,149,.10);
+    --pl-shadow-xl: 0 4px 12px rgba(30,27,46,.08), 0 28px 60px rgba(76,29,149,.16);
+    --pl-shadow-brand: 0 2px 6px rgba(124,58,237,.20), 0 10px 24px rgba(124,58,237,.22);
+
+    /* Radios — una escala corta y coherente en vez de 4/6/8/9/10/12/14/16/20 sueltos */
+    --pl-r-sm: 8px;
+    --pl-r-md: 12px;
+    --pl-r-lg: 16px;
+    --pl-r-xl: 22px;
+    --pl-r-pill: 999px;
+
+    /* Movimiento — una sola curva estándar mantiene toda la interfaz "hablando
+       el mismo idioma"; la de resorte queda para lo que celebra algo. */
+    --pl-ease: cubic-bezier(.4, 0, .2, 1);
+    --pl-ease-out: cubic-bezier(.16, 1, .3, 1);
+    --pl-spring: cubic-bezier(.34, 1.56, .64, 1);
+    --pl-fast: .14s;
+    --pl-base: .22s;
+
+    /* Bordes y superficies afinados: el #E6DFF5 original tira mucho a morado y
+       ensucia el gris. Estos mantienen el tinte de marca pero más neutro. */
+    --pl-border: #E9E4F4;
+    --pl-border-soft: #F1EDF9;
+    --pl-border-strong: #DCD4EE;
+    --pl-focus: 0 0 0 3px rgba(124,58,237,.16);
+  }
+
+  /* ── TIPOGRAFÍA ───────────────────────────────────────────────────────────
+     Lo que más "sube de categoría" un panel de datos: numerales tabulares
+     (cada dígito ocupa el mismo ancho, así las columnas de cifras quedan
+     alineadas y no bailan al actualizarse) y un render de texto más nítido. */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'cv05' 1, 'cv11' 1, 'ss01' 1;
+    letter-spacing: -.005em;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, #FBF9FE 0%, transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, #F7F3FE 0%, transparent 55%),
+      var(--verde-oscuro);
+    background-attachment: fixed;
+  }
+
+  /* Cifras alineadas en todo lo que sea dato */
+  .kpi-value, .home-stat-num, table, .metas-mensual-table, .meta-val,
+  .score-num, .cal-day-num, .recl-metric-line strong, .alert-badge,
+  .apar-kpi-value, .apar-donut strong, .af-metric strong, .af-donut .af-inside strong {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  /* Titulares grandes: tracking negativo — a mayor tamaño, menos aire hace falta */
+  .home-hero h1 { letter-spacing: -.028em; }
+  .kpi-value { letter-spacing: -.03em; }
+  .auth-title { letter-spacing: -.02em; }
+  .apar-section-title, .af-section h2 { letter-spacing: -.02em; }
+
+  ::selection { background: rgba(124,58,237,.18); color: #1E1B2E; }
+
+  /* ── ACCESIBILIDAD: anillo de foco ────────────────────────────────────────
+     Antes casi todo hacía `outline:none` y solo cambiaba el borde, lo que deja
+     a quien navega con teclado sin saber dónde está parado. `:focus-visible`
+     solo se activa con teclado, así que el mouse no ve ningún cambio. */
+  a:focus-visible, button:focus-visible, input:focus-visible,
+  select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--verde-acento);
+    outline-offset: 2px;
+    border-radius: var(--pl-r-sm);
+  }
+  input:focus, select:focus, textarea:focus,
+  .auth-input:focus, .rv-search-input:focus, .filter-select:focus {
+    box-shadow: var(--pl-focus);
+    border-color: var(--verde-acento);
+  }
+  input, select, textarea { transition: border-color var(--pl-fast) var(--pl-ease), box-shadow var(--pl-fast) var(--pl-ease); }
+
+  /* ── SCROLLBARS ──────────────────────────────────────────────────────────── */
+  * { scrollbar-width: thin; scrollbar-color: #D6CDE9 transparent; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: #D6CDE9; border-radius: var(--pl-r-pill);
+    border: 3px solid transparent; background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: #BFB2DC; background-clip: content-box; }
+
+  /* ── HEADER ──────────────────────────────────────────────────────────────── */
+  header {
+    background: rgba(255,255,255,.82);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--pl-border-soft);
+    box-shadow: 0 1px 0 rgba(76,29,149,.04);
+  }
+  .btn-refresh {
+    border-radius: var(--pl-r-sm); font-weight: 600; padding: 6px 14px;
+    border-color: var(--pl-border-strong); color: var(--gris-medio);
+    transition: all var(--pl-fast) var(--pl-ease);
+  }
+  .btn-refresh:hover {
+    background: var(--verde-acento); border-color: var(--verde-acento);
+    color: #fff; box-shadow: var(--pl-shadow-brand);
+  }
+
+  /* ── SIDEBAR ─────────────────────────────────────────────────────────────
+     Un degradado muy sutil da profundidad sin llamar la atención; el borde
+     derecho claro separa del contenido mejor que el corte seco. */
+  .sidebar {
+    background: linear-gradient(180deg, #2A2049 0%, #241B3D 42%, #1F1734 100%);
+    border-right: 1px solid rgba(255,255,255,.06);
+    padding: 16px 12px 12px;
+  }
+  .sidebar-item {
+    border-radius: var(--pl-r-sm); padding: 9px 11px;
+    transition: background var(--pl-fast) var(--pl-ease), color var(--pl-fast) var(--pl-ease);
+  }
+  .sidebar-item:hover { background: rgba(255,255,255,.08); }
+  .sidebar-item.active {
+    background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+    box-shadow: var(--pl-shadow-brand), inset 0 1px 0 rgba(255,255,255,.18);
+    font-weight: 600;
+  }
+  .sidebar-subitem { border-radius: var(--pl-r-sm); transition: background var(--pl-fast) var(--pl-ease), color var(--pl-fast) var(--pl-ease); }
+  .sidebar-subitem.active {
+    background: rgba(139,92,246,.22);
+    box-shadow: inset 2px 0 0 #A78BFA;
+  }
+  .sidebar-group-header { letter-spacing: .08em; transition: color var(--pl-fast) var(--pl-ease); }
+  .si-soon { letter-spacing: .04em; }
+
+  /* ── SUPERFICIES / TARJETAS ──────────────────────────────────────────────── */
+  .kpi-card, .table-wrapper, .config-card, .soon-box, .encuesta-card,
+  .home-stat-card, .home-today, .home-inbox, .home-nav-card, .dir-table {
+    border-color: var(--pl-border);
+    box-shadow: var(--pl-shadow-sm);
+  }
+  .kpi-card {
+    border-radius: var(--pl-r-md); padding: 20px;
+    transition: box-shadow var(--pl-base) var(--pl-ease), transform var(--pl-base) var(--pl-ease), border-color var(--pl-base) var(--pl-ease);
+  }
+  .kpi-card:hover { box-shadow: var(--pl-shadow-md); border-color: var(--pl-border-strong); }
+  /* La barra superior de acento pasa a degradado y aparece completa al hover */
+  .kpi-card::before {
+    height: 3px; background: linear-gradient(90deg, #8B5CF6, #A78BFA);
+    opacity: .75; transition: opacity var(--pl-base) var(--pl-ease);
+  }
+  .kpi-card:hover::before { opacity: 1; }
+  .kpi-label { letter-spacing: .09em; color: var(--gris-medio); }
+  .kpi-value { font-size: 33px; }
+
+  .home-stat-card, .home-today, .home-inbox, .home-nav-card {
+    border-radius: var(--pl-r-lg);
+  }
+  .home-nav-card {
+    transition: box-shadow var(--pl-base) var(--pl-ease), transform var(--pl-base) var(--pl-ease), border-color var(--pl-base) var(--pl-ease);
+  }
+  .home-nav-card:hover {
+    box-shadow: var(--pl-shadow-lg); transform: translateY(-3px); border-color: #C4B5FD;
+  }
+  .home-stat-card {
+    transition: box-shadow var(--pl-base) var(--pl-ease), transform var(--pl-base) var(--pl-ease);
+  }
+  .home-stat-card:hover { box-shadow: var(--pl-shadow-md); transform: translateY(-2px); }
+  .home-stat-num { letter-spacing: -.03em; }
+
+  .home-hero {
+    border-radius: var(--pl-r-xl);
+    background:
+      radial-gradient(700px 320px at 12% 0%, rgba(196,181,253,.42) 0%, transparent 62%),
+      linear-gradient(135deg, #F5F3FF 0%, #FDF2F8 100%);
+    border: 1px solid rgba(196,181,253,.30);
+    box-shadow: var(--pl-shadow-sm);
+  }
+  .home-search input {
+    border-color: var(--pl-border-strong); border-radius: var(--pl-r-pill);
+    box-shadow: var(--pl-shadow-sm);
+    transition: box-shadow var(--pl-base) var(--pl-ease), border-color var(--pl-base) var(--pl-ease);
+  }
+  .home-search input:focus { box-shadow: var(--pl-shadow-md), var(--pl-focus); }
+  .home-search-results { border-radius: var(--pl-r-md); box-shadow: var(--pl-shadow-xl); border: 1px solid var(--pl-border); }
+  .home-search-result-item { transition: background var(--pl-fast) var(--pl-ease); }
+
+  .soon-box { border-radius: var(--pl-r-lg); border-color: var(--pl-border); }
+  .config-card { border-radius: var(--pl-r-md); border-color: var(--pl-border); }
+  .config-row { border-top-color: var(--pl-border-soft); }
+
+  /* ── BOTONES ─────────────────────────────────────────────────────────────
+     Un realce interior arriba (inset highlight) hace que un botón sólido se
+     lea como una superficie con volumen y no como un rectángulo pintado. */
+  .btn-nuevo-colab, .btn-nuevo-aviso, .auth-btn, .hero-nombre-prompt button {
+    border-radius: var(--pl-r-sm);
+    box-shadow: var(--pl-shadow-brand), inset 0 1px 0 rgba(255,255,255,.22);
+    transition: transform var(--pl-fast) var(--pl-ease), box-shadow var(--pl-base) var(--pl-ease), filter var(--pl-fast) var(--pl-ease);
+  }
+  .btn-nuevo-colab:hover, .btn-nuevo-aviso:hover, .auth-btn:hover, .hero-nombre-prompt button:hover {
+    transform: translateY(-1px); filter: saturate(1.08) brightness(1.04);
+    box-shadow: 0 4px 10px rgba(124,58,237,.26), 0 16px 32px rgba(124,58,237,.26), inset 0 1px 0 rgba(255,255,255,.24);
+    opacity: 1;
+  }
+  /* Estado presionado: el botón "se hunde" y devuelve la sensación de clic */
+  .btn-nuevo-colab:active, .btn-nuevo-aviso:active, .auth-btn:active, .hero-nombre-prompt button:active {
+    transform: translateY(0); box-shadow: var(--pl-shadow-sm);
+  }
+  .auth-btn { border-radius: var(--pl-r-sm); padding: 12px; }
+  .auth-btn:disabled { box-shadow: none; filter: none; transform: none; }
+
+  .dir-chip, .btn-ver-como { border-radius: var(--pl-r-pill); transition: all var(--pl-fast) var(--pl-ease); }
+  .dir-chip.active { box-shadow: var(--pl-shadow-brand); font-weight: 600; }
+
+  /* ── TABLAS ──────────────────────────────────────────────────────────────── */
+  .table-wrapper, .dir-table { border-radius: var(--pl-r-md); }
+  thead th {
+    background: linear-gradient(180deg, #F8F5FD 0%, #F3EFFB 100%);
+    border-bottom: 1px solid var(--pl-border);
+    letter-spacing: .07em; font-weight: 700; padding: 11px 14px;
+  }
+  tbody tr { border-bottom: 1px solid var(--pl-border-soft); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #FAF8FE; }
+  tbody td { padding: 10px 14px; }
+
+  /* ── FILTROS ─────────────────────────────────────────────────────────────── */
+  .filters-bar {
+    background: rgba(255,255,255,.72);
+    backdrop-filter: saturate(160%) blur(10px);
+    -webkit-backdrop-filter: saturate(160%) blur(10px);
+    border-bottom: 1px solid var(--pl-border-soft);
+  }
+  .filter-select {
+    background-color: #fff; border-color: var(--pl-border-strong);
+    border-radius: var(--pl-r-sm); padding: 7px 28px 7px 11px; color: #1E1B2E;
+    /* La flechita venía con el verde-azulado del tema anterior; ahora es morada */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237C3AED'/%3E%3C/svg%3E");
+  }
+  .filter-select:hover { border-color: #C4B5FD; }
+  .btn-clear { border-radius: var(--pl-r-sm); transition: color var(--pl-fast) var(--pl-ease); }
+
+  /* ── PANELES / ENTRADA DE PESTAÑA ───────────────────────────────────────── */
+  @keyframes plFadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  /* Los paneles se animan SOLO con opacidad, nunca con transform. Un elemento con
+     transform animado (incluso al terminar en `none`, por el fill-mode `both`) pasa
+     a ser el marco de referencia de sus descendientes `position: fixed` — y dentro
+     de estos paneles viven el modal de Gafete y los toasts, que dejarían de cubrir
+     la ventana para encajonarse dentro del panel. La opacidad no tiene ese efecto. */
+  @keyframes plFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .tab-panel.active { animation: plFadeIn .26s var(--pl-ease-out) both; }
+
+  .section-title { letter-spacing: .11em; }
+  .section-title::after { background: linear-gradient(90deg, var(--pl-border) 0%, transparent 100%); }
+
+  /* ── ALERTAS / PANELES FLOTANTES ────────────────────────────────────────── */
+  .alert-panel {
+    border-radius: var(--pl-r-md); border-color: var(--pl-border);
+    box-shadow: var(--pl-shadow-xl); padding: 6px 0;
+  }
+  .alert-panel.open { animation: plFadeUp .2s var(--pl-ease-out) both; }
+  .alert-item { border-bottom-color: var(--pl-border-soft); transition: background var(--pl-fast) var(--pl-ease); }
+  .alert-badge { box-shadow: 0 0 0 2px #fff; font-variant-numeric: tabular-nums; }
+  .alert-bell { transition: all var(--pl-fast) var(--pl-ease); }
+
+  /* ── CALENDARIO ──────────────────────────────────────────────────────────── */
+  .cal-day-cell {
+    border-color: var(--pl-border); border-radius: var(--pl-r-sm);
+    transition: box-shadow var(--pl-fast) var(--pl-ease), border-color var(--pl-fast) var(--pl-ease);
+  }
+  .cal-day-cell:not(.empty):hover { border-color: #C4B5FD; box-shadow: var(--pl-shadow-sm); }
+  .cal-day-cell.hoy {
+    border-color: var(--verde-acento);
+    box-shadow: 0 0 0 1px var(--verde-acento) inset, var(--pl-shadow-sm);
+    background: linear-gradient(180deg, #FBF9FE 0%, #fff 100%);
+  }
+  .cal-nav-btn { border-radius: var(--pl-r-sm); border-color: var(--pl-border-strong); transition: all var(--pl-fast) var(--pl-ease); }
+
+  /* ── PANTALLA DE ACCESO ─────────────────────────────────────────────────── */
+  .auth-gate {
+    background:
+      radial-gradient(900px 500px at 50% -10%, #F1EAFE 0%, transparent 60%),
+      var(--verde-oscuro);
+  }
+  .auth-card {
+    border-radius: var(--pl-r-xl); box-shadow: var(--pl-shadow-xl);
+    border: 1px solid var(--pl-border-soft); padding: 40px 34px;
+    animation: plFadeUp .4s var(--pl-ease-out) both;
+  }
+  .auth-input { border-radius: var(--pl-r-sm); border-color: var(--pl-border-strong); padding: 12px 14px; }
+
+  /* ── MODALES ─────────────────────────────────────────────────────────────── */
+  .modal-overlay, .apar-gafete-modal-overlay {
+    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  }
+
+  /* ── DASHBOARDS PORTADOS (Servicio) ─────────────────────────────────────
+     Solo se armonizan sombras y radios para que no desentonen con el resto;
+     su lógica y su estructura quedan intactas. */
+  .apar-panel, .apar-kpi-card, .apar-club-card, .apar-criterion-card {
+    box-shadow: var(--pl-shadow-sm); border-color: var(--pl-border);
+  }
+  .apar-kpi-card, .apar-club-card, .apar-criterion-card {
+    transition: box-shadow var(--pl-base) var(--pl-ease), transform var(--pl-base) var(--pl-ease);
+  }
+  .apar-kpi-card:hover, .apar-club-card:hover { box-shadow: var(--pl-shadow-md); transform: translateY(-2px); }
+  .af-section, .af-metric, .af-club-card, .af-criterion, .af-incident-card, .af-team-summary-card {
+    box-shadow: var(--pl-shadow-sm);
+  }
+  .af-section { border-radius: var(--pl-r-lg); }
+  .af-club-card, .af-criterion { transition: box-shadow var(--pl-base) var(--pl-ease), transform var(--pl-base) var(--pl-ease); }
+  .af-club-card:hover { box-shadow: var(--pl-shadow-md); transform: translateY(-2px); }
+  .apar-toast, .af-team-toast {
+    border-radius: var(--pl-r-md); box-shadow: var(--pl-shadow-xl);
+    animation: plFadeUp .24s var(--pl-ease-out) both;
+  }
+
+  /* ── BENITO ──────────────────────────────────────────────────────────────── */
+  .benito-bubble { box-shadow: 0 4px 12px rgba(44,58,34,.22), 0 16px 36px rgba(44,58,34,.28); }
+  .benito-chat { box-shadow: var(--pl-shadow-xl); border-radius: var(--pl-r-xl); }
+  .benito-chip { transition: all var(--pl-fast) var(--pl-ease); }
+
+  /* ── RESPONSIVE ─────────────────────────────────────────────────────────
+     En móvil la barra lateral se vuelve una tira horizontal con scroll; se le
+     quita la barra visible y se le da inercia para que se sienta nativa. */
+  @media (max-width: 900px) {
+    .sidebar {
+      background: linear-gradient(90deg, #2A2049 0%, #241B3D 100%);
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .sidebar::-webkit-scrollbar { display: none; }
+    .main { padding: 18px 16px; }
+    header { padding: 0 16px; }
+    .filters-bar { padding: 12px 16px; }
+  }
+  @media (max-width: 700px) {
+    .kpi-value { font-size: 27px; }
+    .home-hero { border-radius: var(--pl-r-lg); }
+    /* Objetivos táctiles más grandes: por debajo de ~40px el dedo falla seguido */
+    .sidebar-item, .sidebar-subitem { min-height: 40px; }
+    .dir-chip { padding: 9px 15px; }
+  }
+
+  /* ── MOVIMIENTO REDUCIDO ────────────────────────────────────────────────
+     Respeta a quien tiene activado "reducir movimiento" en su sistema (mareos,
+     vértigo, sensibilidad vestibular): se conservan los cambios de color pero
+     se eliminan desplazamientos y animaciones. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important;
+      scroll-behavior: auto !important;
+    }
+    .home-nav-card:hover, .home-stat-card:hover, .kpi-card:hover,
+    .btn-nuevo-colab:hover, .btn-nuevo-aviso:hover, .auth-btn:hover,
+    .apar-kpi-card:hover, .apar-club-card:hover, .af-club-card:hover {
+      transform: none;
+    }
+    .benito-bubble { animation: none; }
+  }
+
 </style>
 
 </head>
@@ -8104,6 +8480,11 @@ function switchTab(tab) {
   if (tab === 'ausencias') renderAusencias();
   if (tab === 'apariencia') servAparInit();
   if (tab === 'ambientefisico') servAfInit();
+  // Sin esto, al venir de una tabla larga ya scrolleada, la pestaña nueva abre a
+  // media página en vez de en su encabezado. 'auto' y no 'smooth' a propósito:
+  // animar el salto sobre un panel que apenas está apareciendo se siente como un
+  // tirón, y marea a quien pidió menos movimiento en su sistema.
+  window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
 function toggleSidebarGroup(id) {
