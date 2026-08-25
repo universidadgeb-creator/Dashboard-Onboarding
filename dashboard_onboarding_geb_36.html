@@ -4027,6 +4027,15 @@ function parseFecha(val) {
     const parts = val.replace('Date(','').replace(')','').split(',').map(Number);
     return new Date(parts[0], parts[1], parts[2], parts[3]||0, parts[4]||0);
   }
+  // [FIX] Una fecha SIN hora ("yyyy-mm-dd", el formato de FACTORIAL_ROSTER_DATA) JavaScript
+  // la interpreta como medianoche UTC, no medianoche local. En México (UTC-6) eso corre la
+  // fecha un día hacia atrás en cuanto algo lee getMonth()/getDate() (hora local) — un
+  // cumpleaños o fecha de ingreso del 5 de junio se mostraba como 4 de junio. Se arma a mano
+  // en hora local para evitarlo, igual que ya se hacía para los colaboradores de vista previa.
+  if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+    const [y, m, d] = val.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
   const d = new Date(val);
   return isNaN(d) ? null : d;
 }
