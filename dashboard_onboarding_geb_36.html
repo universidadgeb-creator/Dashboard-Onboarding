@@ -1638,6 +1638,700 @@
     .apar-gafete-motivo-row .apar-swatch { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:8px; }
     @media (max-width: 640px) { .apar-gafete-modal-body { grid-template-columns: 1fr; } }
 
+
+  /* ===== Servicio > Ambiente Físico (ported from ambiente-fisico.html) ===== */
+    :root {
+      --brand:#7C3AED;
+      --brand-dark:#6D28D9;
+      --brand-soft:#F5F2FC;
+      --nu:#7C3AED;
+      --gmt:#F59E0B;
+      --vr:#06B6D4;
+      --green:#16A34A;
+      --yellow:#F59E0B;
+      --red:#DC2626;
+      --gray:#667085;
+      --line:#dfe7eb;
+      --bg:#f2f6f8;
+      --card:#ffffff;
+      --text:#101828;
+    }
+
+    .af-topbar{
+      background:var(--brand);
+      color:white;
+      padding:18px 30px;
+      display:flex;
+      align-items:center;
+      gap:22px;
+      box-shadow:0 6px 18px rgba(0,0,0,.14);
+    }
+
+    .af-logo{
+      width:118px;
+      height:74px;
+      object-fit:contain;
+      display:block;
+      background:transparent;
+    }
+
+    .af-title-block h1{
+      margin:0;
+      font-size:31px;
+      line-height:1.1;
+      font-weight:900;
+      letter-spacing:-.5px;
+    }
+
+    .af-title-block p{
+      margin:6px 0 0;
+      font-size:15px;
+      opacity:.96;
+    }
+
+    .af-container{
+      width:min(1320px, calc(100% - 32px));
+      margin:24px auto 44px;
+    }
+
+    .af-section{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:24px;
+      margin-bottom:20px;
+      box-shadow:0 10px 24px rgba(16,24,40,.06);
+    }
+
+    .af-section h2{
+      margin:0;
+      font-size:23px;
+      color:#0b2341;
+      font-weight:900;
+      letter-spacing:-.3px;
+    }
+
+    .af-section .af-note{
+      margin:7px 0 0;
+      color:#53627a;
+      font-size:15px;
+    }
+
+    .af-section-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:18px;
+    }
+
+    .af-filters{
+      display:grid;
+      grid-template-columns:repeat(5,minmax(150px,1fr));
+      gap:14px;
+    }
+
+    .af-scope label{
+      display:block;
+      margin-bottom:6px;
+      font-size:12px;
+      font-weight:800;
+      color:#344054;
+      text-transform:uppercase;
+      letter-spacing:.03em;
+    }
+
+    .af-scope select{
+      width:100%;
+      border:1px solid #cfd8dd;
+      border-radius:13px;
+      padding:11px 12px;
+      background:white;
+      color:#111827;
+      font-size:14px;
+      outline:none;
+    }
+
+    .af-scope select:focus{
+      border-color:var(--brand);
+      box-shadow:0 0 0 3px rgba(124,58,237,.14);
+    }
+
+    .af-scope select[multiple]{
+      height:auto;
+      padding:6px;
+    }
+
+    .af-scope select[multiple] option{
+      padding:6px 8px;
+      border-radius:8px;
+    }
+
+    .af-field-hint{
+      display:block;
+      margin:-4px 0 6px;
+      font-size:11px;
+      font-weight:400;
+      text-transform:none;
+      letter-spacing:normal;
+      color:var(--gray);
+    }
+
+    .af-table-wrap{
+      margin-top:4px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      overflow-x:auto;
+      background:var(--card);
+    }
+
+    .af-table-wrap table{
+      width:100%;
+      min-width:640px;
+      border-collapse:collapse;
+    }
+
+    .af-table-wrap th,.af-table-wrap td{
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      text-align:left;
+      font-size:13px;
+      vertical-align:top;
+    }
+
+    .af-table-wrap th{
+      background:var(--brand-soft);
+      color:var(--brand-dark);
+      text-transform:uppercase;
+      letter-spacing:.03em;
+      font-size:11px;
+    }
+
+    .af-table-wrap tr:last-child td{border-bottom:0}
+
+    .af-table-wrap .af-hi{color:var(--green);font-weight:700}
+    .af-table-wrap .af-lo{color:var(--red);font-weight:700}
+
+    .af-grid-3{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:16px;
+    }
+
+    .af-metric{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:white;
+      padding:18px;
+      min-height:118px;
+    }
+
+    .af-metric span{
+      display:block;
+      font-size:12px;
+      font-weight:900;
+      color:var(--gray);
+      text-transform:uppercase;
+      letter-spacing:.04em;
+    }
+
+    .af-metric strong{
+      display:block;
+      margin-top:8px;
+      color:var(--brand-dark);
+      font-size:32px;
+      line-height:1.05;
+    }
+
+    .af-metric small{
+      display:block;
+      margin-top:8px;
+      color:var(--gray);
+      font-size:13px;
+    }
+
+    .af-pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      color:white;
+      font-weight:900;
+      font-size:13px;
+      padding:7px 12px;
+      border-radius:999px;
+      min-width:110px;
+    }
+
+    .af-club-cards{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:16px;
+    }
+
+    .af-club-card{
+      display:flex;
+      align-items:center;
+      gap:18px;
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:18px;
+      background:linear-gradient(180deg,#fff 0%,#f9fcfc 100%);
+    }
+
+    .af-donut{
+      --value:0;
+      --color:var(--brand);
+      width:98px;
+      height:98px;
+      flex:0 0 auto;
+      border-radius:50%;
+      background:conic-gradient(var(--color) calc(var(--value)*1%), #e8eff2 0);
+      display:grid;
+      place-items:center;
+      position:relative;
+    }
+
+    .af-donut:after{
+      content:"";
+      position:absolute;
+      width:72px;
+      height:72px;
+      border-radius:50%;
+      background:white;
+    }
+
+    .af-donut .af-inside{
+      position:relative;
+      z-index:1;
+      text-align:center;
+      line-height:1;
+    }
+
+    .af-donut .af-inside strong{
+      display:block;
+      font-size:23px;
+      color:#111827;
+    }
+
+    .af-donut .af-inside span{
+      display:block;
+      margin-top:4px;
+      font-size:11px;
+      color:var(--gray);
+    }
+
+    .af-club-card h3{
+      margin:0 0 7px;
+      font-size:17px;
+      font-weight:900;
+    }
+
+    .af-club-card p{
+      margin:0;
+      color:var(--gray);
+      font-size:13px;
+      line-height:1.35;
+    }
+
+    .af-chart-wrap{
+      position:relative;
+      height:360px;
+      width:100%;
+    }
+
+    .af-criteria-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:15px;
+    }
+
+    .af-criterion{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:#fff;
+      overflow:hidden;
+    }
+
+    .af-criterion-btn{
+      width:100%;
+      border:0;
+      background:white;
+      padding:15px 16px;
+      display:grid;
+      grid-template-columns:auto 1fr auto auto;
+      gap:13px;
+      align-items:center;
+      text-align:left;
+      cursor:pointer;
+      font-family:inherit;
+    }
+
+    .af-criterion-btn:hover{background:#f8fbfb}
+
+    .af-mini-donut{
+      --value:0;
+      --color:var(--brand);
+      width:58px;
+      height:58px;
+      border-radius:50%;
+      background:conic-gradient(var(--color) calc(var(--value)*1%), #edf2f4 0);
+      display:grid;
+      place-items:center;
+      position:relative;
+    }
+
+    .af-mini-donut:after{
+      content:"";
+      position:absolute;
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      background:white;
+    }
+
+    .af-mini-donut strong{
+      position:relative;
+      z-index:1;
+      font-size:12px;
+      color:#111827;
+    }
+
+    .af-criterion-name strong{
+      display:block;
+      font-size:15px;
+      color:#111827;
+    }
+
+    .af-criterion-name span{
+      display:block;
+      margin-top:3px;
+      font-size:12px;
+      color:var(--gray);
+    }
+
+    .af-criterion-pct{
+      font-size:18px;
+      font-weight:900;
+      color:#111827;
+    }
+
+    .af-chev{
+      width:28px;
+      height:28px;
+      border-radius:9px;
+      display:grid;
+      place-items:center;
+      background:var(--brand-soft);
+      color:var(--brand-dark);
+      font-weight:900;
+      transition:transform .18s ease;
+    }
+
+    .af-criterion.af-open .af-chev{transform:rotate(180deg)}
+
+    .af-subcriteria{
+      display:none;
+      border-top:1px solid var(--line);
+      background:#fbfdfd;
+      padding:11px 14px 15px;
+    }
+
+    .af-criterion.af-open .af-subcriteria{display:block}
+
+    .af-sub-list{
+      margin:0;
+      padding:0;
+      list-style:none;
+      display:grid;
+      gap:8px;
+    }
+
+    .af-sub-item{
+      display:grid;
+      grid-template-columns:1fr auto;
+      align-items:center;
+      gap:12px;
+      padding:9px 10px;
+      border:1px solid #edf1f3;
+      border-radius:12px;
+      background:white;
+    }
+
+    .af-sub-item strong{
+      display:block;
+      font-size:13px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      color:#111827;
+    }
+
+    .af-sub-item span{
+      display:block;
+      margin-top:2px;
+      color:var(--gray);
+      font-size:11px;
+    }
+
+    .af-sub-pct{
+      display:inline-flex;
+      justify-content:center;
+      min-width:58px;
+      border-radius:999px;
+      padding:5px 8px;
+      color:white;
+      font-size:12px;
+      font-weight:900;
+    }
+
+    .af-goals{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      min-height:38px;
+    }
+
+    .af-goal{
+      border:1px solid rgba(46,125,50,.22);
+      background:#edf8ef;
+      color:#1b5e20;
+      border-radius:999px;
+      padding:8px 12px;
+      font-weight:900;
+      font-size:13px;
+    }
+
+    .af-empty,.af-loader{
+      color:var(--gray);
+      font-size:14px;
+      padding:10px 0;
+    }
+
+    .af-loader{
+      text-align:center;
+      font-weight:800;
+      padding:22px;
+    }
+
+    .af-error{
+      display:none;
+      border:1px solid rgba(198,40,40,.25);
+      background:#fff3f3;
+      color:#9f1239;
+      padding:14px;
+      border-radius:14px;
+      margin-bottom:16px;
+      font-size:14px;
+      line-height:1.4;
+    }
+
+    .af-team-section{
+      margin-top:4px;
+    }
+
+    .af-team-unlock-grid{
+      display:grid;
+      grid-template-columns:minmax(220px,380px) auto;
+      gap:14px;
+      align-items:end;
+      background:linear-gradient(180deg,#fcfeff 0%, var(--brand-soft) 220%);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:20px 22px;
+    }
+
+    .af-team-unlock-grid input[type="password"]{
+      width:100%;
+      border:1px solid #cfd8dd;
+      border-radius:13px;
+      min-height:48px;
+      padding:11px 14px;
+      background:white;
+      color:#111827;
+      font-size:14px;
+      outline:none;
+      transition:border .15s ease, box-shadow .15s ease;
+    }
+
+    .af-team-unlock-grid input[type="password"]:focus{
+      border-color:var(--brand);
+      box-shadow:0 0 0 3px rgba(124,58,237,.14);
+    }
+
+    .af-team-unlock-grid button{
+      border:0;
+      border-radius:13px;
+      min-height:48px;
+      padding:12px 18px;
+      background:linear-gradient(135deg, var(--brand), var(--brand-dark));
+      color:white;
+      font-weight:900;
+      font-size:15px;
+      letter-spacing:.02em;
+      cursor:pointer;
+      box-shadow:0 10px 22px rgba(124,58,237,.22);
+      transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+    }
+
+    .af-team-unlock-grid button:hover{
+      opacity:.96;
+      transform:translateY(-1px);
+      box-shadow:0 12px 26px rgba(124,58,237,.3);
+    }
+
+    .af-team-unlock-grid button:active{
+      transform:translateY(0);
+      box-shadow:0 6px 14px rgba(124,58,237,.22);
+    }
+
+    .af-hidden{display:none !important}
+
+    .af-team-select-row{
+      display:grid;
+      grid-template-columns:repeat(5,minmax(150px,1fr));
+      gap:14px;
+      margin-bottom:18px;
+    }
+
+    .af-team-summary{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:18px;
+    }
+
+    .af-team-summary-card{
+      flex:1;
+      min-width:150px;
+      background:white;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px 16px;
+    }
+
+    .af-team-summary-card span{
+      display:block;
+      font-size:12px;
+      font-weight:800;
+      color:var(--gray);
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      margin-bottom:6px;
+    }
+
+    .af-team-summary-card strong{
+      font-size:24px;
+      font-weight:900;
+    }
+
+    .af-incident-card{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:white;
+      padding:16px 18px;
+      margin-bottom:14px;
+    }
+
+    .af-incident-card.af-resolved{
+      background:#f3faf4;
+      border-color:rgba(46,125,50,.25);
+    }
+
+    .af-incident-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      font-size:13px;
+      color:#344054;
+      margin-bottom:10px;
+    }
+
+    .af-incident-meta span strong{color:#111827}
+
+    .af-incident-title{
+      font-weight:900;
+      font-size:15px;
+      margin:0 0 4px;
+      color:#111827;
+    }
+
+    .af-incident-desc{
+      font-size:13px;
+      color:var(--gray);
+      margin:0 0 10px;
+    }
+
+    .af-incident-comment{
+      background:#f8fbfb;
+      border:1px solid #edf1f3;
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:13px;
+      margin-bottom:12px;
+    }
+
+    .af-incident-actions{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:14px;
+      font-size:13px;
+    }
+
+    .af-incident-actions input[type="date"]{
+      border:1px solid #cfd8dd;
+      border-radius:10px;
+      padding:7px 10px;
+      font-size:13px;
+    }
+
+    .af-incident-comment-field{
+      width:100%;
+      border:1px solid #cfd8dd;
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:13px;
+      font-family:inherit;
+      resize:vertical;
+      min-height:60px;
+      margin-bottom:12px;
+    }
+
+    .af-incident-comment-field:focus{
+      border-color:var(--brand);
+      outline:none;
+      box-shadow:0 0 0 3px rgba(124,58,237,.14);
+    }
+
+    .af-incident-sync-note{
+      font-size:11px;
+      color:var(--gray);
+      margin-top:4px;
+    }
+
+    .af-team-toast{
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      z-index:100;
+      background:#102033;
+      color:white;
+      border-radius:14px;
+      padding:12px 16px;
+      font-size:14px;
+      max-width:340px;
+      box-shadow:0 10px 24px rgba(0,0,0,.25);
+    }
+
+    @media(max-width:980px){
+      .af-filters,.af-grid-3,.af-club-cards,.af-criteria-grid,.af-team-select-row{grid-template-columns:1fr}
+      .af-team-unlock-grid{grid-template-columns:1fr}
+      .af-topbar{padding:16px;align-items:flex-start}
+      .af-title-block h1{font-size:24px}
+      .af-logo{width:88px;height:58px}
+      .af-criterion-btn{grid-template-columns:auto 1fr auto}
+      .af-criterion-pct{display:none}
+    }
 </style>
 
 </head>
@@ -2618,7 +3312,187 @@
     </div>
 
     <div class="dc-subpanel" id="serv-subpanel-ambiente">
-      <div class="soon-box"><div class="soon-icon"></div><div class="soon-title">Ambiente Físico</div><div class="soon-desc">Seguimiento de condiciones de ambiente físico por sucursal. Sección en construcción, pendiente de integrar.</div></div>
+      <div class="af-scope">
+        <div class="af-container">
+            <div id="af-error" class="af-error"></div>
+            <div id="af-loader" class="af-loader">Cargando información desde Google Sheets...</div>
+        
+            <section class="af-section">
+              <div class="af-section-head">
+                <div>
+                  <h2>Filtros</h2>
+                  <p class="af-note">El dashboard recalcula el resultado general, clubes, gráfica y criterios según la selección.</p>
+                </div>
+              </div>
+              <div class="af-filters">
+                <div>
+                  <label>Vista</label>
+                  <select id="af-vista">
+                    <option value="mensual">Mensual</option>
+                    <option value="acumulado">Acumulado</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Mes</label>
+                  <select id="af-mes"></select>
+                </div>
+                <div>
+                  <label>Club</label>
+                  <select id="af-club"></select>
+                </div>
+                <div>
+                  <label>Rol o área <span class="af-field-hint">(Ctrl/Cmd + clic para elegir varias)</span></label>
+                  <select id="af-area" multiple size="4"></select>
+                </div>
+                <div>
+                  <label>Turno</label>
+                  <select id="af-turno"></select>
+                </div>
+              </div>
+            </section>
+        
+            <section class="af-section">
+              <div class="af-section-head">
+                <div>
+                  <h2>Caminatas por club</h2>
+                  <p class="af-note">Caminatas realizadas y % de cumplimiento real (Real/Meta) por sucursal, según la hoja "Caminatas Realizadas".</p>
+                </div>
+              </div>
+              <div id="af-clubs" class="af-club-cards"></div>
+            </section>
+        
+            <section class="af-section">
+              <div class="af-section-head">
+                <div>
+                  <h2>Resultado general</h2>
+                  <p class="af-note">Promedio de cumplimiento de todos los criterios evaluables visibles por filtro.</p>
+                </div>
+              </div>
+              <div class="af-grid-3">
+                <div class="af-metric">
+                  <span>Resultado general de Ambiente Físico</span>
+                  <strong id="af-generalScore">--%</strong>
+                  <small id="af-generalCount">Sin registros filtrados</small>
+                </div>
+                <div class="af-metric">
+                  <span>Estado</span>
+                  <strong style="font-size:18px"><span id="af-generalStatus" class="af-pill" style="background:#98A2B3">Sin datos</span></strong>
+                </div>
+                <div class="af-metric">
+                  <span>Criterio más bajo</span>
+                  <strong id="af-lowestName" style="font-size:22px">--</strong>
+                  <small id="af-lowestScore">Sin datos</small>
+                </div>
+              </div>
+            </section>
+        
+            <section class="af-section">
+              <div class="af-section-head">
+                <div>
+                  <h2>Resultado general por mes</h2>
+                  <p class="af-note">Promedio de cumplimiento de cada mes, con el criterio más alto y más bajo. Respeta los filtros de Club, Rol/Área y Turno.</p>
+                </div>
+              </div>
+              <div class="af-table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Mes</th><th>Resultado general</th><th>Criterio más alto</th><th>Criterio más bajo</th></tr>
+                  </thead>
+                  <tbody id="af-monthlyResultsBody"></tbody>
+                </table>
+              </div>
+            </section>
+        
+            <section class="af-section">
+              <div class="af-section-head">
+                <div>
+                  <h2>Cumplimiento mensual de caminatas</h2>
+                  <p class="af-note">Comparativo de caminatas realizadas por mes y club.</p>
+                </div>
+              </div>
+              <div class="af-chart-wrap">
+                <canvas id="afMonthlyChart"></canvas>
+              </div>
+            </section>
+        
+            <section class="af-section">
+              <div class="af-section-head">
+                <div>
+                  <h2>Resultados por criterio</h2>
+                  <p class="af-note">Haz clic en cada criterio para revisar sus subcriterios específicos.</p>
+                </div>
+              </div>
+              <div id="af-criteria" class="af-criteria-grid"></div>
+            </section>
+        
+            <section class="af-section">
+              <div class="af-section-head">
+                <div>
+                  <h2>Áreas / roles que ya lograron la meta</h2>
+                  <p class="af-note">Se muestran únicamente áreas o roles con cumplimiento igual o mayor a 90%.</p>
+                </div>
+              </div>
+              <div id="af-goals" class="af-goals"></div>
+            </section>
+        
+            <section class="af-section af-team-section">
+              <div class="af-section-head">
+                <div>
+                  <h2>Incidencias por equipo</h2>
+                  <p class="af-note">Acceso interno — cada equipo revisa y da seguimiento únicamente a sus propias incidencias detectadas en las caminatas.</p>
+                </div>
+              </div>
+        
+              <div id="af-teamUnlockBox" class="af-team-unlock-grid">
+                <div>
+                  <label>🔒 Contraseña</label>
+                  <input id="af-teamPassword" type="password" placeholder="Ingresa la contraseña" />
+                </div>
+                <button id="af-teamUnlockBtn" type="button">Entrar</button>
+              </div>
+        
+              <div id="af-teamPanel" class="af-hidden">
+                <div class="af-team-select-row">
+                  <div>
+                    <label>Equipo</label>
+                    <select id="af-teamSelect">
+                      <option value="Mantenimiento">Mantenimiento</option>
+                      <option value="Limpieza">Limpieza</option>
+                      <option value="5's">5's</option>
+                      <option value="Servicio Premium">Servicio Premium</option>
+                      <option value="Sistemas">Sistemas</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>Mes</label>
+                    <select id="af-teamMes"></select>
+                  </div>
+                  <div>
+                    <label>Club</label>
+                    <select id="af-teamClub"></select>
+                  </div>
+                  <div>
+                    <label>Turno</label>
+                    <select id="af-teamTurno"></select>
+                  </div>
+                  <div>
+                    <label>Estado</label>
+                    <select id="af-teamEstado">
+                      <option value="pendientes">⏳ Pendientes</option>
+                      <option value="resueltos">✅ Resueltos</option>
+                      <option value="todos">Todos</option>
+                    </select>
+                  </div>
+                </div>
+        
+                <div id="af-teamSummary" class="af-team-summary"></div>
+                <div id="af-teamIncidents"></div>
+              </div>
+            </section>
+          </div>
+        
+          <div id="af-teamToast" class="af-team-toast af-hidden"></div>
+      </div>
     </div>
   </div>
 
@@ -4854,6 +5728,7 @@ const FORMACION_TABS = ['preonboarding','treinta','evaluacion','certificaciones'
     document.querySelectorAll('#panel-servicio .recl-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.servView === view));
     document.querySelectorAll('#panel-servicio .dc-subpanel').forEach(p => p.classList.remove('active'));
     document.getElementById('serv-subpanel-' + view).classList.add('active');
+    if (view === 'ambiente') servAfInit();
   }
 
   function aparBindEvents() {
@@ -5356,7 +6231,7 @@ const FORMACION_TABS = ['preonboarding','treinta','evaluacion','certificaciones'
       const col  = aparStateColor(st);
       const deg  = Math.min(pct,100)*3.6;
       const card = document.createElement("article");
-      card.className = "club-card";
+      card.className = "apar-club-card";
       card.innerHTML = `
         <div class="apar-donut" style="background:radial-gradient(circle at center,#fff 0 58%,transparent 59%),
           conic-gradient(${col} 0deg,${col} ${deg}deg,#e8eef2 ${deg}deg 360deg);">
@@ -5541,7 +6416,7 @@ const FORMACION_TABS = ['preonboarding','treinta','evaluacion','certificaciones'
       const col = aparStateColor(st);
       const deg = (pct||0)*3.6;
       const card = document.createElement("article");
-      card.className = "criterion-card";
+      card.className = "apar-criterion-card";
       // [NUEVO] (4) La tarjeta de Gafete es cliqueable: abre el panel de detalle
       const isGafete = cr.key === "G";
       if (isGafete) {
@@ -6208,6 +7083,958 @@ const FORMACION_TABS = ['preonboarding','treinta','evaluacion','certificaciones'
     clearTimeout(window._toastTimer);
     window._toastTimer = setTimeout(()=>t.classList.add("apar-hidden"), 4500);
   }
+
+// ══════════════════════════════════════════════════════════════════════════
+// SERVICIO > AMBIENTE FÍSICO (ported from ambiente-fisico.html)
+// ══════════════════════════════════════════════════════════════════════════
+const AF_API_URL = "https://script.google.com/macros/s/AKfycbz6WmHxuK6y39DWWUvhVwL7TMkoJs9jHQYTnm8g6MyyJvaUwf-rsuoMl1R6Dp60y8x3/exec";
+
+const AF_CLUBS = ["Naciones Unidas", "Gourmetería", "Valle Real", "Center"];
+const AF_CLUB_COLORS = {
+  "Naciones Unidas":"#7C3AED",
+  "Gourmetería":"#F59E0B",
+  "Valle Real":"#06B6D4",
+  "Center":"#EC4899"
+};
+
+const AF_CATEGORY_ORDER = ["Mantenimiento","5's","Limpieza en Vestidores","Limpieza General"];
+const AF_CATEGORY_DESCRIPTIONS = {
+  "Mantenimiento": "Revisa condiciones funcionales y ambientales del espacio, como paredes, iluminación, temperatura, música, aromatizante y estado del equipo.",
+  "5's": "Evalúa el orden y la organización del área para asegurar que solo estén los materiales necesarios y que todo esté en su lugar.",
+  "Limpieza en Vestidores": "Evalúa limpieza, abasto y condiciones de los elementos dentro de baños y vestidores.",
+  "Limpieza General": "Evalúa limpieza en áreas distintas a Vestidores: espejos, botes de basura y área desinfectante."
+};
+
+const AF_SUBCRITERION_DESCRIPTIONS = {
+  "Paredes": "Las paredes están completamente limpias, sin marcas, huellas ni suciedad visible.",
+  "Iluminación": "Todas las luces están encendidas y funcionando correctamente.",
+  "Temperatura": "El aire se encuentra en la temperatura adecuada y funcionando correctamente.",
+  "Música y volumen": "La música es apropiada para el rol y el volumen se mantiene en un nivel adecuado.",
+  "Aromatizante": "El aromatizante está encendido y funcionando correctamente, con aroma constante y adecuado.",
+  "Estado del equipo": "Todo el equipo está en perfecto estado, sin daños visibles y funcionando correctamente.",
+  "Orden del área": "Se encuentran solo los materiales necesarios para las actividades y no hay elementos fuera de lugar.",
+  "Organización de artículos": "Los materiales están organizados, etiquetados y almacenados en su lugar correspondiente.",
+  "Jaboneras (Lavamanos)": "La jabonera del lavamanos está limpia, con buen nivel de jabón y funcionando correctamente.",
+  "Jaboneras (Regaderas)": "La jabonera de las regaderas está limpia, con buen nivel de jabón y funcionando correctamente.",
+  "Espejos": "Los espejos están totalmente limpios, sin manchas, huellas o gotas visibles.",
+  "Regaderas": "Las regaderas están limpias, sin residuos visibles y en buen estado.",
+  "Llaves del lavamanos": "Las llaves del lavamanos están limpias, sin sarro ni marcas de agua visibles.",
+  "Baños WC": "El baño está limpio interior y exteriormente, sin manchas, sarro, residuos o malos olores.",
+  "Botes de basura": "Los botes están por debajo del 80% de su capacidad, con bolsa bien colocada y sin residuos fuera.",
+  "Papel baños / vestidores": "Los dispensadores cuentan con papel suficiente y funcionando correctamente.",
+  "Área desinfectante": "El área desinfectante está abastecida y en condiciones adecuadas para su uso.",
+  "Limpieza del área": "El área se encuentra limpia y en condiciones adecuadas para la operación."
+};
+
+
+let afRecords = [];
+let afPayload = null;
+let afMonthlyChart = null;
+let afCaminatasResumen = [];
+
+// Meses que cubre la temporada de caminatas (usado por la gráfica mensual y
+// por las tarjetas de "Caminatas por club").
+const AF_MESES_CAMINATAS = [
+  "Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+];
+
+const afLabelPlugin = {
+  id: "afLabelPlugin",
+  afterDatasetsDraw(chart) {
+    const {ctx} = chart;
+    ctx.save();
+    ctx.font = "bold 11px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+
+    chart.data.datasets.forEach((dataset, datasetIndex) => {
+      const meta = chart.getDatasetMeta(datasetIndex);
+      if (meta.hidden) return;
+
+      meta.data.forEach((point, index) => {
+        const value = dataset.data[index];
+        if (value === null || value === undefined || isNaN(value)) return;
+        ctx.fillStyle = dataset.borderColor;
+        ctx.fillText(Math.round(value) + "%", point.x, point.y - 8);
+      });
+    });
+
+    ctx.restore();
+  }
+};
+
+let _servAfInitDone = false;
+async function servAfInit() {
+  if (_servAfInitDone) return;
+  _servAfInitDone = true;
+  afBindFilters();
+  afBindTeamPanel();
+  await afLoadData();
+}
+
+function afBindFilters(){
+  ["af-vista","af-mes","af-club","af-area","af-turno"].forEach(id=>{
+    document.getElementById(id).addEventListener("change", afRender);
+  });
+}
+
+async function afLoadData(){
+  try{
+    const res = await fetch(AF_API_URL + "?t=" + Date.now(), {cache:"no-store"});
+    if(!res.ok) throw new Error("HTTP " + res.status);
+
+    afPayload = await res.json();
+    if(!afPayload || afPayload.ok === false) throw new Error(afPayload?.error || "Respuesta inválida de Apps Script");
+
+    afRecords = Array.isArray(afPayload.records) ? afPayload.records : [];
+    afCaminatasResumen = Array.isArray(afPayload.caminatasResumen) ? afPayload.caminatasResumen : [];
+
+    afMergeSeguimientoIntoTeamStates(Array.isArray(afPayload.seguimiento) ? afPayload.seguimiento : []);
+
+    afSetupFilters();
+    afRender();
+    afSetupTeamFilters();
+    afRenderTeamPanel();
+  }catch(err){
+    afShowError("No se pudo cargar la información desde Apps Script. Revisa que la implementación esté publicada como aplicación web y con acceso para cualquier persona. Detalle: " + err.message);
+  }finally{
+    document.getElementById("af-loader").style.display = "none";
+  }
+}
+
+function afSetupFilters(){
+  afPopulate("af-mes", afUnique(afRecords.map(r=>r.mes).filter(Boolean)).sort(afSortMonths), "Todos los meses");
+  afPopulate("af-club", AF_CLUBS, "Todos los clubes");
+  afPopulateMulti("af-area", afUnique(afRecords.map(r=>r.area).filter(Boolean)).sort());
+  afPopulate("af-turno", afUnique(afRecords.map(r=>r.turno).filter(Boolean)).sort(), "Todos los turnos");
+}
+
+function afPopulate(id, values, allLabel){
+  const el = document.getElementById(id);
+  el.innerHTML = `<option value="">${allLabel}</option>`;
+  values.forEach(v=>{
+    const opt = document.createElement("option");
+    opt.value = v;
+    opt.textContent = v;
+    el.appendChild(opt);
+  });
+}
+
+// Select múltiple: ninguna opción seleccionada equivale a "todas". Preserva
+// la selección previa si sigue existiendo en la nueva lista de valores.
+function afPopulateMulti(id, values){
+  const el = document.getElementById(id);
+  const prevSelected = afGetSelectedValues(id).filter(v=>values.includes(v));
+  el.innerHTML = "";
+  values.forEach(v=>{
+    const opt = document.createElement("option");
+    opt.value = v;
+    opt.textContent = v;
+    opt.selected = prevSelected.includes(v);
+    el.appendChild(opt);
+  });
+}
+
+function afGetSelectedValues(id){
+  return Array.from(document.getElementById(id).selectedOptions).map(o=>o.value);
+}
+
+function afFilteredRecords(){
+  const vista = document.getElementById("af-vista").value;
+  const mes = document.getElementById("af-mes").value;
+  const club = document.getElementById("af-club").value;
+  const areas = afGetSelectedValues("af-area");
+  const turno = document.getElementById("af-turno").value;
+
+  return afRecords.filter(r=>{
+    if(vista === "mensual" && mes && r.mes !== mes) return false;
+    if(club && r.club !== club) return false;
+    if(areas.length && !areas.includes(r.area)) return false;
+    if(turno && r.turno !== turno) return false;
+    return true;
+  });
+}
+
+function afRender(){
+  const data = afFilteredRecords();
+  const agg = afAggregate(data);
+
+  afRenderClubs();
+  afRenderGeneral(agg, data.length);
+  afRenderMonthly();
+  afRenderMonthlyResults();
+  afRenderCriteria(agg.categories);
+  afRenderGoals(agg.goals);
+}
+
+function afAggregate(data){
+  const categoryMap = new Map();
+  const areaMap = new Map();
+  let totalOk = 0;
+  let totalEval = 0;
+
+  // Crear categorías desde config para que siempre existan aunque no tengan datos filtrados
+  const configCriteria = afPayload?.config?.criterios || [];
+  configCriteria.forEach(c=>{
+    const category = c.categoria || "Sin categoría";
+    const key = c.key || c.nombre;
+    if(!categoryMap.has(category)){
+      categoryMap.set(category, {name:category, ok:0, eval:0, subcriteria:new Map()});
+    }
+    const cat = categoryMap.get(category);
+    if(!cat.subcriteria.has(key)){
+      cat.subcriteria.set(key, {
+        key:key,
+        name:c.nombre || key,
+        category:category,
+        ok:0,
+        eval:0
+      });
+    }
+  });
+
+  data.forEach(r=>{
+    const criterios = r.criterios || {};
+    Object.values(criterios).forEach(c=>{
+      const score = afNormalizeScore(c.cumplimiento);
+      if(score === null) return;
+
+      const category = c.categoria || "Sin categoría";
+      const key = c.key || c.nombre;
+
+      if(!categoryMap.has(category)){
+        categoryMap.set(category, {name:category, ok:0, eval:0, subcriteria:new Map()});
+      }
+
+      const cat = categoryMap.get(category);
+      cat.ok += score;
+      cat.eval += 1;
+      totalOk += score;
+      totalEval += 1;
+
+      if(!cat.subcriteria.has(key)){
+        cat.subcriteria.set(key, {key:key, name:c.nombre || key, category:category, ok:0, eval:0});
+      }
+
+      const sub = cat.subcriteria.get(key);
+      sub.ok += score;
+      sub.eval += 1;
+    });
+
+    const areaKey = (r.club || "Sin club") + "|" + (r.area || "Sin área");
+    if(!areaMap.has(areaKey)){
+      areaMap.set(areaKey, {
+        club:r.club || "Sin club",
+        area:r.area || "Sin área",
+        ok:0,
+        eval:0,
+        caminatas:0
+      });
+    }
+
+    const a = areaMap.get(areaKey);
+    a.ok += Number(r.totalCumplidos || 0);
+    a.eval += Number(r.totalEvaluados || 0);
+    a.caminatas += 1;
+  });
+
+  const categories = [...categoryMap.values()].map(cat=>{
+    const p = afPct(cat.ok, cat.eval);
+    return {
+      name:cat.name,
+      percentage:p,
+      afStatus:afStatus(p),
+      ok:cat.ok,
+      eval:cat.eval,
+      subcriteria:[...cat.subcriteria.values()].map(s=>{
+        const sp = afPct(s.ok, s.eval);
+        return {...s, percentage:sp, afStatus:afStatus(sp)};
+      }).sort((a,b)=>a.name.localeCompare(b.name,"es"))
+    };
+  }).sort((a,b)=>{
+    const ai = AF_CATEGORY_ORDER.indexOf(a.name);
+    const bi = AF_CATEGORY_ORDER.indexOf(b.name);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+
+  const evaluatedSubcriteria = categories.flatMap(c=>c.subcriteria).filter(s=>s.eval > 0);
+  const lowest = evaluatedSubcriteria.length
+    ? evaluatedSubcriteria.slice().sort((a,b)=>a.percentage-b.percentage)[0]
+    : null;
+
+  const goals = [...areaMap.values()]
+    .map(a=>({...a, percentage:afPct(a.ok,a.eval)}))
+    .filter(a=>a.percentage !== null && a.percentage >= 90)
+    .sort((a,b)=>b.percentage-a.percentage);
+
+  return {
+    general:afPct(totalOk,totalEval),
+    generalStatus:afStatus(afPct(totalOk,totalEval)),
+    categories,
+    lowest,
+    goals
+  };
+}
+
+// Igual que afFilteredRecords(), pero ignora "Vista"/"Mes" porque esta tabla
+// arma su propia fila por cada mes de la temporada; sí respeta Club,
+// Rol/Área (selección múltiple) y Turno.
+function afRecordsForMonth_(mes){
+  const club = document.getElementById("af-club").value;
+  const areas = afGetSelectedValues("af-area");
+  const turno = document.getElementById("af-turno").value;
+
+  return afRecords.filter(r=>{
+    if(r.mes !== mes) return false;
+    if(club && r.club !== club) return false;
+    if(areas.length && !areas.includes(r.area)) return false;
+    if(turno && r.turno !== turno) return false;
+    return true;
+  });
+}
+
+function afRenderMonthlyResults(){
+  const body = document.getElementById("af-monthlyResultsBody");
+  if(!body) return;
+  body.innerHTML = "";
+
+  AF_MESES_CAMINATAS.forEach(mes=>{
+    const data = afRecordsForMonth_(mes);
+    const agg = afAggregate(data);
+    const cats = agg.categories.filter(c=>c.percentage !== null);
+
+    const tr = document.createElement("tr");
+    if(!cats.length){
+      tr.innerHTML = `
+        <td>${escapeHtml(mes)}</td>
+        <td>Sin datos</td>
+        <td>--</td>
+        <td>--</td>
+      `;
+      body.appendChild(tr);
+      return;
+    }
+
+    const top = cats.slice().sort((a,b)=>b.percentage-a.percentage)[0];
+    const low = cats.slice().sort((a,b)=>a.percentage-b.percentage)[0];
+
+    tr.innerHTML = `
+      <td>${escapeHtml(mes)}</td>
+      <td>${afFmt(agg.general)}</td>
+      <td class="af-hi">${escapeHtml(top.name)} (${afFmt(top.percentage)})</td>
+      <td class="af-lo">${escapeHtml(low.name)} (${afFmt(low.percentage)})</td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+function afRenderGeneral(agg,count){
+  document.getElementById("af-generalScore").textContent = afFmt(agg.general);
+  document.getElementById("af-generalCount").textContent = count === 1 ? "1 caminata filtrada" : `${count} caminatas filtradas`;
+
+  const s = document.getElementById("af-generalStatus");
+  s.textContent = agg.generalStatus.text;
+  s.style.background = agg.generalStatus.color;
+
+  document.getElementById("af-lowestName").textContent = agg.lowest ? agg.lowest.name : "--";
+  document.getElementById("af-lowestScore").textContent = agg.lowest ? `${afFmt(agg.lowest.percentage)} · ${agg.lowest.category}` : "Sin datos";
+}
+
+// [CORREGIDO] Igual que la gráfica mensual: antes esta tarjeta mostraba el
+// número de auditorías capturadas y el % promedio de criterios aprobados,
+// que no es lo mismo que el cumplimiento real de caminatas (Real/Meta). Ahora
+// usa el mismo "afCaminatasResumen" que viene de la hoja "Caminatas Realizadas",
+// respetando el filtro de Mes (si "Vista" está en "Mensual") y el de Club.
+function afRenderClubs(){
+  const wrap = document.getElementById("af-clubs");
+  wrap.innerHTML = "";
+
+  const vista = document.getElementById("af-vista").value;
+  const mesFiltro = document.getElementById("af-mes").value;
+  const clubFiltro = document.getElementById("af-club").value;
+  const meses = (vista === "mensual" && mesFiltro) ? [mesFiltro] : AF_MESES_CAMINATAS;
+
+  AF_CLUBS.forEach(club=>{
+    const sinDatos = clubFiltro && clubFiltro !== club;
+    const entries = sinDatos ? [] : afCaminatasResumen.filter(r => r.club === club && meses.includes(r.mes));
+
+    let real = 0, meta = 0;
+    entries.forEach(e=>{
+      real += Number(e.real || 0);
+      meta += Number(e.meta || 0);
+    });
+
+    const p = afPct(real, meta);
+    const safe = p === null ? 0 : p;
+    const color = AF_CLUB_COLORS[club];
+
+    const div = document.createElement("div");
+    div.className = "af-club-card";
+    div.innerHTML = `
+      <div class="af-donut" style="--value:${safe};--color:${color}">
+        <div class="af-inside">
+          <strong>${real}</strong>
+          <span>caminatas</span>
+        </div>
+      </div>
+      <div>
+        <h3>${escapeHtml(club)}</h3>
+        <p><strong>${afFmt(p)}</strong> de cumplimiento real</p>
+      </div>
+    `;
+    wrap.appendChild(div);
+  });
+}
+
+// [CORREGIDO] Antes esta gráfica promediaba el % de criterios aprobados en
+// las respuestas del formulario (una métrica de calidad de la caminata),
+// que es distinto al % real de caminatas realizadas vs. meta. Ahora toma el
+// "Cumplimiento" (Real/Meta) ya calculado en la hoja "Caminatas Realizadas",
+// para que coincida con el número real de tu Google Sheets.
+function afRenderMonthly(){
+  // Mostrar solo de Abril a Diciembre
+  const labels = [
+    "Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
+  ];
+
+  const datasets = AF_CLUBS.map(club=>{
+    const values = labels.map(month=>{
+      const entry = afCaminatasResumen.find(r => r.club === club && r.mes === month);
+      return entry ? entry.cumplimiento : null;
+    });
+
+    return {
+      label:club,
+      data:values,
+      borderColor:AF_CLUB_COLORS[club],
+      backgroundColor:AF_CLUB_COLORS[club],
+      tension:.5,
+      cubicInterpolationMode:"monotone",
+      borderWidth:4,
+      pointRadius:6,
+      pointHoverRadius:8,
+      pointBorderWidth:0,
+      fill:false,
+      spanGaps:false
+    };
+  });
+
+  if(afMonthlyChart) afMonthlyChart.destroy();
+
+  afMonthlyChart = new Chart(document.getElementById("afMonthlyChart"),{
+    type:"line",
+    data:{labels,datasets},
+    plugins:[afLabelPlugin],
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      layout:{padding:{top:30,right:18,bottom:0,left:0}},
+      interaction:{mode:"nearest",intersect:false},
+      plugins:{
+        legend:{
+          position:"bottom",
+          labels:{usePointStyle:false,boxWidth:48,boxHeight:14,padding:18,font:{size:13}}
+        },
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${afFmt(ctx.parsed.y)}`}},
+        datalabels:{display:false}
+      },
+      scales:{
+        y:{min:0,max:120,ticks:{callback:v=>v+"%"},grid:{color:"rgba(16,24,40,.12)"}},
+        x:{grid:{color:"rgba(16,24,40,.10)"}}
+      }
+    }
+  });
+}
+
+function afRenderCriteria(categories){
+  const wrap = document.getElementById("af-criteria");
+  wrap.innerHTML = "";
+
+  const requiredNames = ["Mantenimiento","5's","Limpieza en Vestidores","Limpieza General"];
+  const visibleCategories = categories.filter(c=>requiredNames.includes(c.name) || c.eval > 0);
+
+  if(!visibleCategories.length){
+    wrap.innerHTML = `<div class="af-empty">No hay criterios evaluados con los filtros actuales.</div>`;
+    return;
+  }
+
+  visibleCategories.forEach(cat=>{
+    const p = cat.percentage;
+    const color = cat.afStatus.color;
+    const safe = p === null ? 0 : p;
+    const categoryDescription = AF_CATEGORY_DESCRIPTIONS[cat.name] || "Criterio general de evaluación del ambiente físico.";
+
+    const subItems = cat.subcriteria.map(sub=>{
+      const desc = AF_SUBCRITERION_DESCRIPTIONS[sub.name] || "Sin descripción disponible para este criterio.";
+      return `
+      <li class="af-sub-item">
+        <div>
+          <strong title="${escapeHtml(sub.name)}">${escapeHtml(sub.name)}</strong>
+          <span>${escapeHtml(desc)}</span>
+        </div>
+        <div class="af-sub-pct" style="background:${sub.afStatus.color}">${afFmt(sub.percentage)}</div>
+      </li>
+    `;
+    }).join("");
+
+    const card = document.createElement("article");
+    card.className = "af-criterion";
+    card.innerHTML = `
+      <button class="af-criterion-btn" type="button" aria-expanded="false">
+        <div class="af-mini-donut" style="--value:${safe};--color:${color}">
+          <strong>${afFmt(p)}</strong>
+        </div>
+        <div class="af-criterion-name">
+          <strong>${escapeHtml(cat.name)}</strong>
+          <span>${escapeHtml(categoryDescription)}</span>
+        </div>
+        <div class="af-criterion-pct">${afFmt(p)}</div>
+        <div class="af-chev">⌄</div>
+      </button>
+      <div class="af-subcriteria">
+        <ul class="af-sub-list">${subItems}</ul>
+      </div>
+    `;
+
+    const btn = card.querySelector(".af-criterion-btn");
+    btn.addEventListener("click",()=>{
+      const isOpen = card.classList.toggle("af-open");
+      btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+
+    wrap.appendChild(card);
+  });
+}
+
+function afRenderGoals(goals){
+  const wrap = document.getElementById("af-goals");
+  wrap.innerHTML = "";
+
+  if(!goals.length){
+    wrap.innerHTML = `<div class="af-empty">Todavía no hay áreas o roles con meta lograda en los filtros actuales.</div>`;
+    return;
+  }
+
+  goals.slice(0,18).forEach(g=>{
+    const div = document.createElement("div");
+    div.className = "af-goal";
+    div.textContent = `${g.club} · ${g.area} · ${afFmt(g.percentage)}`;
+    wrap.appendChild(div);
+  });
+}
+
+function afNormalizeScore(v){
+  if(v === null || v === undefined || v === "") return null;
+  const n = Number(v);
+  if(isNaN(n)) return null;
+  if(n > 1) return n >= 80 ? 1 : 0;
+  return n;
+}
+
+function afPct(ok,ev){
+  if(!ev || ev <= 0) return null;
+  return Math.round((ok/ev)*1000)/10;
+}
+
+function afFmt(v){
+  if(v === null || v === undefined || isNaN(v)) return "--%";
+  return (Math.round(v*10)/10) + "%";
+}
+
+function afStatus(v){
+  if(v === null || v === undefined || isNaN(v)) return {text:"Sin datos",color:"#98A2B3"};
+  if(v >= 90) return {text:"Meta lograda",color:"#16A34A"};
+  if(v >= 80) return {text:"En seguimiento",color:"#F59E0B"};
+  return {text:"Prioritario",color:"#DC2626"};
+}
+
+function afUnique(arr){
+  return [...new Set(arr.filter(v=>v !== null && v !== undefined && String(v).trim() !== ""))];
+}
+
+function afSortMonths(a,b){
+  const order = {
+    "Enero":1,"Febrero":2,"Marzo":3,"Abril":4,"Mayo":5,"Junio":6,
+    "Julio":7,"Agosto":8,"Septiembre":9,"Octubre":10,"Noviembre":11,"Diciembre":12
+  };
+  return (order[a] || 99) - (order[b] || 99);
+}
+
+function afShowError(msg){
+  const el = document.getElementById("af-error");
+  if(!msg){
+    el.style.display = "none";
+    el.textContent = "";
+  }else{
+    el.style.display = "block";
+    el.textContent = msg;
+  }
+}
+
+/****************************************************
+ * PANEL PROTEGIDO — MANTENIMIENTO Y LIMPIEZA
+ * Acceso interno por contraseña. Cada equipo revisa
+ * únicamente las incidencias (criterios incumplidos)
+ * que le corresponden según su categoría.
+ ****************************************************/
+
+const AF_TEAM_PWD = "ambiente1234";
+
+// [ACTUALIZADO] Las incidencias ahora se arman directo desde la columna
+// "Explica Incidencia" (comentario libre del colaborador) y se clasifican
+// con la columna "Tipo de reporte que le quieras levantar", que puede traer
+// una o varias categorías separadas por coma o salto de línea (ej.
+// "Mantenimiento, Limpieza"). Ya no dependen de qué criterio específico
+// haya fallado en la caminata.
+const AF_TEAM_TIPOS = ["Mantenimiento", "Limpieza", "5's", "Servicio Premium", "Sistemas"];
+
+// Identificador corto y estable de cada tipo, usado para armar el ID único
+// de cada incidencia (no debe cambiar entre versiones para no perder el
+// seguimiento ya guardado en el Sheet).
+const AF_TEAM_TIPO_SLUG = {
+  "Mantenimiento": "mantenimiento",
+  "Limpieza": "limpieza",
+  "5's": "5s",
+  "Servicio Premium": "servicio_premium",
+  "Sistemas": "sistemas"
+};
+
+// Normaliza variantes de captura (typos, apóstrofes distintos, mayúsculas)
+// a uno de los 5 tipos válidos. Cualquier texto que no reconozca (por
+// ejemplo, cuando el colaborador escribió una descripción libre en vez de
+// elegir una categoría) se descarta: esa incidencia no queda clasificada y
+// no aparece en el panel de ningún equipo.
+const AF_TEAM_TIPO_SINONIMOS = {
+  "mantenimiento": "Mantenimiento",
+  "mantenimeinto": "Mantenimiento",
+  "limpieza": "Limpieza",
+  "5s": "5's",
+  "5's": "5's",
+  "servicio premium": "Servicio Premium",
+  "sistemas": "Sistemas"
+};
+
+function afParseTiposReporte(rawTipoReporte){
+  if(!rawTipoReporte) return [];
+  return rawTipoReporte
+    .split(/[,;\n]+/)
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(s => {
+      const key = s.toLowerCase().replace(/[’'´]/g, "'").trim();
+      return AF_TEAM_TIPO_SINONIMOS[key] || null;
+    })
+    .filter(Boolean);
+}
+
+const AF_TEAM_STORAGE_KEY = "ambienteFisicoTeamStates";
+let afTeamStates = {};
+let afTeamIncidentIndex = {}; // id -> datos de la incidencia (para persistir en el Sheet)
+
+function afLoadTeamStates(){
+  try{
+    const raw = localStorage.getItem(AF_TEAM_STORAGE_KEY);
+    afTeamStates = raw ? JSON.parse(raw) : {};
+  }catch(e){
+    afTeamStates = {};
+  }
+}
+
+function afSaveTeamStates(){
+  try{
+    localStorage.setItem(AF_TEAM_STORAGE_KEY, JSON.stringify(afTeamStates));
+  }catch(e){
+    afShowTeamToast("No se pudo guardar el estado localmente (localStorage no disponible).");
+  }
+}
+
+function afBindTeamPanel(){
+  afLoadTeamStates();
+
+  document.getElementById("af-teamUnlockBtn").addEventListener("click", afUnlockTeamPanel);
+  document.getElementById("af-teamPassword").addEventListener("keydown", e=>{
+    if(e.key === "Enter") afUnlockTeamPanel();
+  });
+
+  ["af-teamSelect","af-teamMes","af-teamClub","af-teamTurno","af-teamEstado"].forEach(id=>{
+    document.getElementById(id).addEventListener("change", afRenderTeamPanel);
+  });
+}
+
+function afUnlockTeamPanel(){
+  const val = document.getElementById("af-teamPassword").value.trim();
+  if(val !== AF_TEAM_PWD){
+    afShowTeamToast("Contraseña incorrecta.");
+    return;
+  }
+  document.getElementById("af-teamUnlockBox").classList.add("af-hidden");
+  document.getElementById("af-teamPanel").classList.remove("af-hidden");
+  afRenderTeamPanel();
+}
+
+function afSetupTeamFilters(){
+  afPopulate("af-teamMes", afUnique(afRecords.map(r=>r.mes).filter(Boolean)).sort(afSortMonths), "Todos los meses");
+  afPopulate("af-teamClub", AF_CLUBS, "Todos los clubes");
+  afPopulate("af-teamTurno", afUnique(afRecords.map(r=>r.turno).filter(Boolean)).sort(), "Todos los turnos");
+}
+
+// Construye la lista de incidencias: una por cada respuesta de la caminata
+// que tenga comentario en "Explica Incidencia" (columna R) Y que además
+// tenga marcado el tipo de reporte solicitado, en la columna "Tipo de
+// reporte que le quieras levantar" (columna AH). Si un comentario trae más
+// de un tipo (ej. "Mantenimiento, Limpieza"), se genera una incidencia
+// independiente por cada tipo, para que cada equipo le dé seguimiento por
+// separado. Los comentarios sin ningún tipo reconocido no generan
+// incidencia (no se muestran en ningún equipo).
+function afBuildTeamIncidents(tipoEquipo){
+  const incidents = [];
+
+  afRecords.forEach(record=>{
+    const comentario = (record.comentarios || "").trim();
+    if(!comentario) return;
+
+    const tipos = afParseTiposReporte(record.tipoReporte);
+    if(!tipos.includes(tipoEquipo)) return;
+
+    const slug = AF_TEAM_TIPO_SLUG[tipoEquipo] || tipoEquipo;
+    const incident = {
+      id: `${record.id}_${slug}`,
+      recordId: record.id,
+      club: record.club,
+      mes: record.mes,
+      turno: record.turno,
+      area: record.area,
+      comentarios: comentario,
+      tipo: tipoEquipo,
+      fecha: record.fecha
+    };
+
+    afTeamIncidentIndex[incident.id] = incident;
+    incidents.push(incident);
+  });
+
+  return incidents;
+}
+
+function afRenderTeamPanel(){
+  const panel = document.getElementById("af-teamPanel");
+  if(!panel || panel.classList.contains("af-hidden")) return;
+
+  const team = document.getElementById("af-teamSelect").value;
+  const mes = document.getElementById("af-teamMes").value;
+  const club = document.getElementById("af-teamClub").value;
+  const turno = document.getElementById("af-teamTurno").value;
+  const estado = document.getElementById("af-teamEstado").value;
+
+  let incidents = afBuildTeamIncidents(team).filter(i=>{
+    if(mes && i.mes !== mes) return false;
+    if(club && i.club !== club) return false;
+    if(turno && i.turno !== turno) return false;
+    return true;
+  });
+
+  afRenderTeamSummary(incidents);
+
+  if(estado === "pendientes"){
+    incidents = incidents.filter(i => !afTeamStates[i.id]?.resolved);
+  }else if(estado === "resueltos"){
+    incidents = incidents.filter(i => !!afTeamStates[i.id]?.resolved);
+  }
+
+  const wrap = document.getElementById("af-teamIncidents");
+  wrap.innerHTML = "";
+
+  if(!incidents.length){
+    wrap.innerHTML = `<div class="af-empty">No hay incidencias para esta selección.</div>`;
+    return;
+  }
+
+  incidents.forEach(i=>{
+    const state = afTeamStates[i.id] || {};
+    const isResolved = !!state.resolved;
+    const resolvedDate = state.resolvedDate || "";
+    const teamComment = state.comentario || "";
+    const revisor = state.revisor || "";
+    const canCheck = !!resolvedDate;
+
+    // Días que tardó en resolverse: diferencia entre la fecha de la
+    // caminata (cuando se detectó) y la fecha de resolución capturada.
+    const dias = afComputeDiasResolucion(i.fecha, resolvedDate);
+    const diasHtml = dias === null ? "" :
+      `<span class="af-pill" style="background:${dias > 14 ? "var(--red)" : "var(--green)"};min-width:auto;">${dias} día${dias!==1?"s":""} en resolverse</span>`;
+
+    const card = document.createElement("div");
+    card.className = "af-incident-card" + (isResolved ? " af-resolved" : "");
+    card.innerHTML = `
+      <div class="af-incident-meta">
+        <span>🏢 <strong>Club:</strong> ${escapeHtml(i.club || "Sin club")}</span>
+        <span>📋 <strong>Mes:</strong> ${escapeHtml(i.mes || "Sin mes")}</span>
+        <span>🕐 <strong>Turno:</strong> ${escapeHtml(i.turno || "Sin turno")}</span>
+        <span>💼 <strong>Área/Rol:</strong> ${escapeHtml(i.area || "Sin área")}</span>
+      </div>
+      <p class="af-incident-title">🏷️ ${escapeHtml(i.tipo)}</p>
+      <div class="af-incident-comment">💬 <strong>Comentario del colaborador:</strong> ${escapeHtml(i.comentarios)}</div>
+      <label style="font-weight:400;color:var(--gray);font-size:12px;display:block;margin-bottom:6px;">Comentario del equipo (acción tomada, pendientes, etc.)</label>
+      <textarea class="af-incident-comment-field" placeholder="Escribe aquí el seguimiento de ${escapeHtml(team)}..."
+        onchange="afSetTeamComment('${i.id}', this.value)">${escapeHtml(teamComment)}</textarea>
+      <div class="af-incident-actions">
+        <label title="${canCheck ? '' : 'Primero ingresa la fecha de resolución'}">
+          <input type="checkbox" ${isResolved ? "checked" : ""} ${!canCheck ? "disabled" : ""}
+            onchange="afToggleTeamResolved('${i.id}', this.checked)" />
+          Resuelto por ${escapeHtml(team)}
+        </label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label style="font-weight:400;color:var(--gray);">Fecha de resolución:</label>
+          <input type="date" value="${resolvedDate}" onchange="afSetTeamResolvedDate('${i.id}', this.value)" />
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label style="font-weight:400;color:var(--gray);">¿Quién revisó?</label>
+          <input type="text" placeholder="Nombre de quién dio seguimiento" value="${escapeHtml(revisor)}"
+            style="border:1px solid #cfd8dd;border-radius:10px;padding:7px 10px;font-size:13px;min-width:180px;"
+            onchange="afSetTeamRevisor('${i.id}', this.value)" />
+        </div>
+        ${diasHtml}
+      </div>
+      <div class="af-incident-sync-note" id="sync_${i.id}"></div>
+    `;
+    wrap.appendChild(card);
+  });
+}
+
+function afRenderTeamSummary(incidents){
+  const el = document.getElementById("af-teamSummary");
+  const total = incidents.length;
+  const resolved = incidents.filter(i => !!afTeamStates[i.id]?.resolved).length;
+  const pending = total - resolved;
+  const afPct = total > 0 ? Math.round((resolved/total)*100) : 0;
+
+  if(!total){
+    el.innerHTML = `<div class="af-empty">No hay incidencias registradas para la selección actual.</div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="af-team-summary-card">
+      <span>Incidencias</span>
+      <strong>${total}</strong>
+    </div>
+    <div class="af-team-summary-card">
+      <span>Resueltas</span>
+      <strong style="color:var(--green)">${resolved} <small style="font-size:14px;color:var(--gray);">(${afPct}%)</small></strong>
+    </div>
+    <div class="af-team-summary-card">
+      <span>Pendientes</span>
+      <strong style="color:var(--red)">${pending}</strong>
+    </div>
+  `;
+}
+
+// Calcula cuántos días tardó en resolverse una incidencia, comparando la
+// fecha en que se detectó (fechaIncidenciaISO, viene del backend) contra la
+// fecha de resolución que capturó el equipo (resolvedDate, "YYYY-MM-DD").
+// Devuelve null si falta algún dato o si las fechas no son válidas.
+function afComputeDiasResolucion(fechaIncidenciaISO, resolvedDate){
+  if(!resolvedDate || !fechaIncidenciaISO) return null;
+  const fechaIncidencia = new Date(fechaIncidenciaISO);
+  const fechaResuelta = new Date(resolvedDate + "T00:00:00");
+  if(isNaN(fechaIncidencia.getTime()) || isNaN(fechaResuelta.getTime())) return null;
+  const dias = Math.round((fechaResuelta - fechaIncidencia) / (1000*60*60*24));
+  return dias >= 0 ? dias : null;
+}
+
+function afToggleTeamResolved(id, checked){
+  if(!afTeamStates[id]) afTeamStates[id] = {};
+  afTeamStates[id].resolved = checked;
+  afSaveTeamStates();
+  afPersistIncidentState(id);
+  afRenderTeamPanel();
+}
+
+function afSetTeamResolvedDate(id, date){
+  if(!afTeamStates[id]) afTeamStates[id] = {};
+  afTeamStates[id].resolvedDate = date;
+  if(!date) afTeamStates[id].resolved = false;
+  afSaveTeamStates();
+  afPersistIncidentState(id);
+  afRenderTeamPanel();
+}
+
+function afSetTeamComment(id, value){
+  if(!afTeamStates[id]) afTeamStates[id] = {};
+  afTeamStates[id].comentario = value;
+  afSaveTeamStates();
+  afPersistIncidentState(id);
+}
+
+function afSetTeamRevisor(id, value){
+  if(!afTeamStates[id]) afTeamStates[id] = {};
+  afTeamStates[id].revisor = value;
+  afSaveTeamStates();
+  afPersistIncidentState(id);
+}
+
+// Envía el estado actual de una incidencia (comentario, fecha, resuelto) al
+// Apps Script para que quede guardado en la hoja "Seguimiento Ambiente Fisico"
+// y no se pierda al actualizar la página.
+async function afPersistIncidentState(id){
+  const state = afTeamStates[id] || {};
+  const incident = afTeamIncidentIndex[id] || {};
+  const noteEl = document.getElementById(`sync_${id}`);
+
+  const body = {
+    action: "saveIncidentState",
+    id,
+    club: incident.club || "",
+    mes: incident.mes || "",
+    turno: incident.turno || "",
+    area: incident.area || "",
+    categoria: incident.tipo || "",
+    criterio: "",
+    comentario: state.comentario || "",
+    revisor: state.revisor || "",
+    fecha: state.resolvedDate || "",
+    diasResolucion: afComputeDiasResolucion(incident.fecha, state.resolvedDate) ?? "",
+    resuelto: !!state.resolved
+  };
+
+  if(noteEl) noteEl.textContent = "Guardando en Google Sheets...";
+
+  try{
+    const res = await fetch(AF_API_URL, {
+      method: "POST",
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if(!data || data.ok === false) throw new Error(data?.error || "Error desconocido");
+    if(noteEl) noteEl.textContent = "✓ Guardado en Google Sheets.";
+  }catch(err){
+    if(noteEl) noteEl.textContent = "⚠️ No se pudo guardar en el Sheet, se guardó localmente.";
+    afShowTeamToast("No se pudo sincronizar con Google Sheets: " + err.message);
+  }
+}
+
+// Al cargar el dashboard, el estado guardado en el Sheet (fuente de verdad)
+// sobreescribe la copia local en localStorage de este navegador.
+function afMergeSeguimientoIntoTeamStates(seguimiento){
+  seguimiento.forEach(item=>{
+    if(!item || !item.id) return;
+    afTeamStates[item.id] = {
+      resolved: !!item.resuelto,
+      resolvedDate: item.fechaResolucion || "",
+      comentario: item.comentario || "",
+      revisor: item.revisor || ""
+    };
+  });
+  afSaveTeamStates();
+}
+
+function afShowTeamToast(msg){
+  const el = document.getElementById("af-teamToast");
+  el.textContent = msg;
+  el.classList.remove("af-hidden");
+  clearTimeout(afShowTeamToast._t);
+  afShowTeamToast._t = setTimeout(()=> el.classList.add("af-hidden"), 3500);
+}
 
 const ROL_MINIMO_TAB = {
   directorio: 'lider', ruta: 'admin', configuracion: 'admin', reclutamiento: 'admin',
