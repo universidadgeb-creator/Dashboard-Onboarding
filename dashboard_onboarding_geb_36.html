@@ -278,6 +278,20 @@
   .encuesta-badge.activa { color: var(--verde-ok-txt); background: var(--verde-ok-bg); }
   .encuesta-badge.pausada { color: var(--gris-medio); background: var(--gris-claro); }
 
+  /* ENTREVISTA DE AJUSTE 10-15 — tarjetas de faltantes agrupadas por reclutador */
+  .aj10-grupo { background: #fff; border: 1px solid #F5F2FC; border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; box-shadow: 0 2px 10px rgba(76,29,149,.06); }
+  .aj10-grupo-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+  .aj10-grupo-nombre { font-size: 14px; font-weight: 700; color: var(--blanco); display: flex; align-items: center; gap: 8px; }
+  .aj10-grupo-count { font-size: 11px; font-weight: 700; color: var(--rojo); background: #FEE2E2; border-radius: 10px; padding: 2px 9px; }
+  .aj10-personas { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .aj10-persona { background: var(--gris-claro); border-radius: 10px; padding: 10px 12px; }
+  .aj10-persona-nombre { font-size: 13px; font-weight: 600; color: var(--blanco); }
+  .aj10-persona-meta { font-size: 11px; color: var(--gris-texto); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .aj10-dias { font-weight: 700; border-radius: 8px; padding: 1px 7px; }
+  .aj10-dias.ok { color: var(--verde-ok-txt); background: var(--verde-ok-bg); }
+  .aj10-dias.atrasado { color: var(--rojo); background: #FEE2E2; }
+  .aj10-sin-reclutador .aj10-grupo-nombre { color: var(--gris-medio); }
+
   .pregunta-builder { background: var(--gris-claro); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
   .pregunta-builder-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .pregunta-builder-num { font-size: 11px; font-weight: 700; color: var(--gris-medio); flex-shrink: 0; }
@@ -3036,17 +3050,14 @@
       <div class="section-title">Entrevista de Ajuste 10-15</div>
       <p class="bandeja-sub">Llamada de seguimiento a colaboradores con 10-15 días de antigüedad.</p>
       <div class="kpi-row" id="ajuste10-kpis"></div>
-      <div class="panel-2col">
-        <div class="panel-box">
-          <h4>Faltantes</h4>
-          <div id="ajuste10-faltantes"></div>
-        </div>
-        <div class="panel-box">
-          <h4>Hechas</h4>
-          <div id="ajuste10-hechas"></div>
-        </div>
+      <div class="section-header">
+        <div class="section-title">Faltantes por reclutador</div>
+        <button class="btn-clear" id="ajuste10-copiar-todo" onclick="copiarRecordatorioAjuste10()">📋 Copiar recordatorio de todos</button>
       </div>
-      <div class="section-title">Detalle de llamadas realizadas</div>
+      <div id="ajuste10-faltantes-grupos"></div>
+      <div class="section-title" style="margin-top:24px">Hechas</div>
+      <div id="ajuste10-hechas"></div>
+      <div class="section-title" style="margin-top:24px">Detalle de llamadas realizadas</div>
       <div class="table-wrapper"><div class="table-scroll">
         <table>
           <thead><tr>
@@ -4735,8 +4746,68 @@ function renderPre() {
 
 // ── ENTREVISTA DE AJUSTE 10-15 ──
 // A diferencia de las demás pestañas de Tierra fértil, "quién falta" no se calcula aquí por
-// antigüedad: la hoja "entrevista ajuste 10" ya trae, en columnas aparte, dos listas de
-// nombres bajo "Hechas"/"Faltantes" — se leen y presentan tal cual (ver loadAll()).
+// antigüedad: la hoja "entrevista ajuste 10" ya trae, en columnas aparte, un mini-tracker de
+// 4 columnas ya resuelto (Hecha | su reclutador | Faltante | su reclutador) — se lee y
+// presenta tal cual (ver loadAll()).
+
+// Cruza un nombre suelto del tracker contra el directorio ya fusionado de Plenia, para poder
+// mostrar sucursal y antigüedad real sin tener que pedirle esos datos otra vez al Sheet.
+// similarNames() tolera que el orden de nombre/apellido venga distinto entre hojas (pasa
+// seguido: "VILLANEDA JOHNSTON OSWALDO" en una vs "Oswaldo Villaneda Johnston" en otra).
+function aj10BuscarColaborador(nombre) {
+  const key = normName(nombre);
+  return getColabIndex().find(c => similarNames(key, c.key)) || null;
+}
+
+function aj10PersonaCardHtml(item) {
+  const c = aj10BuscarColaborador(item.nombre);
+  const sucursal = c && c.sucursal ? escapeHtml(c.sucursal) : null;
+  const dias = c && c.dias !== null && c.dias !== undefined ? c.dias : null;
+  const diasHtml = dias !== null
+    ? `<span class="aj10-dias ${dias > 15 ? 'atrasado' : 'ok'}">${dias} día${dias===1?'':'s'}${dias > 15 ? ' — atrasada' : ''}</span>`
+    : '';
+  return `<div class="aj10-persona">
+    <div class="aj10-persona-nombre">${escapeHtml(item.nombre)}</div>
+    <div class="aj10-persona-meta">${sucursal ? `<span>${sucursal}</span>` : ''}${diasHtml}</div>
+  </div>`;
+}
+
+// Arma el texto del recordatorio para un grupo de pendientes de un reclutador (o de todos,
+// si no se pasa reclutador) — listo para pegar en WhatsApp, Slack o correo.
+function aj10TextoRecordatorio(reclutador) {
+  const grupo = reclutador
+    ? AJUSTE10_FALTANTES.filter(f => f.reclutador === reclutador)
+    : AJUSTE10_FALTANTES;
+  if (!grupo.length) return '';
+  const lineas = grupo.map(item => {
+    const c = aj10BuscarColaborador(item.nombre);
+    const partes = [item.nombre];
+    if (c && c.sucursal) partes.push(c.sucursal);
+    if (c && c.dias !== null && c.dias !== undefined) partes.push(`${c.dias} días de antigüedad`);
+    return '• ' + partes.join(' — ');
+  });
+  const saludo = reclutador ? `Hola ${reclutador.split(' ')[0]}, ` : 'Hola, ';
+  return `${saludo}estas personas siguen pendientes de su Entrevista de Ajuste 10-15:\n\n${lineas.join('\n')}\n\n¡Gracias!`;
+}
+
+async function copiarRecordatorioAjuste10(reclutador, btn) {
+  const texto = aj10TextoRecordatorio(reclutador);
+  if (!texto) return;
+  try {
+    await navigator.clipboard.writeText(texto);
+  } catch (e) {
+    // Algunos navegadores bloquean el portapapeles fuera de HTTPS/localhost — sin esto,
+    // el clic no haría nada visible y parecería que el botón está roto.
+    alert('No se pudo copiar automáticamente. Copia este texto manualmente:\n\n' + texto);
+    return;
+  }
+  if (btn) {
+    const original = btn.textContent;
+    btn.textContent = '✅ ¡Copiado!';
+    setTimeout(() => { btn.textContent = original; }, 1800);
+  }
+}
+
 function renderAjuste10() {
   const hechas = AJUSTE10_HECHAS.length;
   const faltantes = AJUSTE10_FALTANTES.length;
@@ -4748,12 +4819,31 @@ function renderAjuste10() {
     kpiCard('Faltantes', faltantes, '', faltantes > 0 ? 'red' : 'green') +
     kpiCard('Avance', pct !== null ? pct + '%' : '—', '', pct === null ? '' : (pct >= 80 ? 'green' : pct >= 50 ? 'yellow' : 'red'));
 
-  document.getElementById('ajuste10-faltantes').innerHTML = faltantes
-    ? AJUSTE10_FALTANTES.map(n => `<div class="resultado-texto-item">⏳ ${escapeHtml(n)}</div>`).join('')
-    : `<div class="avisos-empty">Nadie pendiente 🎉</div>`;
+  document.getElementById('ajuste10-copiar-todo').style.display = faltantes ? '' : 'none';
+
+  const gruposEl = document.getElementById('ajuste10-faltantes-grupos');
+  if (!faltantes) {
+    gruposEl.innerHTML = `<div class="avisos-empty">Nadie pendiente 🎉</div>`;
+  } else {
+    const porReclutador = {};
+    AJUSTE10_FALTANTES.forEach(item => {
+      const r = item.reclutador || 'Sin reclutador asignado';
+      (porReclutador[r] = porReclutador[r] || []).push(item);
+    });
+    gruposEl.innerHTML = Object.entries(porReclutador).map(([reclutador, items]) => {
+      const sinReclutador = reclutador === 'Sin reclutador asignado';
+      return `<div class="aj10-grupo${sinReclutador ? ' aj10-sin-reclutador' : ''}">
+        <div class="aj10-grupo-head">
+          <div class="aj10-grupo-nombre">👤 ${escapeHtml(reclutador)} <span class="aj10-grupo-count">${items.length} pendiente${items.length===1?'':'s'}</span></div>
+          ${sinReclutador ? '' : `<button class="btn-clear" onclick="copiarRecordatorioAjuste10('${escapeHtml(reclutador)}', this)">📋 Copiar mensaje</button>`}
+        </div>
+        <div class="aj10-personas">${items.map(aj10PersonaCardHtml).join('')}</div>
+      </div>`;
+    }).join('');
+  }
 
   document.getElementById('ajuste10-hechas').innerHTML = hechas
-    ? AJUSTE10_HECHAS.map(n => `<div class="resultado-texto-item">✅ ${escapeHtml(n)}</div>`).join('')
+    ? AJUSTE10_HECHAS.map(item => `<div class="resultado-texto-item">✅ ${escapeHtml(item.nombre)}${item.reclutador ? ` <span style="color:var(--gris-texto)">— ${escapeHtml(item.reclutador)}</span>` : ''}</div>`).join('')
     : `<div class="avisos-empty">Todavía no hay llamadas registradas.</div>`;
 
   const tbody = document.getElementById('ajuste10-tbody');
@@ -10037,10 +10127,10 @@ async function loadAll() {
 
     // "entrevista ajuste 10" — llamada de seguimiento a 10-15 días. Opcional: si la hoja no
     // existe o falla, la pestaña simplemente sale sin datos, no tumba el resto.
-    // Esta hoja mezcla dos cosas en las mismas columnas: filas de respuesta real de la llamada
-    // (arriba) y, después de una fila marcador con "Marca temporal"==="Hechas", dos listas de
-    // nombres sueltas bajo "Hechas"/"Faltantes" — ya vienen resueltas ahí, no se calculan por
-    // antigüedad aquí.
+    // Esta hoja mezcla dos cosas en las mismas 4 columnas: filas de respuesta real de la
+    // llamada (arriba) y, después de una fila marcador con "Marca temporal"==="Hechas", un
+    // mini-tracker de 4 columnas ya resuelto en el Sheet: Hecha | su reclutador | Faltante |
+    // su reclutador. No se calcula nada por antigüedad aquí — solo se lee tal cual.
     try {
       const rawAjuste10 = await fetchSheet('entrevista ajuste 10');
       DATA.ajuste10 = [];
@@ -10050,10 +10140,12 @@ async function loadAll() {
       (Array.isArray(rawAjuste10) ? rawAjuste10 : []).forEach(r => {
         const marca = r['Marca temporal'];
         const nombreCol = r['Nombre del colaborador'];
+        const rolCol = r['Rol'];
+        const sucCol = r['Sucursal '];
         if (marca === 'Hechas') { enListaHechasFaltantes = true; return; }
         if (enListaHechasFaltantes) {
-          if (marca) AJUSTE10_HECHAS.push(marca);
-          if (nombreCol) AJUSTE10_FALTANTES.push(nombreCol);
+          if (marca) AJUSTE10_HECHAS.push({ nombre: String(marca).trim(), reclutador: String(nombreCol||'').trim() });
+          if (rolCol) AJUSTE10_FALTANTES.push({ nombre: String(rolCol).trim(), reclutador: String(sucCol||'').trim() });
           return;
         }
         if (nombreCol && marca) DATA.ajuste10.push(r);
