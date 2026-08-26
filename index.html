@@ -2795,6 +2795,7 @@
         </button>
         <div class="sidebar-group-body sidebar-subgroup-body">
           <button class="sidebar-subitem" data-tab="preonboarding" onclick="switchTab('preonboarding')">Preonboarding</button>
+          <button class="sidebar-subitem" data-tab="ajuste10" onclick="switchTab('ajuste10')">Entrevista de Ajuste 10-15</button>
           <button class="sidebar-subitem" data-tab="treinta" onclick="switchTab('treinta')">Encuesta 30 Días</button>
           <button class="sidebar-subitem" data-tab="evaluacion" onclick="switchTab('evaluacion')">Evaluación Inducción</button>
           <button class="sidebar-subitem" data-tab="certificaciones" onclick="switchTab('certificaciones')">Certificaciones</button>
@@ -3020,6 +3021,39 @@
             <th>NPS</th><th>Lo mejor</th><th>Mejorar</th>
           </tr></thead>
           <tbody id="pre-tbody"></tbody>
+        </table>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ENTREVISTA DE AJUSTE 10-15 — llamada de seguimiento a colaboradores con 10-15 días de
+       antigüedad. La hoja "entrevista ajuste 10" trae las respuestas de la llamada Y, aparte,
+       dos columnas con listas de nombres bajo los encabezados "Hechas"/"Faltantes" — ya viene
+       resuelto en el Sheet, no se calcula por antigüedad aquí. -->
+  <div class="tab-panel" id="panel-ajuste10">
+    <div id="ajuste10-loading" class="state-box"><div class="spinner"></div><span class="state-msg">Cargando datos…</span></div>
+    <div id="ajuste10-content" style="display:none">
+      <div class="section-title">Entrevista de Ajuste 10-15</div>
+      <p class="bandeja-sub">Llamada de seguimiento a colaboradores con 10-15 días de antigüedad.</p>
+      <div class="kpi-row" id="ajuste10-kpis"></div>
+      <div class="panel-2col">
+        <div class="panel-box">
+          <h4>Faltantes</h4>
+          <div id="ajuste10-faltantes"></div>
+        </div>
+        <div class="panel-box">
+          <h4>Hechas</h4>
+          <div id="ajuste10-hechas"></div>
+        </div>
+      </div>
+      <div class="section-title">Detalle de llamadas realizadas</div>
+      <div class="table-wrapper"><div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>Nombre</th><th>Sucursal</th><th>Rol</th><th>Área</th><th>Líder</th>
+            <th>Fecha llamada</th><th>Reclutador</th><th>Semáforo</th><th>Observaciones</th>
+          </tr></thead>
+          <tbody id="ajuste10-tbody"></tbody>
         </table>
       </div></div>
     </div>
@@ -4146,7 +4180,9 @@
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbzRRcURonub1sNF9z7QOfWmtj-elYqohLAXO73M6S6I6TwvWQLCeSNhZ5SulR8BMffm/exec';
 
-let DATA = { pre: [], d30: [], ev: [], cert: [], d60: [], d60l: [], d90: [], estatus: [], empleados: [], hoja5: [] };
+let DATA = { pre: [], ajuste10: [], d30: [], ev: [], cert: [], d60: [], d60l: [], d90: [], estatus: [], empleados: [], hoja5: [] };
+let AJUSTE10_HECHAS = [];
+let AJUSTE10_FALTANTES = [];
 let ACTIVE = 'inicio';
 let _estatusFuente = 'excel'; // 'sheet' cuando la hoja "Estatus Colaboradores" ya exista en vivo
 
@@ -4550,6 +4586,7 @@ function clearFilters() {
 }
 function applyFilters() {
   if (ACTIVE==='preonboarding') renderPre();
+  if (ACTIVE==='ajuste10') renderAjuste10();
   if (ACTIVE==='treinta') renderD30();
   if (ACTIVE==='evaluacion') renderEv();
   if (ACTIVE==='certificaciones') renderCert();
@@ -4694,6 +4731,49 @@ function renderPre() {
       <td>${txt(r['  ¿Qué pudimos haber hecho mejor?  '])}</td>
     </tr>`;
   }).join('');
+}
+
+// ── ENTREVISTA DE AJUSTE 10-15 ──
+// A diferencia de las demás pestañas de Tierra fértil, "quién falta" no se calcula aquí por
+// antigüedad: la hoja "entrevista ajuste 10" ya trae, en columnas aparte, dos listas de
+// nombres bajo "Hechas"/"Faltantes" — se leen y presentan tal cual (ver loadAll()).
+function renderAjuste10() {
+  const hechas = AJUSTE10_HECHAS.length;
+  const faltantes = AJUSTE10_FALTANTES.length;
+  const total = hechas + faltantes;
+  const pct = total > 0 ? Math.round(hechas / total * 100) : null;
+
+  document.getElementById('ajuste10-kpis').innerHTML =
+    kpiCard('Hechas', hechas, '') +
+    kpiCard('Faltantes', faltantes, '', faltantes > 0 ? 'red' : 'green') +
+    kpiCard('Avance', pct !== null ? pct + '%' : '—', '', pct === null ? '' : (pct >= 80 ? 'green' : pct >= 50 ? 'yellow' : 'red'));
+
+  document.getElementById('ajuste10-faltantes').innerHTML = faltantes
+    ? AJUSTE10_FALTANTES.map(n => `<div class="resultado-texto-item">⏳ ${escapeHtml(n)}</div>`).join('')
+    : `<div class="avisos-empty">Nadie pendiente 🎉</div>`;
+
+  document.getElementById('ajuste10-hechas').innerHTML = hechas
+    ? AJUSTE10_HECHAS.map(n => `<div class="resultado-texto-item">✅ ${escapeHtml(n)}</div>`).join('')
+    : `<div class="avisos-empty">Todavía no hay llamadas registradas.</div>`;
+
+  const tbody = document.getElementById('ajuste10-tbody');
+  if (!DATA.ajuste10.length) {
+    tbody.innerHTML = `<tr><td colspan="9" class="empty">Sin llamadas registradas todavía.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = DATA.ajuste10.map(r => `
+    <tr>
+      <td class="td-name">${escapeHtml(r['Nombre del colaborador'] || '—')}</td>
+      <td class="td-sucursal">${escapeHtml(String(r['Sucursal '] || '—').trim())}</td>
+      <td>${escapeHtml(r['Rol'] || '—')}</td>
+      <td>${escapeHtml(r['Área'] || '—')}</td>
+      <td>${escapeHtml(r['Nombre del líder'] || '—')}</td>
+      <td>${fmtFecha(parseFecha(r['Fecha de esta llamada']))}</td>
+      <td>${escapeHtml(r['Reclutador que aplica la llamada'] || '—')}</td>
+      <td>${escapeHtml(r['Resultado del semáforo'] || '—')}</td>
+      <td>${txt(r['Observaciones adicionales / justificación del semáforo'])}</td>
+    </tr>
+  `).join('');
 }
 
 // ── 30 DÍAS ──
@@ -5915,7 +5995,7 @@ function closeRutaModalDirect() {
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeRutaModalDirect(); });
 
 const ONBOARDING_TABS = ['preonboarding','treinta','evaluacion','certificaciones','ruta'];
-const FORMACION_TABS = ['preonboarding','treinta','evaluacion','certificaciones'];
+const FORMACION_TABS = ['preonboarding','ajuste10','treinta','evaluacion','certificaciones'];
 
 // Qué tan alto tiene que ser el rol para ver cada sección de la barra izquierda. Lo que no
 // aparece aquí (Inicio, Bandeja, Calendario, Perfil, Expediente, Políticas, Permisos y
@@ -8420,7 +8500,7 @@ function afShowTeamToast(msg){
 
 const ROL_MINIMO_TAB = {
   directorio: 'lider', ruta: 'admin', configuracion: 'admin', reclutamiento: 'admin',
-  preonboarding: 'admin', treinta: 'admin', evaluacion: 'admin', certificaciones: 'admin',
+  preonboarding: 'admin', ajuste10: 'admin', treinta: 'admin', evaluacion: 'admin', certificaciones: 'admin',
 };
 // Servicio (Política de Apariencia / Ambiente Físico) no tiene mínimo de rol a propósito:
 // cualquier colaborador puede consultar sus resultados generales por sucursal. Los paneles
@@ -9900,7 +9980,7 @@ document.addEventListener('click', (e) => {
 // ── LOAD ALL ──
 async function loadAll() {
   // reset loaders
-  ['pre','d30','ev','cert','ruta','cal','dir','inicio'].forEach(k=>{
+  ['pre','ajuste10','d30','ev','cert','ruta','cal','dir','inicio'].forEach(k=>{
     document.getElementById(`${k}-loading`).style.display='flex';
     document.getElementById(`${k}-content`).style.display='none';
     document.getElementById(`${k}-loading`).innerHTML='<div class="spinner"></div><span class="state-msg">Cargando datos…</span>';
@@ -9955,6 +10035,35 @@ async function loadAll() {
       DATA.hoja5 = [];
     }
 
+    // "entrevista ajuste 10" — llamada de seguimiento a 10-15 días. Opcional: si la hoja no
+    // existe o falla, la pestaña simplemente sale sin datos, no tumba el resto.
+    // Esta hoja mezcla dos cosas en las mismas columnas: filas de respuesta real de la llamada
+    // (arriba) y, después de una fila marcador con "Marca temporal"==="Hechas", dos listas de
+    // nombres sueltas bajo "Hechas"/"Faltantes" — ya vienen resueltas ahí, no se calculan por
+    // antigüedad aquí.
+    try {
+      const rawAjuste10 = await fetchSheet('entrevista ajuste 10');
+      DATA.ajuste10 = [];
+      AJUSTE10_HECHAS = [];
+      AJUSTE10_FALTANTES = [];
+      let enListaHechasFaltantes = false;
+      (Array.isArray(rawAjuste10) ? rawAjuste10 : []).forEach(r => {
+        const marca = r['Marca temporal'];
+        const nombreCol = r['Nombre del colaborador'];
+        if (marca === 'Hechas') { enListaHechasFaltantes = true; return; }
+        if (enListaHechasFaltantes) {
+          if (marca) AJUSTE10_HECHAS.push(marca);
+          if (nombreCol) AJUSTE10_FALTANTES.push(nombreCol);
+          return;
+        }
+        if (nombreCol && marca) DATA.ajuste10.push(r);
+      });
+    } catch (eAjuste10) {
+      DATA.ajuste10 = [];
+      AJUSTE10_HECHAS = [];
+      AJUSTE10_FALTANTES = [];
+    }
+
     // Filtro permisivo: acepta cualquier fila que tenga algún valor en las primeras columnas
     DATA.pre = pre.filter(r => {
       const nombre = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
@@ -10001,7 +10110,7 @@ async function loadAll() {
     _orgChartBuilt = false;
     populateFilters();
 
-    ['pre','d30','ev','cert','ruta','cal','dir','inicio'].forEach(k=>{
+    ['pre','ajuste10','d30','ev','cert','ruta','cal','dir','inicio'].forEach(k=>{
       document.getElementById(`${k}-loading`).style.display='none';
       document.getElementById(`${k}-content`).style.display='block';
     });
@@ -10011,7 +10120,7 @@ async function loadAll() {
     renderAlertas();
     aplicarSimulacion();
   } catch(e) {
-    ['pre','d30','ev','cert','ruta','cal','dir','inicio'].forEach(k => errMsg(k, e));
+    ['pre','ajuste10','d30','ev','cert','ruta','cal','dir','inicio'].forEach(k => errMsg(k, e));
   }
 }
 
