@@ -88,6 +88,24 @@
   .cal-day-mas { font-size: 10px; color: var(--verde-acento); cursor: pointer; font-weight: 600; }
   .cal-day-mas:hover { text-decoration: underline; }
   .cal-legend { display: flex; justify-content: center; gap: 20px; margin: 4px 0 2px; font-size: 12px; color: var(--gris-medio); }
+
+  /* CALENDARIO ANUAL DE VACACIONES/PERMISOS — 12 mini-meses a la vez, estilo Factorial */
+  .vac-cal-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 16px; font-size: 12px; color: var(--gris-medio); }
+  .vac-cal-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .vac-cal-legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .vac-year-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 22px; }
+  .vac-mes-titulo { font-size: 12.5px; font-weight: 700; color: var(--blanco); margin-bottom: 8px; }
+  .vac-mes-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
+  .vac-mes-weekdays span { text-align: center; font-size: 9px; font-weight: 700; color: var(--gris-texto); text-transform: uppercase; }
+  .vac-mes-grid { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 3px; }
+  .vac-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 10.5px; color: var(--gris-medio); border-radius: 50%; margin: 0 auto; width: 22px; height: 22px; }
+  .vac-day.vacio { visibility: hidden; }
+  .vac-day.hoy { box-shadow: 0 0 0 1.5px var(--verde-acento) inset; font-weight: 700; color: var(--blanco); }
+  .vac-day.marcado-vacaciones { background: var(--verde-acento); color: #fff; font-weight: 700; }
+  .vac-day.marcado-permiso { background: var(--amarillo); color: #fff; font-weight: 700; }
+  .vac-day.marcado-incapacidad { background: #94A3B8; color: #fff; font-weight: 700; }
+  .vac-day.marcado-otro { background: #C4B5FD; color: #1E1B2E; font-weight: 700; }
+  .vac-day.pendiente { opacity: .55; box-shadow: 0 0 0 1.5px currentColor inset; background: transparent !important; color: var(--gris-medio) !important; }
   @media (max-width: 700px) {
     .cal-day-persona-nombre { display: none; }
     .cal-day-cell { min-height: 46px; }
@@ -3491,6 +3509,25 @@
   <div class="tab-panel" id="panel-ausencias">
     <div class="section-header">
       <div class="section-title">Permisos y Vacaciones</div>
+    </div>
+
+    <div class="panel-box" style="margin-bottom:20px">
+      <div class="modal-section-label">Vacaciones</div>
+      <p class="bandeja-sub" id="vac-periodo-rango" style="margin-top:2px"></p>
+      <div class="kpi-row" id="vac-kpis" style="margin-top:14px;margin-bottom:0"></div>
+    </div>
+
+    <div class="panel-box" style="margin-bottom:20px">
+      <div class="section-header" style="margin-bottom:10px">
+        <div class="modal-section-label" style="margin-bottom:0">Calendario de ausencias</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="cal-nav-btn" onclick="cambiarAnioVacCalendario(-1)">‹</button>
+          <span style="font-weight:700;font-size:14px" id="vac-cal-anio"></span>
+          <button class="cal-nav-btn" onclick="cambiarAnioVacCalendario(1)">›</button>
+        </div>
+      </div>
+      <div class="vac-cal-legend" id="vac-cal-legend"></div>
+      <div class="vac-year-grid" id="vac-year-grid"></div>
     </div>
 
     <div class="panel-box" style="margin-bottom:20px">
@@ -12554,7 +12591,7 @@ function renderPerfilReal() {
     ${item('Líder', u.lider)}
     ${item('Supervisor de ausencias', u.supervisor_ausencias)}
     <div class="modal-section-label">Información personal</div>
-    ${item('Fecha de ingreso', u.fecha_ingreso ? fmtFecha(new Date(u.fecha_ingreso)) : null)}
+    ${item('Fecha de ingreso', u.fecha_ingreso ? fmtFecha(parseFecha(u.fecha_ingreso)) : null)}
     ${item('Fecha de nacimiento', u.fecha_nacimiento ? fmtFecha(new Date(u.fecha_nacimiento)) : null)}
     ${item('Género', u.genero)}
     ${item('Teléfono', u.telefono)}
@@ -12573,6 +12610,138 @@ function renderPerfilReal() {
 const AUS_TIPO_LABELS = { vacaciones: 'Vacaciones', incapacidad: 'Incapacidad', permiso: 'Permiso', otro: 'Otro' };
 const AUS_ESTATUS_LABELS = { pendiente: 'Pendiente', aprobada: 'Aprobada', rechazada: 'Rechazada' };
 const AUS_ESTATUS_CLASE = { pendiente: 'estatus-desconocido', aprobada: 'estatus-activo', rechazada: 'estatus-baja' };
+
+// ── SALDO DE VACACIONES (LFT Art. 76, reforma "Vacaciones Dignas" vigente desde 2023) ──
+// Índice = años completos de antigüedad ya cumplidos; valor = días de vacaciones ganados por
+// haber cumplido justo esos años. Ojo: los días de un año en curso NO se tienen disponibles
+// hasta cumplirlo — por eso el índice 0 (todavía no cumple su primer año) da 0 días, no 12.
+function diasVacacionesLFT(aniosCumplidos) {
+  if (aniosCumplidos <= 0) return 0;
+  if (aniosCumplidos === 1) return 12;
+  if (aniosCumplidos === 2) return 14;
+  if (aniosCumplidos === 3) return 16;
+  if (aniosCumplidos === 4) return 18;
+  if (aniosCumplidos === 5) return 20;
+  const bloquesDeCinco = Math.floor((aniosCumplidos - 6) / 5);
+  return 22 + bloquesDeCinco * 2;
+}
+
+// El "periodo actual" corre de aniversario a aniversario (no de enero a diciembre). Se cuentan
+// los años ya cumplidos como de hoy para saber cuántos días ya se tienen ganados, y el periodo
+// mostrado es el que va del último aniversario cumplido al siguiente.
+function calcularPeriodoVacaciones(fechaIngreso, hoy) {
+  let cursor = new Date(fechaIngreso.getFullYear(), fechaIngreso.getMonth(), fechaIngreso.getDate());
+  let aniosCumplidos = 0;
+  while (true) {
+    const siguiente = new Date(cursor.getFullYear() + 1, cursor.getMonth(), cursor.getDate());
+    if (siguiente > hoy) break;
+    cursor = siguiente;
+    aniosCumplidos++;
+  }
+  const inicioPeriodo = cursor;
+  const finPeriodo = new Date(cursor.getFullYear() + 1, cursor.getMonth(), cursor.getDate() - 1);
+  return { inicioPeriodo, finPeriodo, aniosCumplidos, generado: diasVacacionesLFT(aniosCumplidos) };
+}
+
+function diasEnRangoInclusive(inicioStr, finStr) {
+  const a = new Date(inicioStr + 'T00:00:00');
+  const b = new Date(finStr + 'T00:00:00');
+  return Math.round((b - a) / 86400000) + 1;
+}
+
+// Una solicitud de vacaciones "pertenece" al periodo en el que cae su fecha de inicio — no se
+// reparte entre dos periodos si cruza un aniversario, para no complicar de más un caso raro.
+function calcularUsadoVacaciones(solicitudes, inicioPeriodo, finPeriodo) {
+  return solicitudes
+    .filter(s => s.tipo === 'vacaciones' && s.estatus === 'aprobada')
+    .filter(s => {
+      const inicio = new Date(s.fecha_inicio + 'T00:00:00');
+      return inicio >= inicioPeriodo && inicio <= finPeriodo;
+    })
+    .reduce((suma, s) => suma + diasEnRangoInclusive(s.fecha_inicio, s.fecha_fin), 0);
+}
+
+function renderSaldoVacaciones(mias) {
+  const rangoEl = document.getElementById('vac-periodo-rango');
+  const kpisEl = document.getElementById('vac-kpis');
+  const fechaIngresoRaw = _usuarioActual.fecha_ingreso;
+  if (!fechaIngresoRaw) {
+    rangoEl.textContent = 'Sin fecha de ingreso registrada — no se puede calcular tu saldo de vacaciones.';
+    kpisEl.innerHTML = '';
+    return;
+  }
+  const fechaIngreso = parseFecha(fechaIngresoRaw);
+  const hoy = new Date();
+  const { inicioPeriodo, finPeriodo, generado } = calcularPeriodoVacaciones(fechaIngreso, hoy);
+  const usado = calcularUsadoVacaciones(mias, inicioPeriodo, finPeriodo);
+  const disponible = Math.max(0, generado - usado);
+  rangoEl.textContent = `Periodo actual: de ${fmtFecha(inicioPeriodo)} a ${fmtFecha(finPeriodo)}`;
+  kpisEl.innerHTML =
+    kpiCard('Generado', generado, 'Días') +
+    kpiCard('Disponible', disponible, 'Días', disponible > 0 ? 'green' : '') +
+    kpiCard('Usado', usado, 'Días');
+}
+
+// ── CALENDARIO ANUAL DE AUSENCIAS — 12 mini-meses, estilo Factorial ──
+const VAC_TIPO_CLASE = { vacaciones: 'marcado-vacaciones', permiso: 'marcado-permiso', incapacidad: 'marcado-incapacidad', otro: 'marcado-otro' };
+let _vacAnioCalendario = new Date().getFullYear();
+let _ausMiasCache = [];
+
+function cambiarAnioVacCalendario(delta) {
+  _vacAnioCalendario += delta;
+  renderCalendarioVacaciones(_ausMiasCache || []);
+}
+
+// Expande cada solicitud (no rechazada) a un mapa día -> {tipo, estatus}, para pintar el
+// calendario sin tener que recorrer todas las solicitudes en cada celda.
+function vacDiasMarcados(mias) {
+  const mapa = {};
+  mias.filter(s => s.estatus !== 'rechazada').forEach(s => {
+    const fin = new Date(s.fecha_fin + 'T00:00:00');
+    let cursor = new Date(s.fecha_inicio + 'T00:00:00');
+    while (cursor <= fin) {
+      const key = `${cursor.getFullYear()}-${cursor.getMonth()}-${cursor.getDate()}`;
+      mapa[key] = { tipo: s.tipo, estatus: s.estatus };
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  });
+  return mapa;
+}
+
+function vacMesGridHtml(anio, mes, marcados, hoy) {
+  // getDay() da 0=domingo, pero esta cuadrícula muestra la semana empezando en lunes.
+  const primerDiaSemana = (new Date(anio, mes, 1).getDay() + 6) % 7;
+  const diasEnMes = new Date(anio, mes + 1, 0).getDate();
+  const celdas = [];
+  for (let i = 0; i < primerDiaSemana; i++) celdas.push(null);
+  for (let d = 1; d <= diasEnMes; d++) celdas.push(d);
+  const esMesActual = anio === hoy.getFullYear() && mes === hoy.getMonth();
+  const celdasHtml = celdas.map(d => {
+    if (d === null) return `<span class="vac-day vacio"></span>`;
+    const marca = marcados[`${anio}-${mes}-${d}`];
+    const esHoy = esMesActual && d === hoy.getDate();
+    const claseTipo = marca ? (VAC_TIPO_CLASE[marca.tipo] || 'marcado-otro') : '';
+    const clasePendiente = marca && marca.estatus === 'pendiente' ? ' pendiente' : '';
+    const titulo = marca ? ` title="${AUS_TIPO_LABELS[marca.tipo] || marca.tipo}${marca.estatus === 'pendiente' ? ' (pendiente)' : ''}"` : '';
+    return `<span class="vac-day ${claseTipo}${clasePendiente}${esHoy ? ' hoy' : ''}"${titulo}>${d}</span>`;
+  }).join('');
+  return `<div class="vac-mes">
+    <div class="vac-mes-titulo">${MESES_NOMBRES[mes]}</div>
+    <div class="vac-mes-weekdays"><span>lu</span><span>ma</span><span>mi</span><span>ju</span><span>vi</span><span>sá</span><span>do</span></div>
+    <div class="vac-mes-grid">${celdasHtml}</div>
+  </div>`;
+}
+
+function renderCalendarioVacaciones(mias) {
+  document.getElementById('vac-cal-anio').textContent = _vacAnioCalendario;
+  document.getElementById('vac-cal-legend').innerHTML = Object.entries(AUS_TIPO_LABELS)
+    .map(([tipo, label]) => `<span><i class="vac-day ${VAC_TIPO_CLASE[tipo]}" style="width:10px;height:10px"></i>${label}</span>`).join('')
+    + `<span><i class="vac-day pendiente" style="width:10px;height:10px;background:transparent"></i>Pendiente</span>`;
+  const marcados = vacDiasMarcados(mias);
+  const hoy = new Date();
+  const grid = document.getElementById('vac-year-grid');
+  grid.innerHTML = MESES_NOMBRES.map((_, mes) => vacMesGridHtml(_vacAnioCalendario, mes, marcados, hoy)).join('');
+}
 
 function ausSolicitudCardHtml(s, esAdmin) {
   const badge = `<span class="estatus-badge ${AUS_ESTATUS_CLASE[s.estatus]}">${AUS_ESTATUS_LABELS[s.estatus] || s.estatus}</span>`;
@@ -12624,9 +12793,14 @@ async function renderAusencias() {
     .select('*')
     .eq('colaborador_email', _usuarioActual.email)
     .order('created_at', { ascending: false });
-  if (error) miasWrap.innerHTML = `<div class="bandeja-sub">Error al cargar: ${escapeHtml(error.message)}</div>`;
-  else if (!mias.length) miasWrap.innerHTML = '<div class="bandeja-sub">Todavía no tienes solicitudes.</div>';
-  else miasWrap.innerHTML = mias.map(s => ausSolicitudCardHtml(s, false)).join('');
+  if (error) {
+    miasWrap.innerHTML = `<div class="bandeja-sub">Error al cargar: ${escapeHtml(error.message)}</div>`;
+  } else {
+    miasWrap.innerHTML = mias.length ? mias.map(s => ausSolicitudCardHtml(s, false)).join('') : '<div class="bandeja-sub">Todavía no tienes solicitudes.</div>';
+    _ausMiasCache = mias;
+    renderSaldoVacaciones(mias);
+    renderCalendarioVacaciones(mias);
+  }
 
   const esAdmin = _usuarioActual.rol_acceso === 'admin';
   document.getElementById('aus-admin-wrap').style.display = esAdmin ? '' : 'none';
