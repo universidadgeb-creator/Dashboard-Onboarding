@@ -3470,6 +3470,10 @@
       <div class="modal-section-label" style="margin-top:22px">Evaluaciones pendientes para ti</div>
       <div class="encuestas-lista" id="bandeja-evaluaciones-pendientes"></div>
     </div>
+    <div id="bandeja-revisiones-wrap" style="display:none">
+      <div class="modal-section-label" style="margin-top:22px">Revisiones Verticales pendientes de tu equipo</div>
+      <div class="encuestas-lista" id="bandeja-revisiones-pendientes"></div>
+    </div>
   </div>
   <div class="tab-panel" id="panel-perfil">
     <div class="section-header">
@@ -3589,9 +3593,10 @@
     </div>
 
     <div id="rv-admin-wrap" style="display:none">
-      <div class="section-title" style="margin:24px 0 12px">Todos los equipos</div>
-      <p class="bandeja-sub">Vista de administrador — todos los colaboradores con líder asignado, agrupados por líder.</p>
-      <div id="rv-admin-lista"></div>
+      <div class="section-title" style="margin:24px 0 12px">Buscar en todos los equipos</div>
+      <p class="bandeja-sub">Vista de administrador — busca a cualquier colaborador o líder para ver su estado.</p>
+      <input type="text" class="rv-search-input" id="rv-buscar" placeholder="Buscar por nombre de colaborador o de líder…" oninput="renderRvBusqueda()" autocomplete="off" style="max-width:420px">
+      <div id="rv-admin-lista" style="margin-top:14px"></div>
     </div>
   </div>
 
@@ -9189,6 +9194,7 @@ function renderTodosLosAvisos() {
   renderAvisosEn('bandeja-lista', null);
   renderAvisosEn('perfil-bandeja-lista', null);
   renderEvaluacionesPendientesBandeja();
+  renderRevisionesPendientesBandeja();
 }
 // Evaluaciones de desempeño dirigidas a quien esté activo en el simulador ahora mismo —
 // aparecen en su Bandeja de entrada además de en Evaluaciones, sin importar si esa persona es
@@ -9208,6 +9214,32 @@ function renderEvaluacionesPendientesBandeja() {
     ${enc.descripcion ? `<div class="encuesta-card-desc">${escapeHtml(enc.descripcion)}</div>` : ''}
     <div class="encuesta-card-meta">Evaluación de desempeño · ${enc.preguntas.length} pregunta${enc.preguntas.length===1?'':'s'}</div>
     <div class="encuesta-card-acciones"><button class="btn-nuevo-colab" onclick="abrirResponderEncuesta(${enc.id})">Contestar</button></div>
+  </div>`).join('');
+}
+
+// Revisiones Verticales pendientes del equipo de quien inició sesión de verdad (no depende del
+// simulador "ver como" — a diferencia de las evaluaciones, aquí importa quién es el líder real).
+async function renderRevisionesPendientesBandeja() {
+  const wrap = document.getElementById('bandeja-revisiones-wrap');
+  const cont = document.getElementById('bandeja-revisiones-pendientes');
+  if (!wrap || !cont || !_usuarioActual) return;
+  const miEquipo = equipoDelLiderActual();
+  if (!miEquipo.length) { wrap.style.display = 'none'; cont.innerHTML = ''; return; }
+  const { data, error } = await supabaseClient
+    .from('revisiones_verticales')
+    .select('*')
+    .eq('lider_email', _usuarioActual.email);
+  const revisiones = error ? [] : data;
+  const pendientes = miEquipo
+    .map(c => ({ c, estado: rvEstadoDe(c, rvUltimaRevisionDe(c.key, revisiones)) }))
+    .filter(x => x.estado.pendiente && x.estado.fechaLimite)
+    .sort((a, b) => a.estado.fechaLimite - b.estado.fechaLimite); // más atrasada primero
+  if (!pendientes.length) { wrap.style.display = 'none'; cont.innerHTML = ''; return; }
+  wrap.style.display = '';
+  cont.innerHTML = pendientes.map(({ c, estado }) => `<div class="encuesta-card">
+    <div class="encuesta-card-nombre">${escapeHtml(c.nombre)}</div>
+    <div class="encuesta-card-meta">Fecha límite: ${fmtFecha(estado.fechaLimite)} (hace ${estado.dias - RV_DIAS_CICLO} días)</div>
+    <div class="encuesta-card-acciones"><button class="btn-nuevo-colab" onclick="switchTab('revisiones'); abrirRvModal('${c.key}')">Hacer revisión</button></div>
   </div>`).join('');
 }
 
@@ -12996,15 +13028,16 @@ function rvUltimaRevisionDe(colabKey, revisiones) {
   return propias.reduce((a, b) => (a.fecha_revision > b.fecha_revision ? a : b));
 }
 
+// Devuelve el estado de revisión de un colaborador: "ancla" es la fecha desde la que se cuenta
+// (la última revisión, o su fecha de ingreso si nunca ha tenido una), y fechaLimite es esa
+// ancla + 91 días — la fecha real en la que le toca la siguiente.
 function rvEstadoDe(c, ultima) {
-  if (ultima) {
-    const dias = Math.floor((new Date() - new Date(ultima.fecha_revision + 'T00:00:00')) / 86400000);
-    return { pendiente: dias >= RV_DIAS_CICLO, dias, desde: 'ultima' };
-  }
-  if (c.dias !== null && c.dias !== undefined) {
-    return { pendiente: c.dias >= RV_DIAS_CICLO, dias: c.dias, desde: 'ingreso' };
-  }
-  return { pendiente: false, dias: null, desde: null };
+  const ancla = ultima ? new Date(ultima.fecha_revision + 'T00:00:00') : c.fechaIngresoSrc;
+  if (!ancla) return { pendiente: false, dias: null, fechaLimite: null, nunca: !ultima };
+  const dias = Math.floor((new Date() - ancla) / 86400000);
+  const fechaLimite = new Date(ancla);
+  fechaLimite.setDate(fechaLimite.getDate() + RV_DIAS_CICLO);
+  return { pendiente: dias >= RV_DIAS_CICLO, dias, fechaLimite, nunca: !ultima };
 }
 
 function rvEquipoCardHtml(c, revisiones) {
@@ -13012,9 +13045,13 @@ function rvEquipoCardHtml(c, revisiones) {
   const estado = rvEstadoDe(c, ultima);
   const cuenta = revisiones.filter(r => r.colaborador_key === c.key).length;
   let metaTxt;
-  if (ultima) metaTxt = `Última revisión: ${fmtFecha(new Date(ultima.fecha_revision + 'T00:00:00'))} (hace ${estado.dias} días)`;
-  else if (estado.desde === 'ingreso') metaTxt = `Nunca revisado — ${estado.dias} días de antigüedad`;
+  if (ultima) metaTxt = `Última revisión: ${fmtFecha(new Date(ultima.fecha_revision + 'T00:00:00'))}`;
   else metaTxt = 'Nunca revisado';
+  if (estado.fechaLimite) {
+    metaTxt += estado.pendiente
+      ? ` · fecha límite: ${fmtFecha(estado.fechaLimite)} (hace ${estado.dias - RV_DIAS_CICLO} días)`
+      : ` · próxima fecha límite: ${fmtFecha(estado.fechaLimite)}`;
+  }
   const badge = estado.pendiente
     ? `<span class="estatus-badge estatus-baja">Pendiente</span>`
     : `<span class="estatus-badge estatus-activo">Al día</span>`;
@@ -13056,29 +13093,51 @@ async function renderRevisionesVerticales() {
     kpiCard('Pendientes', pendientes.length, '', pendientes.length ? 'red' : 'green');
 
   if (esAdminUser) {
-    const todos = getColabIndex().filter(c => c.estatus !== 'baja' && c.lider);
-    const porLider = {};
-    todos.forEach(c => { (porLider[c.lider] = porLider[c.lider] || []).push(c); });
-    const adminEl = document.getElementById('rv-admin-lista');
-    adminEl.innerHTML = Object.entries(porLider)
-      .sort((a, b) => a[0].localeCompare(b[0], 'es'))
-      .map(([lider, equipo]) => {
-        const revisionesDeEseLider = _rvRevisiones; // ya trae todo, por ser admin
-        const pend = equipo.filter(c => rvEstadoDe(c, rvUltimaRevisionDe(c.key, revisionesDeEseLider)).pendiente);
-        return `<div class="aj10-grupo">
-          <div class="aj10-grupo-head">
-            <div class="aj10-grupo-nombre">👤 ${escapeHtml(lider)} <span class="aj10-grupo-count" style="${pend.length ? '' : 'color:var(--verde-ok-txt);background:var(--verde-ok-bg)'}">${pend.length} pendiente${pend.length===1?'':'s'} de ${equipo.length}</span></div>
-          </div>
-          <div class="aj10-personas">${equipo.map(c => {
-            const est = rvEstadoDe(c, rvUltimaRevisionDe(c.key, revisionesDeEseLider));
-            return `<div class="aj10-persona" style="cursor:pointer" onclick="abrirRvHistorial('${c.key}')">
-              <div class="aj10-persona-nombre">${escapeHtml(c.nombre)}</div>
-              <div class="aj10-persona-meta"><span class="aj10-dias ${est.pendiente ? 'atrasado' : 'ok'}">${est.dias !== null ? est.dias + ' días' : 'sin datos'}</span></div>
-            </div>`;
-          }).join('')}</div>
-        </div>`;
-      }).join('');
+    document.getElementById('rv-buscar').value = '';
+    renderRvBusqueda();
   }
+}
+
+// Vista de admin: en vez de listar a todos los líderes de un jalón (confuso con muchos equipos),
+// se busca por nombre de colaborador o de líder y se muestran solo los resultados que coincidan.
+function renderRvBusqueda() {
+  const listaEl = document.getElementById('rv-admin-lista');
+  const q = normName(document.getElementById('rv-buscar').value);
+  if (q.length < 2) {
+    listaEl.innerHTML = '<div class="bandeja-sub">Escribe al menos 2 letras de un nombre de colaborador o de líder para buscar.</div>';
+    return;
+  }
+  const resultados = getColabIndex()
+    .filter(c => c.estatus !== 'baja' && c.lider)
+    .filter(c => normName(c.nombre).includes(q) || normName(c.lider).includes(q));
+  if (!resultados.length) { listaEl.innerHTML = '<div class="bandeja-sub">Sin resultados.</div>'; return; }
+  listaEl.innerHTML = resultados.map(c => {
+    const ultima = rvUltimaRevisionDe(c.key, _rvRevisiones);
+    const estado = rvEstadoDe(c, ultima);
+    const cuenta = _rvRevisiones.filter(r => r.colaborador_key === c.key).length;
+    let metaTxt = `Líder: ${escapeHtml(c.lider)} · ${escapeHtml(c.sucursal || 'Sin sucursal')}`;
+    if (estado.fechaLimite) {
+      metaTxt += estado.pendiente
+        ? ` · fecha límite: ${fmtFecha(estado.fechaLimite)} (hace ${estado.dias - RV_DIAS_CICLO} días)`
+        : ` · próxima fecha límite: ${fmtFecha(estado.fechaLimite)}`;
+    }
+    const badge = estado.pendiente
+      ? `<span class="estatus-badge estatus-baja">Pendiente</span>`
+      : `<span class="estatus-badge estatus-activo">Al día</span>`;
+    return `<div class="encuesta-card" style="margin-bottom:10px">
+      <div class="encuesta-card-head">
+        <div>
+          <div style="font-weight:700;font-size:13.5px">${escapeHtml(c.nombre)}</div>
+          <div class="encuesta-card-meta">${metaTxt}</div>
+        </div>
+        ${badge}
+      </div>
+      <div class="encuesta-card-acciones">
+        <button class="btn-nuevo-colab" onclick="abrirRvModal('${c.key}')">+ Nueva revisión</button>
+        ${cuenta ? `<button class="btn-refresh" onclick="abrirRvHistorial('${c.key}')">Ver historial (${cuenta})</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function rvPreguntaCampoId(seccionIdx, preguntaIdx) {
