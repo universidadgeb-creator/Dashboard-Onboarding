@@ -2848,6 +2848,9 @@
       <button class="sidebar-item" data-tab="desempeno" onclick="switchTab('desempeno')">
         <span class="si-icon"></span><span class="si-label">Evaluaciones</span>
       </button>
+      <button class="sidebar-item" data-tab="revisiones" onclick="switchTab('revisiones')">
+        <span class="si-icon"></span><span class="si-label">Revisiones Verticales</span>
+      </button>
       <button class="sidebar-item" data-tab="ruta" onclick="switchTab('ruta')">
         <span class="si-icon"></span><span class="si-label">Data</span>
       </button>
@@ -3570,6 +3573,28 @@
     </div>
   </div>
 
+  <!-- REVISIONES VERTICALES — reunión de retro líder-colaborador cada 3 meses. Invisible para el
+       colaborador que está siendo revisado: solo su líder (por nombre, ver equipoDelLiderActual())
+       y los admins pueden ver/crear/editar. -->
+  <div class="tab-panel" id="panel-revisiones">
+    <div class="section-header">
+      <div class="section-title">Revisiones Verticales</div>
+    </div>
+    <p class="bandeja-sub">Reunión de retroalimentación entre líder y colaborador, cada 3 meses.</p>
+    <div class="kpi-row" id="rv-kpis"></div>
+
+    <div id="rv-equipo-wrap">
+      <div class="section-title" style="margin-bottom:12px">Mi equipo</div>
+      <div id="rv-equipo-lista"></div>
+    </div>
+
+    <div id="rv-admin-wrap" style="display:none">
+      <div class="section-title" style="margin:24px 0 12px">Todos los equipos</div>
+      <p class="bandeja-sub">Vista de administrador — todos los colaboradores con líder asignado, agrupados por líder.</p>
+      <div id="rv-admin-lista"></div>
+    </div>
+  </div>
+
   <!-- RECLUTAMIENTO — vacantes, cobertura, efectividad, personas contratadas (vista previa) -->
   <div class="tab-panel" id="panel-reclutamiento">
     <div class="section-header">
@@ -4160,6 +4185,45 @@
         <button class="btn-refresh" onclick="closeResponderModalDirect()">Cancelar</button>
         <button class="btn-nuevo-colab" onclick="enviarRespuestaEncuesta()">Enviar respuestas</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REVISIÓN VERTICAL — crear/editar/ver una revisión de un colaborador específico -->
+<div class="modal-overlay" id="rv-modal-overlay" onclick="closeRvModal(event)">
+  <div class="modal-panel modal-panel-ancho" id="rv-modal-panel">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-nombre" id="rv-modal-titulo">Revisión Vertical</div>
+        <div class="modal-meta"><span id="rv-modal-meta"></span></div>
+      </div>
+      <button class="modal-close" onclick="closeRvModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="alta-campo" style="max-width:220px;margin-bottom:16px">Fecha de la revisión
+        <input type="date" id="rv-fecha">
+      </label>
+      <div id="rv-modal-body"></div>
+      <div class="alta-acciones">
+        <button class="btn-refresh" onclick="closeRvModalDirect()">Cancelar</button>
+        <button class="btn-nuevo-colab" onclick="guardarRevisionVertical()">Guardar revisión</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HISTORIAL DE REVISIONES VERTICALES DE UN COLABORADOR -->
+<div class="modal-overlay" id="rv-historial-overlay" onclick="closeRvHistorialModal(event)">
+  <div class="modal-panel modal-panel-ancho" id="rv-historial-panel">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-nombre" id="rv-historial-titulo">Historial de revisiones</div>
+        <div class="modal-meta"><span id="rv-historial-meta"></span></div>
+      </div>
+      <button class="modal-close" onclick="closeRvHistorialModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="rv-historial-body"></div>
     </div>
   </div>
 </div>
@@ -8610,7 +8674,7 @@ function afShowTeamToast(msg){
 }
 
 const ROL_MINIMO_TAB = {
-  directorio: 'lider', ruta: 'admin', configuracion: 'admin', reclutamiento: 'admin',
+  directorio: 'lider', revisiones: 'lider', ruta: 'admin', configuracion: 'admin', reclutamiento: 'admin',
   preonboarding: 'admin', ajuste10: 'admin', treinta: 'admin', evaluacion: 'admin', certificaciones: 'admin',
 };
 // Servicio (Política de Apariencia / Ambiente Físico) no tiene mínimo de rol a propósito:
@@ -8671,6 +8735,7 @@ function switchTab(tab) {
   if (tab === 'ausencias') renderAusencias();
   if (tab === 'apariencia') servAparInit();
   if (tab === 'ambientefisico') servAfInit();
+  if (tab === 'revisiones') renderRevisionesVerticales();
   // Sin esto, al venir de una tabla larga ya scrolleada, la pestaña nueva abre a
   // media página en vez de en su encabezado. 'auto' y no 'smooth' a propósito:
   // animar el salto sobre un panel que apenas está apareciendo se siente como un
@@ -12820,6 +12885,303 @@ async function cancelarSolicitud(id) {
   const { error } = await supabaseClient.from('solicitudes_ausencia').delete().eq('id', id);
   if (error) { alert('No se pudo cancelar: ' + error.message); return; }
   renderAusencias();
+}
+
+// ── REVISIONES VERTICALES — reunión de retro líder-colaborador, cada 3 meses ──────────────
+// Invisible para el colaborador que está siendo revisado (a propósito): solo su líder y los
+// admins pueden ver/crear/editar. La tabla vive en Supabase (revisiones_verticales), protegida
+// por RLS — ver las instrucciones de SQL que se le dieron al usuario para crearla.
+//
+// "Quién es el líder de quién" se resuelve cruzando el campo de texto libre "lider" que ya trae
+// cada colaborador contra el nombre de la persona logueada (mismo tipo de coincidencia flexible
+// — normName()/similarNames() — que ya se usa en el resto de Plenia). No es un ligado real por
+// id, así que hereda cualquier error de dedo que tenga ese campo en el Sheet de origen.
+const RV_DIAS_CICLO = 91; // "cada 3 meses" ≈ 91 días, mismo criterio que ya usa Plenia para 30/60/90
+
+const REVISION_SECCIONES = [
+  {
+    titulo: 'Cultura',
+    descripcion: 'Considera la manera del colaborador de relacionarse e interactuar con los demás, el ambiente que genera a su alrededor, la percepción de sus pares y su equipo.',
+    preguntas: [
+      'Autoevalúa tu relación con él',
+      'Comentarios adicionales',
+      '¿Cómo actúa el colaborador en la organización?',
+      '¿Cómo se siente con el ambiente de trabajo?',
+      '¿Cómo se siente con el equipo de trabajo?',
+      '¿Cómo se siente el colaborador en la empresa?',
+      '¿Cómo se siente en el rol y con las funciones que realiza?',
+      '¿Está impactando de forma positiva en la compañía?',
+      '¿Qué oportunidades de mejora podría haber en ciertas conductas?',
+    ],
+  },
+  {
+    titulo: 'Desarrollo & Transparencia',
+    descripcion: 'En la primera reunión conoce la visión personal del colaborador a 1, 3 y 5 años.',
+    preguntas: [
+      '¿Cuál es tu parte favorita de este trabajo?',
+      '¿Cuál es tu visión personal a 1 año?',
+      '¿Cuál es tu visión personal a 3 años?',
+      '¿Cuál es tu visión personal a 5 años?',
+      '¿Cómo podemos hacer mejor uso de tus talentos?',
+      '¿Cómo podemos retarte?',
+      '¿Qué otras actividades te gustaría estar haciendo?',
+    ],
+  },
+  {
+    titulo: 'Retroalimentación al Líder',
+    descripcion: 'Ten apertura — la razón principal por la que los colaboradores no retroalimentan a su líder es porque les preocupa que esto les acarree consecuencias negativas para su futuro.',
+    preguntas: [
+      'Pide retroalimentación acerca de tu estilo de liderazgo.',
+      '¿Cómo te puedo ayudar?',
+      '¿Qué pude haber hecho mejor para apoyarte?',
+    ],
+  },
+  {
+    titulo: 'Revisión de Desempeño — Confirmación del resultado',
+    descripcion: '',
+    preguntas: ['Comentarios sobre los resultados'],
+  },
+  {
+    titulo: 'Revisión de Desempeño',
+    descripcion: 'El colaborador se auto-evalúa y el líder analiza el desempeño de la persona, a fin de valorar el avance de las metas y establecer planes de acción.',
+    preguntas: ['LO PLANEADO: ¿Cuál era el objetivo?'],
+  },
+  {
+    titulo: 'Revisión de Desempeño — Lo real',
+    descripcion: '',
+    preguntas: [
+      '¿A qué lo atribuyes?',
+      '¿Cómo lo evitaste?',
+      '¿Cómo lo lograste?',
+      '¿Qué enseñanzas te deja?',
+      '¿Qué lograste?',
+      '¿Qué pudo haber resultado mejor?',
+      '¿Qué pudo haber resultado peor?',
+    ],
+  },
+  {
+    titulo: 'Revisión de Desempeño — El futuro',
+    descripcion: '',
+    preguntas: [
+      '¿Qué enseñanzas tomarás en cuenta para el futuro?',
+      '¿Qué medidas tomarás?',
+      '¿Qué te propones?',
+    ],
+  },
+  {
+    titulo: 'Revisión de Desempeño — Plazo para la siguiente revisión',
+    descripcion: 'Plazo para la siguiente revisión de avance y resultados.',
+    preguntas: ['¿Cuándo lo volverás a ver?'],
+  },
+  {
+    titulo: 'Temas varios',
+    descripcion: 'Cómo se encuentra en los otros ámbitos de su vida — nos interesa conocerlo como persona.',
+    preguntas: ['Comentarios'],
+  },
+];
+
+function equipoDelLiderActual() {
+  if (!_usuarioActual || !_usuarioActual.nombre) return [];
+  const miKey = normName(_usuarioActual.nombre);
+  return getColabIndex().filter(c => c.estatus !== 'baja' && c.lider && similarNames(normName(c.lider), miKey));
+}
+
+let _rvRevisiones = [];   // cache de lo último cargado de Supabase (según el rol de quien mira)
+let _rvColabActual = null; // colaborador (registro del índice) sobre el que está abierto el modal
+let _rvEditandoId = null;  // id de la revisión que se está editando, o null si es una nueva
+
+function rvUltimaRevisionDe(colabKey, revisiones) {
+  const propias = revisiones.filter(r => r.colaborador_key === colabKey);
+  if (!propias.length) return null;
+  return propias.reduce((a, b) => (a.fecha_revision > b.fecha_revision ? a : b));
+}
+
+function rvEstadoDe(c, ultima) {
+  if (ultima) {
+    const dias = Math.floor((new Date() - new Date(ultima.fecha_revision + 'T00:00:00')) / 86400000);
+    return { pendiente: dias >= RV_DIAS_CICLO, dias, desde: 'ultima' };
+  }
+  if (c.dias !== null && c.dias !== undefined) {
+    return { pendiente: c.dias >= RV_DIAS_CICLO, dias: c.dias, desde: 'ingreso' };
+  }
+  return { pendiente: false, dias: null, desde: null };
+}
+
+function rvEquipoCardHtml(c, revisiones) {
+  const ultima = rvUltimaRevisionDe(c.key, revisiones);
+  const estado = rvEstadoDe(c, ultima);
+  const cuenta = revisiones.filter(r => r.colaborador_key === c.key).length;
+  let metaTxt;
+  if (ultima) metaTxt = `Última revisión: ${fmtFecha(new Date(ultima.fecha_revision + 'T00:00:00'))} (hace ${estado.dias} días)`;
+  else if (estado.desde === 'ingreso') metaTxt = `Nunca revisado — ${estado.dias} días de antigüedad`;
+  else metaTxt = 'Nunca revisado';
+  const badge = estado.pendiente
+    ? `<span class="estatus-badge estatus-baja">Pendiente</span>`
+    : `<span class="estatus-badge estatus-activo">Al día</span>`;
+  return `<div class="encuesta-card" style="margin-bottom:10px">
+    <div class="encuesta-card-head">
+      <div>
+        <div style="font-weight:700;font-size:13.5px">${escapeHtml(c.nombre)}</div>
+        <div class="encuesta-card-meta">${escapeHtml(c.sucursal || 'Sin sucursal')} · ${metaTxt}</div>
+      </div>
+      ${badge}
+    </div>
+    <div class="encuesta-card-acciones">
+      <button class="btn-nuevo-colab" onclick="abrirRvModal('${c.key}')">+ Nueva revisión</button>
+      ${cuenta ? `<button class="btn-refresh" onclick="abrirRvHistorial('${c.key}')">Ver historial (${cuenta})</button>` : ''}
+    </div>
+  </div>`;
+}
+
+async function renderRevisionesVerticales() {
+  if (!_usuarioActual) return;
+  const esAdminUser = _usuarioActual.rol_acceso === 'admin';
+  document.getElementById('rv-admin-wrap').style.display = esAdminUser ? '' : 'none';
+
+  let query = supabaseClient.from('revisiones_verticales').select('*').order('fecha_revision', { ascending: false });
+  if (!esAdminUser) query = query.eq('lider_email', _usuarioActual.email);
+  const { data, error } = await query;
+  _rvRevisiones = error ? [] : data;
+
+  const miEquipo = equipoDelLiderActual();
+  const equipoEl = document.getElementById('rv-equipo-lista');
+  equipoEl.innerHTML = miEquipo.length
+    ? miEquipo.map(c => rvEquipoCardHtml(c, _rvRevisiones)).join('')
+    : '<div class="bandeja-sub">No tienes colaboradores asignados como líder todavía.</div>';
+
+  const pendientes = miEquipo.filter(c => rvEstadoDe(c, rvUltimaRevisionDe(c.key, _rvRevisiones)).pendiente);
+  document.getElementById('rv-kpis').innerHTML =
+    kpiCard('Mi equipo', miEquipo.length, '') +
+    kpiCard('Al día', miEquipo.length - pendientes.length, '', 'green') +
+    kpiCard('Pendientes', pendientes.length, '', pendientes.length ? 'red' : 'green');
+
+  if (esAdminUser) {
+    const todos = getColabIndex().filter(c => c.estatus !== 'baja' && c.lider);
+    const porLider = {};
+    todos.forEach(c => { (porLider[c.lider] = porLider[c.lider] || []).push(c); });
+    const adminEl = document.getElementById('rv-admin-lista');
+    adminEl.innerHTML = Object.entries(porLider)
+      .sort((a, b) => a[0].localeCompare(b[0], 'es'))
+      .map(([lider, equipo]) => {
+        const revisionesDeEseLider = _rvRevisiones; // ya trae todo, por ser admin
+        const pend = equipo.filter(c => rvEstadoDe(c, rvUltimaRevisionDe(c.key, revisionesDeEseLider)).pendiente);
+        return `<div class="aj10-grupo">
+          <div class="aj10-grupo-head">
+            <div class="aj10-grupo-nombre">👤 ${escapeHtml(lider)} <span class="aj10-grupo-count" style="${pend.length ? '' : 'color:var(--verde-ok-txt);background:var(--verde-ok-bg)'}">${pend.length} pendiente${pend.length===1?'':'s'} de ${equipo.length}</span></div>
+          </div>
+          <div class="aj10-personas">${equipo.map(c => {
+            const est = rvEstadoDe(c, rvUltimaRevisionDe(c.key, revisionesDeEseLider));
+            return `<div class="aj10-persona" style="cursor:pointer" onclick="abrirRvHistorial('${c.key}')">
+              <div class="aj10-persona-nombre">${escapeHtml(c.nombre)}</div>
+              <div class="aj10-persona-meta"><span class="aj10-dias ${est.pendiente ? 'atrasado' : 'ok'}">${est.dias !== null ? est.dias + ' días' : 'sin datos'}</span></div>
+            </div>`;
+          }).join('')}</div>
+        </div>`;
+      }).join('');
+  }
+}
+
+function rvPreguntaCampoId(seccionIdx, preguntaIdx) {
+  return `rv-p-${seccionIdx}-${preguntaIdx}`;
+}
+
+function abrirRvModal(colabKey, revisionId) {
+  const c = getColabIndex().find(x => x.key === colabKey);
+  if (!c) return;
+  _rvColabActual = c;
+  _rvEditandoId = revisionId || null;
+  const existente = revisionId ? _rvRevisiones.find(r => r.id === revisionId) : null;
+  const respuestas = existente ? (existente.respuestas || {}) : {};
+
+  document.getElementById('rv-modal-titulo').textContent = 'Revisión Vertical — ' + c.nombre;
+  document.getElementById('rv-modal-meta').textContent = existente ? 'Editando revisión existente' : 'Nueva revisión';
+  document.getElementById('rv-fecha').value = existente ? existente.fecha_revision : new Date().toISOString().slice(0, 10);
+
+  document.getElementById('rv-modal-body').innerHTML = REVISION_SECCIONES.map((sec, si) => `
+    <div class="modal-section-label" style="margin-top:${si ? 20 : 0}px">${escapeHtml(sec.titulo)}</div>
+    ${sec.descripcion ? `<p class="bandeja-sub" style="margin:-6px 0 12px">${escapeHtml(sec.descripcion)}</p>` : ''}
+    ${sec.preguntas.map((p, pi) => `
+      <div class="pregunta-responder">
+        <div class="pregunta-responder-texto">${escapeHtml(p)}</div>
+        <textarea class="pregunta-respuesta-input" id="${rvPreguntaCampoId(si, pi)}" rows="2">${escapeHtml(respuestas[p] || '')}</textarea>
+      </div>
+    `).join('')}
+  `).join('');
+
+  document.getElementById('rv-modal-overlay').classList.add('open');
+}
+
+function closeRvModal(e) {
+  if (e.target === document.getElementById('rv-modal-overlay')) closeRvModalDirect();
+}
+function closeRvModalDirect() {
+  document.getElementById('rv-modal-overlay').classList.remove('open');
+  _rvColabActual = null;
+  _rvEditandoId = null;
+}
+
+async function guardarRevisionVertical() {
+  if (!_rvColabActual) return;
+  const fecha = document.getElementById('rv-fecha').value;
+  if (!fecha) { alert('Pon la fecha de la revisión.'); return; }
+  const respuestas = {};
+  REVISION_SECCIONES.forEach((sec, si) => {
+    sec.preguntas.forEach((p, pi) => {
+      const val = document.getElementById(rvPreguntaCampoId(si, pi)).value.trim();
+      if (val) respuestas[p] = val;
+    });
+  });
+  const payload = {
+    colaborador_key: _rvColabActual.key,
+    colaborador_nombre: _rvColabActual.nombre,
+    lider_email: _usuarioActual.email,
+    fecha_revision: fecha,
+    respuestas,
+    updated_at: new Date().toISOString(),
+  };
+  const query = _rvEditandoId
+    ? supabaseClient.from('revisiones_verticales').update(payload).eq('id', _rvEditandoId)
+    : supabaseClient.from('revisiones_verticales').insert(payload);
+  const { error } = await query;
+  if (error) { alert('No se pudo guardar la revisión: ' + error.message); return; }
+  closeRvModalDirect();
+  renderRevisionesVerticales();
+}
+
+function rvHistorialItemHtml(r) {
+  const puedoEditar = r.lider_email === _usuarioActual.email || _usuarioActual.rol_acceso === 'admin';
+  const respuestasHtml = REVISION_SECCIONES.flatMap(sec => sec.preguntas)
+    .filter(p => r.respuestas && r.respuestas[p])
+    .map(p => `<div class="resultado-texto-item"><strong>${escapeHtml(p)}</strong><br>${escapeHtml(r.respuestas[p])}</div>`)
+    .join('');
+  return `<div class="encuesta-card" style="margin-bottom:10px">
+    <div class="encuesta-card-head">
+      <div>
+        <div style="font-weight:700;font-size:13.5px">${fmtFecha(new Date(r.fecha_revision + 'T00:00:00'))}</div>
+        <div class="encuesta-card-meta">Por ${escapeHtml(r.lider_email)}</div>
+      </div>
+      ${puedoEditar ? `<button class="btn-refresh" onclick="closeRvHistorialModalDirect();abrirRvModal('${r.colaborador_key}','${r.id}')">Editar</button>` : ''}
+    </div>
+    ${respuestasHtml || '<div class="bandeja-sub">Sin respuestas registradas.</div>'}
+  </div>`;
+}
+
+function abrirRvHistorial(colabKey) {
+  const c = getColabIndex().find(x => x.key === colabKey);
+  if (!c) return;
+  const propias = _rvRevisiones.filter(r => r.colaborador_key === colabKey).sort((a, b) => b.fecha_revision.localeCompare(a.fecha_revision));
+  document.getElementById('rv-historial-titulo').textContent = 'Historial — ' + c.nombre;
+  document.getElementById('rv-historial-meta').textContent = `${propias.length} revisión${propias.length===1?'':'es'} registrada${propias.length===1?'':'s'}`;
+  document.getElementById('rv-historial-body').innerHTML = propias.length
+    ? propias.map(rvHistorialItemHtml).join('')
+    : '<div class="bandeja-sub">Todavía no hay revisiones registradas para esta persona.</div>';
+  document.getElementById('rv-historial-overlay').classList.add('open');
+}
+function closeRvHistorialModal(e) {
+  if (e.target === document.getElementById('rv-historial-overlay')) closeRvHistorialModalDirect();
+}
+function closeRvHistorialModalDirect() {
+  document.getElementById('rv-historial-overlay').classList.remove('open');
 }
 
 async function cargarUsuarioActual(session) {
