@@ -540,6 +540,18 @@
   .bar-inner-label { font-size: 10px; font-weight: 600; color: #ffffff; white-space: nowrap; }
   .bar-count { font-size: 11px; color: #6B6280; width: 36px; text-align: right; flex-shrink: 0; }
 
+  /* REVISIONES VERTICALES — acordeón de cobertura por unidad de negocio / sucursal */
+  .rv-grupo { border: 1px solid #E6DFF5; border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+  .rv-grupo-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; cursor: pointer; background: #FBFAFE; }
+  .rv-grupo-header:hover { background: #F5F2FC; }
+  .rv-grupo-nombre { font-weight: 700; font-size: 13.5px; }
+  .rv-grupo-meta { font-size: 11.5px; color: #6B6280; margin-top: 2px; }
+  .rv-grupo-chevron { transition: transform .15s; font-size: 10px; color: #6B6280; }
+  .rv-grupo.collapsed .rv-grupo-chevron { transform: rotate(-90deg); }
+  .rv-grupo.collapsed .rv-grupo-children { display: none; }
+  .rv-grupo-children { padding: 10px 14px 14px; }
+  .rv-grupo-children .rv-grupo { background: #fff; }
+
   /* NPS */
   .nps-badge { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; font-weight: 700; font-size: 11px; }
   .nps-promotor { background: var(--verde-ok-bg); color: var(--verde-ok); }
@@ -3593,7 +3605,18 @@
     </div>
 
     <div id="rv-admin-wrap" style="display:none">
-      <div class="section-title" style="margin:24px 0 12px">Panorama general (todos los equipos)</div>
+      <div class="section-header" style="margin:24px 0 12px;align-items:flex-end">
+        <div>
+          <div class="section-title" style="margin-bottom:4px">Panorama general (todos los equipos)</div>
+          <p class="bandeja-sub" id="rv-ronda-sub" style="margin:0"></p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="rv-ronda-select" onchange="rvCambiarRonda()" style="max-width:220px">
+            <option value="">Ciclo continuo (ahora)</option>
+          </select>
+          <button class="btn-refresh" onclick="abrirRvRondaModal()">+ Nueva ronda</button>
+        </div>
+      </div>
       <div class="kpi-row" id="rv-admin-kpis"></div>
 
       <div id="rv-dist-wrap" style="display:none;margin-top:18px">
@@ -3602,9 +3625,9 @@
         <div id="rv-dist-chart"></div>
       </div>
 
-      <div class="section-title" style="margin:24px 0 12px">Cumplimiento por líder</div>
-      <p class="bandeja-sub">Ordenado del que menos al día está al que más — para saber a quién dar seguimiento primero. Toca un líder para ver a su equipo abajo.</p>
-      <div id="rv-lideres-lista"></div>
+      <div class="section-title" style="margin:24px 0 12px">Cumplimiento por unidad de negocio y sucursal</div>
+      <p class="bandeja-sub">Toca una unidad o sucursal para desplegarla. Hasta abajo de cada una están sus líderes — tócalos para buscar a su equipo.</p>
+      <div id="rv-grupos"></div>
 
       <div class="section-title" style="margin:24px 0 12px">Buscar una persona</div>
       <p class="bandeja-sub">Busca a cualquier colaborador o líder para ver su estado.</p>
@@ -4252,6 +4275,34 @@
     </div>
     <div class="modal-body">
       <div id="rv-historial-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVA RONDA DE REVISIONES VERTICALES — el admin define cuándo empieza/termina la
+     siguiente tanda (ej. "Oct - Dic 2026"), para poder ver avance por periodo en vez de solo
+     el ciclo continuo de 91 días por persona. -->
+<div class="modal-overlay" id="rv-ronda-modal-overlay" onclick="closeRvRondaModal(event)">
+  <div class="modal-panel" id="rv-ronda-modal-panel">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-nombre">Nueva ronda de Revisiones Verticales</div>
+        <div class="modal-meta"><span>Define el periodo — por ejemplo, el próximo trimestre.</span></div>
+      </div>
+      <button class="modal-close" onclick="closeRvRondaModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="alta-campo alta-campo-full" style="margin-bottom:12px">Nombre de la ronda
+        <input type="text" id="rv-ronda-nombre" placeholder="Ej. Oct - Dic 2026">
+      </label>
+      <div class="alta-grid">
+        <label class="alta-campo">Fecha inicio<input type="date" id="rv-ronda-inicio"></label>
+        <label class="alta-campo">Fecha fin<input type="date" id="rv-ronda-fin"></label>
+      </div>
+      <div class="alta-acciones">
+        <button class="btn-refresh" onclick="closeRvRondaModalDirect()">Cancelar</button>
+        <button class="btn-nuevo-colab" onclick="guardarRvRonda()">Guardar ronda</button>
+      </div>
     </div>
   </div>
 </div>
@@ -13116,87 +13167,148 @@ async function renderRevisionesVerticales() {
     kpiCard('Pendientes', pendientes.length, '', pendientes.length ? 'red' : 'green');
 
   if (esAdminUser) {
-    renderRvLideres();
+    await cargarRvRondas();
     renderRvAdminKpis();
     renderRvDistribucion();
+    renderRvGrupos();
     document.getElementById('rv-buscar').value = '';
     renderRvBusqueda();
   }
 }
 
-// Agrupa a todos los colaboradores activos-con-líder (sin importar si su líder tiene cuenta o
-// no) por el nombre de líder normalizado, y calcula qué tan al día está cada equipo. Esto es lo
-// que responde "quién sí las está haciendo, quién no" a nivel admin.
-function rvCoberturaPorLider() {
-  const todos = getColabIndex().filter(c => c.estatus !== 'baja' && c.lider);
-  const grupos = {};
-  todos.forEach(c => {
-    const key = normName(c.lider);
-    if (!grupos[key]) grupos[key] = { liderNombre: c.lider, equipo: [] };
-    grupos[key].equipo.push(c);
-  });
-  return Object.values(grupos).map(g => {
-    const pendientes = g.equipo.filter(c => rvEstadoDe(c, rvUltimaRevisionDe(c.key, _rvRevisiones)).pendiente);
-    const total = g.equipo.length;
-    const alDia = total - pendientes.length;
-    return { liderNombre: g.liderNombre, total, alDia, pendientes: pendientes.length, pct: total ? Math.round(alDia / total * 100) : 0 };
-  }).sort((a, b) => a.pct - b.pct || b.total - a.total);
+// "Rondas" — periodos que el admin define a mano (ej. "Oct - Dic 2026") para poder ver avance
+// por trimestre en vez de solo el ciclo continuo de 91 días por persona. Si hay una ronda cuyo
+// rango incluye hoy, se selecciona sola; si no, se queda en "ciclo continuo".
+let _rvRondas = [];
+let _rvRondaActual = null;
+
+async function cargarRvRondas() {
+  const { data, error } = await supabaseClient.from('revisiones_rondas').select('*').order('fecha_inicio', { ascending: false });
+  _rvRondas = error ? [] : data;
+  const sel = document.getElementById('rv-ronda-select');
+  const hoy = new Date().toISOString().slice(0, 10);
+  sel.innerHTML = '<option value="">Ciclo continuo (ahora)</option>' +
+    _rvRondas.map(r => `<option value="${r.id}">${escapeHtml(r.nombre)}</option>`).join('');
+  const enCurso = _rvRondas.find(r => hoy >= r.fecha_inicio && hoy <= r.fecha_fin);
+  _rvRondaActual = enCurso || null;
+  sel.value = enCurso ? enCurso.id : '';
+  rvActualizarRondaSub();
 }
 
-let _rvLideresCache = [];
-
-function renderRvLideres() {
-  _rvLideresCache = rvCoberturaPorLider();
-  const el = document.getElementById('rv-lideres-lista');
-  el.innerHTML = _rvLideresCache.length
-    ? _rvLideresCache.map((g, i) => rvLiderRowHtml(g, i)).join('')
-    : '<div class="bandeja-sub">Nadie tiene líder asignado todavía.</div>';
+function rvActualizarRondaSub() {
+  const sub = document.getElementById('rv-ronda-sub');
+  if (!_rvRondaActual) { sub.textContent = 'Viendo el ciclo continuo — cada quien cuenta desde su última revisión (o desde que entró).'; return; }
+  sub.textContent = `Viendo la ronda "${_rvRondaActual.nombre}" (${fmtFecha(new Date(_rvRondaActual.fecha_inicio + 'T00:00:00'))} – ${fmtFecha(new Date(_rvRondaActual.fecha_fin + 'T00:00:00'))})`;
 }
 
-function rvLiderRowHtml(g, i) {
-  const color = g.pct >= 80 ? '#16A34A' : g.pct >= 50 ? '#F59E0B' : '#DC2626';
-  return `<div class="encuesta-card" style="margin-bottom:8px;cursor:pointer" onclick="rvBuscarLiderIdx(${i})">
-    <div class="encuesta-card-head">
-      <div>
-        <div style="font-weight:700;font-size:13.5px">${escapeHtml(g.liderNombre)}</div>
-        <div class="encuesta-card-meta">${g.alDia}/${g.total} al día · ${g.pendientes} pendiente${g.pendientes === 1 ? '' : 's'}</div>
-      </div>
-      <span class="estatus-badge" style="background:${color}22;color:${color}">${g.pct}%</span>
-    </div>
-  </div>`;
-}
-
-function rvBuscarLiderIdx(i) {
-  const g = _rvLideresCache[i];
-  if (!g) return;
-  const buscarEl = document.getElementById('rv-buscar');
-  buscarEl.value = g.liderNombre;
+function rvCambiarRonda() {
+  const id = document.getElementById('rv-ronda-select').value;
+  _rvRondaActual = id ? _rvRondas.find(r => r.id === id) : null;
+  rvActualizarRondaSub();
+  renderRvAdminKpis();
+  renderRvDistribucion();
+  renderRvGrupos();
+  document.getElementById('rv-buscar').value = '';
   renderRvBusqueda();
-  buscarEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function abrirRvRondaModal() {
+  const ultima = _rvRondas[0]; // ya viene ordenado desc por fecha_inicio
+  let sugInicio;
+  if (ultima) {
+    sugInicio = new Date(ultima.fecha_fin + 'T00:00:00');
+    sugInicio.setDate(sugInicio.getDate() + 1);
+  } else {
+    sugInicio = new Date();
+  }
+  const sugFin = new Date(sugInicio);
+  sugFin.setMonth(sugFin.getMonth() + 3);
+  sugFin.setDate(sugFin.getDate() - 1);
+  document.getElementById('rv-ronda-nombre').value = '';
+  document.getElementById('rv-ronda-inicio').value = sugInicio.toISOString().slice(0, 10);
+  document.getElementById('rv-ronda-fin').value = sugFin.toISOString().slice(0, 10);
+  document.getElementById('rv-ronda-modal-overlay').classList.add('open');
+}
+function closeRvRondaModal(e) {
+  if (e.target === document.getElementById('rv-ronda-modal-overlay')) closeRvRondaModalDirect();
+}
+function closeRvRondaModalDirect() {
+  document.getElementById('rv-ronda-modal-overlay').classList.remove('open');
+}
+async function guardarRvRonda() {
+  const nombre = document.getElementById('rv-ronda-nombre').value.trim();
+  const inicio = document.getElementById('rv-ronda-inicio').value;
+  const fin = document.getElementById('rv-ronda-fin').value;
+  if (!nombre) { alert('Ponle un nombre a la ronda (ej. "Oct - Dic 2026").'); return; }
+  if (!inicio || !fin) { alert('Pon la fecha de inicio y de fin.'); return; }
+  if (fin < inicio) { alert('La fecha de fin no puede ser antes que la de inicio.'); return; }
+  const { error } = await supabaseClient.from('revisiones_rondas').insert({ nombre, fecha_inicio: inicio, fecha_fin: fin });
+  if (error) { alert('No se pudo guardar la ronda: ' + error.message); return; }
+  closeRvRondaModalDirect();
+  await cargarRvRondas();
+  renderRvAdminKpis();
+  renderRvDistribucion();
+  renderRvGrupos();
+  document.getElementById('rv-buscar').value = '';
+  renderRvBusqueda();
+}
+
+// Estado de un colaborador dentro del contexto elegido: si no hay ronda seleccionada, usa el
+// ciclo continuo de 91 días (igual que "Mi equipo"); si hay ronda, es simplemente "¿tiene al
+// menos una revisión con fecha dentro del rango de la ronda?".
+function rvEstadoColabEnContexto(c, ronda) {
+  if (!ronda) {
+    const ultima = rvUltimaRevisionDe(c.key, _rvRevisiones);
+    const estado = rvEstadoDe(c, ultima);
+    let meta = ultima ? `Última revisión: ${fmtFecha(new Date(ultima.fecha_revision + 'T00:00:00'))}` : 'Nunca revisado';
+    if (estado.fechaLimite) {
+      meta += estado.pendiente
+        ? ` · fecha límite: ${fmtFecha(estado.fechaLimite)} (hace ${estado.dias - RV_DIAS_CICLO} días)`
+        : ` · próxima fecha límite: ${fmtFecha(estado.fechaLimite)}`;
+    }
+    return { hecha: !estado.pendiente, meta };
+  }
+  const revisionesRonda = _rvRevisiones.filter(r => r.colaborador_key === c.key && r.fecha_revision >= ronda.fecha_inicio && r.fecha_revision <= ronda.fecha_fin);
+  const hecha = revisionesRonda.length > 0;
+  const meta = hecha
+    ? `Hecha el ${fmtFecha(new Date(revisionesRonda[0].fecha_revision + 'T00:00:00'))} (ronda ${escapeHtml(ronda.nombre)})`
+    : `Pendiente en la ronda ${escapeHtml(ronda.nombre)}`;
+  return { hecha, meta };
+}
+
+function rvCobertura(colaboradores, ronda) {
+  const total = colaboradores.length;
+  const hechas = colaboradores.filter(c => rvEstadoColabEnContexto(c, ronda).hecha).length;
+  return { total, hechas, pendientes: total - hechas, pct: total ? Math.round(hechas / total * 100) : 0 };
 }
 
 function renderRvAdminKpis() {
-  const grupos = _rvLideresCache;
-  const total = grupos.reduce((s, g) => s + g.total, 0);
-  const alDia = grupos.reduce((s, g) => s + g.alDia, 0);
-  const pendientes = total - alDia;
-  const pct = total ? Math.round(alDia / total * 100) : 0;
+  const todos = getColabIndex().filter(c => c.estatus !== 'baja' && c.lider);
+  const cob = rvCobertura(todos, _rvRondaActual);
+  const nLideres = new Set(todos.map(c => normName(c.lider))).size;
+  const labelHechas = _rvRondaActual ? 'Hechas en la ronda' : 'Al día';
+  const labelPend = _rvRondaActual ? 'Pendientes en la ronda' : 'Pendientes';
   document.getElementById('rv-admin-kpis').innerHTML =
-    kpiCard('Colaboradores con líder', total, '') +
-    kpiCard('Al día', alDia, pct + '% del total', 'green') +
-    kpiCard('Pendientes', pendientes, '', pendientes ? 'red' : 'green') +
-    kpiCard('Líderes activos', grupos.length, '');
+    kpiCard('Colaboradores con líder', cob.total, '') +
+    kpiCard(labelHechas, cob.hechas, cob.pct + '% del total', 'green') +
+    kpiCard(labelPend, cob.pendientes, '', cob.pendientes ? 'red' : 'green') +
+    kpiCard('Líderes activos', nLideres, '');
 }
 
 // Distribución de "Puntuación general" entre las revisiones que sí la tienen (campo opcional).
 // Colores fijos por significado (Alta=verde, Baja=rojo) — no por ranking de conteo, porque aquí
-// el orden de las categorías importa más que cuál tiene más casos.
+// el orden de las categorías importa más que cuál tiene más casos. Si hay una ronda elegida, solo
+// cuenta revisiones con fecha dentro de ese rango.
 function renderRvDistribucion() {
   const wrap = document.getElementById('rv-dist-wrap');
   const el = document.getElementById('rv-dist-chart');
+  const ronda = _rvRondaActual;
+  const enContexto = ronda
+    ? _rvRevisiones.filter(r => r.fecha_revision >= ronda.fecha_inicio && r.fecha_revision <= ronda.fecha_fin)
+    : _rvRevisiones;
   const counts = { Alta: 0, Medio: 0, Baja: 0 };
   let totalScored = 0;
-  _rvRevisiones.forEach(r => { if (Object.prototype.hasOwnProperty.call(counts, r.puntuacion)) { counts[r.puntuacion]++; totalScored++; } });
+  enContexto.forEach(r => { if (Object.prototype.hasOwnProperty.call(counts, r.puntuacion)) { counts[r.puntuacion]++; totalScored++; } });
   if (!totalScored) { wrap.style.display = 'none'; return; }
   wrap.style.display = '';
   const colores = { Alta: '#16A34A', Medio: '#F59E0B', Baja: '#DC2626' };
@@ -13212,8 +13324,103 @@ function renderRvDistribucion() {
   }).join('');
 }
 
+// Agrupa a todos los colaboradores activos-con-líder por unidad de negocio > sucursal > líder,
+// sin importar si el líder tiene cuenta o no (se cruza por nombre, ver equipoDelLiderActual()).
+function rvAgrupar() {
+  const todos = getColabIndex().filter(c => c.estatus !== 'baja' && c.lider);
+  const porUnidad = {};
+  todos.forEach(c => {
+    const un = c.unidadNegocio || 'Sin unidad de negocio';
+    const suc = c.sucursal || 'Sin sucursal';
+    porUnidad[un] = porUnidad[un] || {};
+    porUnidad[un][suc] = porUnidad[un][suc] || {};
+    const liderKey = normName(c.lider);
+    porUnidad[un][suc][liderKey] = porUnidad[un][suc][liderKey] || { liderNombre: c.lider, equipo: [] };
+    porUnidad[un][suc][liderKey].equipo.push(c);
+  });
+  return porUnidad;
+}
+
+// Índice para el click-to-search de las filas de líder dentro del acordeón — se reconstruye en
+// cada render, así que el índice siempre corresponde a lo último dibujado.
+let _rvLideresBuscar = [];
+
+function renderRvGrupos() {
+  const ronda = _rvRondaActual;
+  const porUnidad = rvAgrupar();
+  _rvLideresBuscar = [];
+  const el = document.getElementById('rv-grupos');
+  const unidades = Object.keys(porUnidad).sort();
+  if (!unidades.length) { el.innerHTML = '<div class="bandeja-sub">Nadie tiene líder asignado todavía.</div>'; return; }
+
+  el.innerHTML = unidades.map(un => {
+    const sucursales = porUnidad[un];
+    const colabsUnidad = Object.values(sucursales).flatMap(lideres => Object.values(lideres).flatMap(g => g.equipo));
+    const cobUnidad = rvCobertura(colabsUnidad, ronda);
+    const sucHtml = Object.keys(sucursales).sort().map(suc => {
+      const lideres = sucursales[suc];
+      const colabsSuc = Object.values(lideres).flatMap(g => g.equipo);
+      const cobSuc = rvCobertura(colabsSuc, ronda);
+      const liderHtml = Object.values(lideres)
+        .map(g => ({ ...g, cob: rvCobertura(g.equipo, ronda) }))
+        .sort((a, b) => a.cob.pct - b.cob.pct)
+        .map(g => {
+          const idx = _rvLideresBuscar.length;
+          _rvLideresBuscar.push(g.liderNombre);
+          return rvLiderRowHtml(g, g.cob, idx);
+        }).join('');
+      return rvGrupoHtml(suc, cobSuc, liderHtml);
+    }).join('');
+    return rvGrupoHtml(un, cobUnidad, sucHtml);
+  }).join('');
+}
+
+function rvGrupoHtml(nombre, cob, childrenHtml) {
+  const color = cob.pct >= 80 ? '#16A34A' : cob.pct >= 50 ? '#F59E0B' : '#DC2626';
+  return `<div class="rv-grupo collapsed">
+    <div class="rv-grupo-header" onclick="rvToggleGrupo(this)">
+      <div>
+        <div class="rv-grupo-nombre">${escapeHtml(nombre)}</div>
+        <div class="rv-grupo-meta">${cob.hechas}/${cob.total} · ${cob.pendientes} pendiente${cob.pendientes === 1 ? '' : 's'}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="estatus-badge" style="background:${color}22;color:${color}">${cob.pct}%</span>
+        <span class="rv-grupo-chevron">⌄</span>
+      </div>
+    </div>
+    <div class="rv-grupo-children">${childrenHtml}</div>
+  </div>`;
+}
+
+function rvToggleGrupo(headerEl) {
+  headerEl.closest('.rv-grupo').classList.toggle('collapsed');
+}
+
+function rvLiderRowHtml(g, cob, idx) {
+  const color = cob.pct >= 80 ? '#16A34A' : cob.pct >= 50 ? '#F59E0B' : '#DC2626';
+  return `<div class="encuesta-card" style="margin-bottom:8px;cursor:pointer" onclick="rvBuscarLiderIdx(${idx})">
+    <div class="encuesta-card-head">
+      <div>
+        <div style="font-weight:700;font-size:13.5px">${escapeHtml(g.liderNombre)}</div>
+        <div class="encuesta-card-meta">${cob.hechas}/${cob.total} · ${cob.pendientes} pendiente${cob.pendientes === 1 ? '' : 's'}</div>
+      </div>
+      <span class="estatus-badge" style="background:${color}22;color:${color}">${cob.pct}%</span>
+    </div>
+  </div>`;
+}
+
+function rvBuscarLiderIdx(i) {
+  const nombre = _rvLideresBuscar[i];
+  if (!nombre) return;
+  const buscarEl = document.getElementById('rv-buscar');
+  buscarEl.value = nombre;
+  renderRvBusqueda();
+  buscarEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 // Vista de admin: en vez de listar a todos los líderes de un jalón (confuso con muchos equipos),
 // se busca por nombre de colaborador o de líder y se muestran solo los resultados que coincidan.
+// Respeta la ronda seleccionada arriba, igual que el resto del panorama general.
 function renderRvBusqueda() {
   const listaEl = document.getElementById('rv-admin-lista');
   const q = normName(document.getElementById('rv-buscar').value);
@@ -13226,18 +13433,12 @@ function renderRvBusqueda() {
     .filter(c => normName(c.nombre).includes(q) || normName(c.lider).includes(q));
   if (!resultados.length) { listaEl.innerHTML = '<div class="bandeja-sub">Sin resultados.</div>'; return; }
   listaEl.innerHTML = resultados.map(c => {
-    const ultima = rvUltimaRevisionDe(c.key, _rvRevisiones);
-    const estado = rvEstadoDe(c, ultima);
+    const estado = rvEstadoColabEnContexto(c, _rvRondaActual);
     const cuenta = _rvRevisiones.filter(r => r.colaborador_key === c.key).length;
-    let metaTxt = `Líder: ${escapeHtml(c.lider)} · ${escapeHtml(c.sucursal || 'Sin sucursal')}`;
-    if (estado.fechaLimite) {
-      metaTxt += estado.pendiente
-        ? ` · fecha límite: ${fmtFecha(estado.fechaLimite)} (hace ${estado.dias - RV_DIAS_CICLO} días)`
-        : ` · próxima fecha límite: ${fmtFecha(estado.fechaLimite)}`;
-    }
-    const badge = estado.pendiente
-      ? `<span class="estatus-badge estatus-baja">Pendiente</span>`
-      : `<span class="estatus-badge estatus-activo">Al día</span>`;
+    const metaTxt = `Líder: ${escapeHtml(c.lider)} · ${escapeHtml(c.sucursal || 'Sin sucursal')} · ${estado.meta}`;
+    const badge = estado.hecha
+      ? `<span class="estatus-badge estatus-activo">${_rvRondaActual ? 'Hecha' : 'Al día'}</span>`
+      : `<span class="estatus-badge estatus-baja">Pendiente</span>`;
     return `<div class="encuesta-card" style="margin-bottom:10px">
       <div class="encuesta-card-head">
         <div>
