@@ -3593,8 +3593,21 @@
     </div>
 
     <div id="rv-admin-wrap" style="display:none">
-      <div class="section-title" style="margin:24px 0 12px">Buscar en todos los equipos</div>
-      <p class="bandeja-sub">Vista de administrador — busca a cualquier colaborador o líder para ver su estado.</p>
+      <div class="section-title" style="margin:24px 0 12px">Panorama general (todos los equipos)</div>
+      <div class="kpi-row" id="rv-admin-kpis"></div>
+
+      <div id="rv-dist-wrap" style="display:none;margin-top:18px">
+        <div class="modal-section-label">Distribución de puntuación general</div>
+        <p class="bandeja-sub" style="margin:-4px 0 10px">Solo cuenta revisiones donde el líder puso una puntuación.</p>
+        <div id="rv-dist-chart"></div>
+      </div>
+
+      <div class="section-title" style="margin:24px 0 12px">Cumplimiento por líder</div>
+      <p class="bandeja-sub">Ordenado del que menos al día está al que más — para saber a quién dar seguimiento primero. Toca un líder para ver a su equipo abajo.</p>
+      <div id="rv-lideres-lista"></div>
+
+      <div class="section-title" style="margin:24px 0 12px">Buscar una persona</div>
+      <p class="bandeja-sub">Busca a cualquier colaborador o líder para ver su estado.</p>
       <input type="text" class="rv-search-input" id="rv-buscar" placeholder="Buscar por nombre de colaborador o de líder…" oninput="renderRvBusqueda()" autocomplete="off" style="max-width:420px">
       <div id="rv-admin-lista" style="margin-top:14px"></div>
     </div>
@@ -4205,9 +4218,19 @@
       <button class="modal-close" onclick="closeRvModalDirect()">✕</button>
     </div>
     <div class="modal-body">
-      <label class="alta-campo" style="max-width:220px;margin-bottom:16px">Fecha de la revisión
-        <input type="date" id="rv-fecha">
-      </label>
+      <div class="alta-grid" style="margin-bottom:16px">
+        <label class="alta-campo" style="max-width:220px">Fecha de la revisión
+          <input type="date" id="rv-fecha">
+        </label>
+        <label class="alta-campo" style="max-width:220px">Puntuación general (opcional)
+          <select id="rv-puntuacion">
+            <option value="">Sin definir</option>
+            <option value="Alta">Alta</option>
+            <option value="Medio">Medio</option>
+            <option value="Baja">Baja</option>
+          </select>
+        </label>
+      </div>
       <div id="rv-modal-body"></div>
       <div class="alta-acciones">
         <button class="btn-refresh" onclick="closeRvModalDirect()">Cancelar</button>
@@ -13093,9 +13116,100 @@ async function renderRevisionesVerticales() {
     kpiCard('Pendientes', pendientes.length, '', pendientes.length ? 'red' : 'green');
 
   if (esAdminUser) {
+    renderRvLideres();
+    renderRvAdminKpis();
+    renderRvDistribucion();
     document.getElementById('rv-buscar').value = '';
     renderRvBusqueda();
   }
+}
+
+// Agrupa a todos los colaboradores activos-con-líder (sin importar si su líder tiene cuenta o
+// no) por el nombre de líder normalizado, y calcula qué tan al día está cada equipo. Esto es lo
+// que responde "quién sí las está haciendo, quién no" a nivel admin.
+function rvCoberturaPorLider() {
+  const todos = getColabIndex().filter(c => c.estatus !== 'baja' && c.lider);
+  const grupos = {};
+  todos.forEach(c => {
+    const key = normName(c.lider);
+    if (!grupos[key]) grupos[key] = { liderNombre: c.lider, equipo: [] };
+    grupos[key].equipo.push(c);
+  });
+  return Object.values(grupos).map(g => {
+    const pendientes = g.equipo.filter(c => rvEstadoDe(c, rvUltimaRevisionDe(c.key, _rvRevisiones)).pendiente);
+    const total = g.equipo.length;
+    const alDia = total - pendientes.length;
+    return { liderNombre: g.liderNombre, total, alDia, pendientes: pendientes.length, pct: total ? Math.round(alDia / total * 100) : 0 };
+  }).sort((a, b) => a.pct - b.pct || b.total - a.total);
+}
+
+let _rvLideresCache = [];
+
+function renderRvLideres() {
+  _rvLideresCache = rvCoberturaPorLider();
+  const el = document.getElementById('rv-lideres-lista');
+  el.innerHTML = _rvLideresCache.length
+    ? _rvLideresCache.map((g, i) => rvLiderRowHtml(g, i)).join('')
+    : '<div class="bandeja-sub">Nadie tiene líder asignado todavía.</div>';
+}
+
+function rvLiderRowHtml(g, i) {
+  const color = g.pct >= 80 ? '#16A34A' : g.pct >= 50 ? '#F59E0B' : '#DC2626';
+  return `<div class="encuesta-card" style="margin-bottom:8px;cursor:pointer" onclick="rvBuscarLiderIdx(${i})">
+    <div class="encuesta-card-head">
+      <div>
+        <div style="font-weight:700;font-size:13.5px">${escapeHtml(g.liderNombre)}</div>
+        <div class="encuesta-card-meta">${g.alDia}/${g.total} al día · ${g.pendientes} pendiente${g.pendientes === 1 ? '' : 's'}</div>
+      </div>
+      <span class="estatus-badge" style="background:${color}22;color:${color}">${g.pct}%</span>
+    </div>
+  </div>`;
+}
+
+function rvBuscarLiderIdx(i) {
+  const g = _rvLideresCache[i];
+  if (!g) return;
+  const buscarEl = document.getElementById('rv-buscar');
+  buscarEl.value = g.liderNombre;
+  renderRvBusqueda();
+  buscarEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function renderRvAdminKpis() {
+  const grupos = _rvLideresCache;
+  const total = grupos.reduce((s, g) => s + g.total, 0);
+  const alDia = grupos.reduce((s, g) => s + g.alDia, 0);
+  const pendientes = total - alDia;
+  const pct = total ? Math.round(alDia / total * 100) : 0;
+  document.getElementById('rv-admin-kpis').innerHTML =
+    kpiCard('Colaboradores con líder', total, '') +
+    kpiCard('Al día', alDia, pct + '% del total', 'green') +
+    kpiCard('Pendientes', pendientes, '', pendientes ? 'red' : 'green') +
+    kpiCard('Líderes activos', grupos.length, '');
+}
+
+// Distribución de "Puntuación general" entre las revisiones que sí la tienen (campo opcional).
+// Colores fijos por significado (Alta=verde, Baja=rojo) — no por ranking de conteo, porque aquí
+// el orden de las categorías importa más que cuál tiene más casos.
+function renderRvDistribucion() {
+  const wrap = document.getElementById('rv-dist-wrap');
+  const el = document.getElementById('rv-dist-chart');
+  const counts = { Alta: 0, Medio: 0, Baja: 0 };
+  let totalScored = 0;
+  _rvRevisiones.forEach(r => { if (Object.prototype.hasOwnProperty.call(counts, r.puntuacion)) { counts[r.puntuacion]++; totalScored++; } });
+  if (!totalScored) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  const colores = { Alta: '#16A34A', Medio: '#F59E0B', Baja: '#DC2626' };
+  el.innerHTML = ['Alta', 'Medio', 'Baja'].map(k => {
+    const v = counts[k];
+    const w = Math.round(v / totalScored * 100);
+    return `<div class="bar-row">
+      <span class="bar-label">${k}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${colores[k]}">
+        ${w > 18 ? `<span class="bar-inner-label">${v}</span>` : ''}
+      </div></div>
+    </div>`;
+  }).join('');
 }
 
 // Vista de admin: en vez de listar a todos los líderes de un jalón (confuso con muchos equipos),
@@ -13155,6 +13269,7 @@ function abrirRvModal(colabKey, revisionId) {
   document.getElementById('rv-modal-titulo').textContent = 'Revisión Vertical — ' + c.nombre;
   document.getElementById('rv-modal-meta').textContent = existente ? 'Editando revisión existente' : 'Nueva revisión';
   document.getElementById('rv-fecha').value = existente ? existente.fecha_revision : new Date().toISOString().slice(0, 10);
+  document.getElementById('rv-puntuacion').value = existente ? (existente.puntuacion || '') : '';
 
   document.getElementById('rv-modal-body').innerHTML = REVISION_SECCIONES.map((sec, si) => `
     <div class="modal-section-label" style="margin-top:${si ? 20 : 0}px">${escapeHtml(sec.titulo)}</div>
@@ -13190,12 +13305,14 @@ async function guardarRevisionVertical() {
       if (val) respuestas[p] = val;
     });
   });
+  const puntuacion = document.getElementById('rv-puntuacion').value || null;
   const payload = {
     colaborador_key: _rvColabActual.key,
     colaborador_nombre: _rvColabActual.nombre,
     lider_email: _usuarioActual.email,
     fecha_revision: fecha,
     respuestas,
+    puntuacion,
     updated_at: new Date().toISOString(),
   };
   const query = _rvEditandoId
@@ -13213,13 +13330,20 @@ function rvHistorialItemHtml(r) {
     .filter(p => r.respuestas && r.respuestas[p])
     .map(p => `<div class="resultado-texto-item"><strong>${escapeHtml(p)}</strong><br>${escapeHtml(r.respuestas[p])}</div>`)
     .join('');
+  const puntuacionColores = { Alta: '#16A34A', Medio: '#F59E0B', Baja: '#DC2626' };
+  const puntuacionHtml = r.puntuacion
+    ? `<span class="estatus-badge" style="background:${puntuacionColores[r.puntuacion] || '#64748B'}22;color:${puntuacionColores[r.puntuacion] || '#64748B'}">${escapeHtml(r.puntuacion)}</span>`
+    : '';
   return `<div class="encuesta-card" style="margin-bottom:10px">
     <div class="encuesta-card-head">
       <div>
         <div style="font-weight:700;font-size:13.5px">${fmtFecha(new Date(r.fecha_revision + 'T00:00:00'))}</div>
         <div class="encuesta-card-meta">Por ${escapeHtml(r.lider_email)}</div>
       </div>
-      ${puedoEditar ? `<button class="btn-refresh" onclick="closeRvHistorialModalDirect();abrirRvModal('${r.colaborador_key}','${r.id}')">Editar</button>` : ''}
+      <div style="display:flex;align-items:center;gap:8px">
+        ${puntuacionHtml}
+        ${puedoEditar ? `<button class="btn-refresh" onclick="closeRvHistorialModalDirect();abrirRvModal('${r.colaborador_key}','${r.id}')">Editar</button>` : ''}
+      </div>
     </div>
     ${respuestasHtml || '<div class="bandeja-sub">Sin respuestas registradas.</div>'}
   </div>`;
