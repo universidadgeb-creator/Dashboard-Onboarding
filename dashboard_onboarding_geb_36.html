@@ -3619,10 +3619,9 @@
       </div>
       <div class="kpi-row" id="rv-admin-kpis"></div>
 
-      <div id="rv-dist-wrap" style="display:none;margin-top:18px">
-        <div class="modal-section-label">Distribución de puntuación general</div>
-        <p class="bandeja-sub" style="margin:-4px 0 10px">Solo cuenta revisiones donde el líder puso una puntuación.</p>
-        <div id="rv-dist-chart"></div>
+      <div id="rv-avance-wrap" style="display:none;margin-top:18px">
+        <div class="modal-section-label">Avance</div>
+        <div id="rv-avance-chart"></div>
       </div>
 
       <div class="section-title" style="margin:24px 0 12px">Cumplimiento por unidad de negocio y sucursal</div>
@@ -13168,8 +13167,9 @@ async function renderRevisionesVerticales() {
 
   if (esAdminUser) {
     await cargarRvRondas();
-    renderRvAdminKpis();
-    renderRvDistribucion();
+    const stats = rvComputeAdminStats();
+    renderRvAdminKpis(stats);
+    renderRvAvance(stats);
     renderRvGrupos();
     document.getElementById('rv-buscar').value = '';
     renderRvBusqueda();
@@ -13205,8 +13205,9 @@ function rvCambiarRonda() {
   const id = document.getElementById('rv-ronda-select').value;
   _rvRondaActual = id ? _rvRondas.find(r => r.id === id) : null;
   rvActualizarRondaSub();
-  renderRvAdminKpis();
-  renderRvDistribucion();
+  const stats = rvComputeAdminStats();
+  renderRvAdminKpis(stats);
+  renderRvAvance(stats);
   renderRvGrupos();
   document.getElementById('rv-buscar').value = '';
   renderRvBusqueda();
@@ -13246,8 +13247,9 @@ async function guardarRvRonda() {
   if (error) { alert('No se pudo guardar la ronda: ' + error.message); return; }
   closeRvRondaModalDirect();
   await cargarRvRondas();
-  renderRvAdminKpis();
-  renderRvDistribucion();
+  const stats = rvComputeAdminStats();
+  renderRvAdminKpis(stats);
+  renderRvAvance(stats);
   renderRvGrupos();
   document.getElementById('rv-buscar').value = '';
   renderRvBusqueda();
@@ -13282,10 +13284,17 @@ function rvCobertura(colaboradores, ronda) {
   return { total, hechas, pendientes: total - hechas, pct: total ? Math.round(hechas / total * 100) : 0 };
 }
 
-function renderRvAdminKpis() {
+// Junta lo que necesitan tanto los KPIs como la barra de avance, para no recorrer el roster dos
+// veces por cada render.
+function rvComputeAdminStats() {
   const todos = getColabIndex().filter(c => c.estatus !== 'baja' && c.lider);
   const cob = rvCobertura(todos, _rvRondaActual);
   const nLideres = new Set(todos.map(c => normName(c.lider))).size;
+  return { cob, nLideres };
+}
+
+function renderRvAdminKpis(stats) {
+  const { cob, nLideres } = stats;
   const labelHechas = _rvRondaActual ? 'Hechas en la ronda' : 'Al día';
   const labelPend = _rvRondaActual ? 'Pendientes en la ronda' : 'Pendientes';
   document.getElementById('rv-admin-kpis').innerHTML =
@@ -13295,31 +13304,27 @@ function renderRvAdminKpis() {
     kpiCard('Líderes activos', nLideres, '');
 }
 
-// Distribución de "Puntuación general" entre las revisiones que sí la tienen (campo opcional).
-// Colores fijos por significado (Alta=verde, Baja=rojo) — no por ranking de conteo, porque aquí
-// el orden de las categorías importa más que cuál tiene más casos. Si hay una ronda elegida, solo
-// cuenta revisiones con fecha dentro de ese rango.
-function renderRvDistribucion() {
-  const wrap = document.getElementById('rv-dist-wrap');
-  const el = document.getElementById('rv-dist-chart');
-  const ronda = _rvRondaActual;
-  const enContexto = ronda
-    ? _rvRevisiones.filter(r => r.fecha_revision >= ronda.fecha_inicio && r.fecha_revision <= ronda.fecha_fin)
-    : _rvRevisiones;
-  const counts = { Alta: 0, Medio: 0, Baja: 0 };
-  let totalScored = 0;
-  enContexto.forEach(r => { if (Object.prototype.hasOwnProperty.call(counts, r.puntuacion)) { counts[r.puntuacion]++; totalScored++; } });
-  if (!totalScored) { wrap.style.display = 'none'; return; }
+// Barra simple de cuántas van y cuántas faltan (reemplaza la distribución de puntuación, que no
+// se quería mostrar aquí).
+function renderRvAvance(stats) {
+  const wrap = document.getElementById('rv-avance-wrap');
+  const el = document.getElementById('rv-avance-chart');
+  const { cob } = stats;
+  if (!cob.total) { wrap.style.display = 'none'; return; }
   wrap.style.display = '';
-  const colores = { Alta: '#16A34A', Medio: '#F59E0B', Baja: '#DC2626' };
-  el.innerHTML = ['Alta', 'Medio', 'Baja'].map(k => {
-    const v = counts[k];
-    const w = Math.round(v / totalScored * 100);
+  const labelHechas = _rvRondaActual ? 'Hechas' : 'Al día';
+  const filas = [
+    { label: labelHechas, v: cob.hechas, color: '#16A34A' },
+    { label: 'Pendientes', v: cob.pendientes, color: '#DC2626' },
+  ];
+  el.innerHTML = filas.map(f => {
+    const w = Math.round(f.v / cob.total * 100);
     return `<div class="bar-row">
-      <span class="bar-label">${k}</span>
-      <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${colores[k]}">
-        ${w > 18 ? `<span class="bar-inner-label">${v}</span>` : ''}
+      <span class="bar-label">${f.label}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${f.color}">
+        ${w > 12 ? `<span class="bar-inner-label">${f.v}</span>` : ''}
       </div></div>
+      <span class="bar-count">${w}%</span>
     </div>`;
   }).join('');
 }
