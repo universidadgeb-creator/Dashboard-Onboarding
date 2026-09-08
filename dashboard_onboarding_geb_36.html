@@ -2817,18 +2817,6 @@
       <button class="sidebar-item" data-tab="ausencias" onclick="switchTab('ausencias')">
         <span class="si-icon"></span><span class="si-label">Permisos y Vacaciones</span><span class="si-soon">pronto</span>
       </button>
-      <div class="sidebar-subgroup" id="ssg-formacion">
-        <button class="sidebar-item sidebar-item-expand" onclick="toggleSidebarGroup('ssg-formacion')">
-          <span class="si-icon"></span><span class="si-label">Tierra fértil</span><span class="sg-chevron">⌄</span>
-        </button>
-        <div class="sidebar-group-body sidebar-subgroup-body">
-          <button class="sidebar-subitem" data-tab="preonboarding" onclick="switchTab('preonboarding')">Preonboarding</button>
-          <button class="sidebar-subitem" data-tab="ajuste10" onclick="switchTab('ajuste10')">Entrevista de Ajuste 10-15</button>
-          <button class="sidebar-subitem" data-tab="treinta" onclick="switchTab('treinta')">Encuesta 30 Días</button>
-          <button class="sidebar-subitem" data-tab="evaluacion" onclick="switchTab('evaluacion')">Evaluación Inducción</button>
-          <button class="sidebar-subitem" data-tab="certificaciones" onclick="switchTab('certificaciones')">Certificaciones</button>
-        </div>
-      </div>
       <button class="sidebar-item" data-tab="desarrollo" onclick="switchTab('desarrollo')">
         <span class="si-icon"></span><span class="si-label">Benito IA</span>
       </button>
@@ -2863,9 +2851,6 @@
       <button class="sidebar-item" data-tab="revisiones" onclick="switchTab('revisiones')">
         <span class="si-icon"></span><span class="si-label">Revisiones Verticales</span>
       </button>
-      <button class="sidebar-item" data-tab="ruta" onclick="switchTab('ruta')">
-        <span class="si-icon"></span><span class="si-label">Data</span>
-      </button>
       <button class="sidebar-item" data-tab="reclutamiento" onclick="switchTab('reclutamiento')">
         <span class="si-icon"></span><span class="si-label">Reclutamiento</span>
       </button>
@@ -2882,6 +2867,32 @@
       </button>
       <button class="sidebar-item" data-tab="ambientefisico" onclick="switchTab('ambientefisico')">
         <span class="si-icon"></span><span class="si-label">Ambiente Físico</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="sidebar-group" id="sg-onboarding">
+    <button class="sidebar-group-header" onclick="toggleSidebarGroup('sg-onboarding')">
+      <span>Onboarding</span><span class="sg-chevron">⌄</span>
+    </button>
+    <div class="sidebar-group-body">
+      <button class="sidebar-item" data-tab="preonboarding" onclick="switchTab('preonboarding')">
+        <span class="si-icon"></span><span class="si-label">Preonboarding</span>
+      </button>
+      <button class="sidebar-item" data-tab="ajuste10" onclick="switchTab('ajuste10')">
+        <span class="si-icon"></span><span class="si-label">Entrevista de Ajuste 10-15</span>
+      </button>
+      <button class="sidebar-item" data-tab="treinta" onclick="switchTab('treinta')">
+        <span class="si-icon"></span><span class="si-label">Encuesta 30 Días</span>
+      </button>
+      <button class="sidebar-item" data-tab="evaluacion" onclick="switchTab('evaluacion')">
+        <span class="si-icon"></span><span class="si-label">Evaluación Inducción</span>
+      </button>
+      <button class="sidebar-item" data-tab="certificaciones" onclick="switchTab('certificaciones')">
+        <span class="si-icon"></span><span class="si-label">Certificaciones</span>
+      </button>
+      <button class="sidebar-item" data-tab="ruta" onclick="switchTab('ruta')">
+        <span class="si-icon"></span><span class="si-label">Data</span>
       </button>
     </div>
   </div>
@@ -4038,7 +4049,7 @@
     <div class="config-card" style="margin-top:16px">
       <div class="config-card-title">Roles y permisos</div>
       <div class="config-desc">
-        Un <strong>Colaborador</strong> ve Inicio, Bandeja de entrada, Calendario, Perfil, Tierra fértil, Expediente, Políticas y Permisos y Vacaciones (lo suyo). Un <strong>Líder</strong> ve además Colaboradores y Evaluaciones, con la vista de equipo filtrada a quienes le reportan. Un <strong>Administrador</strong> ve todo, sin restricción.
+        Un <strong>Colaborador</strong> ve Inicio, Bandeja de entrada, Calendario, Perfil, Expediente, Políticas y Permisos y Vacaciones (lo suyo). Un <strong>Líder</strong> ve además Colaboradores y Evaluaciones, con la vista de equipo filtrada a quienes le reportan. Un <strong>Administrador</strong> ve todo, sin restricción, incluyendo Onboarding.
         Busca a alguien para cambiar su rol o para ver el panel como lo vería esa persona — es una simulación, no hay inicio de sesión real todavía.
       </div>
       <input type="text" class="rv-search-input" id="perm-buscar" placeholder="Buscar colaborador…" oninput="renderPermResultados()" autocomplete="off">
@@ -4908,7 +4919,7 @@ function renderPre() {
 }
 
 // ── ENTREVISTA DE AJUSTE 10-15 ──
-// A diferencia de las demás pestañas de Tierra fértil, "quién falta" no se calcula aquí por
+// A diferencia de las demás pestañas de Onboarding, "quién falta" no se calcula aquí por
 // antigüedad: la hoja "entrevista ajuste 10" ya trae, en columnas aparte, un mini-tracker de
 // 4 columnas ya resuelto (Hecha | su reclutador | Faltante | su reclutador) — se lee y
 // presenta tal cual (ver loadAll()).
@@ -6248,14 +6259,14 @@ function closeRutaModalDirect() {
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeRutaModalDirect(); });
 
 const ONBOARDING_TABS = ['preonboarding','treinta','evaluacion','certificaciones','ruta'];
-const FORMACION_TABS = ['preonboarding','ajuste10','treinta','evaluacion','certificaciones'];
+const FORMACION_TABS = ['preonboarding','ajuste10','treinta','evaluacion','certificaciones','ruta'];
 
 // Qué tan alto tiene que ser el rol para ver cada sección de la barra izquierda. Lo que no
 // aparece aquí (Inicio, Bandeja, Calendario, Perfil, Expediente, Políticas, Permisos y
-// Vacaciones) lo ve cualquier colaborador. Tierra fértil (Preonboarding/30 días/Evaluación/
-// Certificaciones) es seguimiento de encuestas de TODO el roster, no algo personal de cada
+// Vacaciones) lo ve cualquier colaborador. Onboarding (Preonboarding/30 días/Evaluación/
+// Certificaciones/Data) es seguimiento de encuestas de TODO el roster, no algo personal de cada
 // quien — solo admin.
-// Benito IA es un ítem aparte (no vive dentro de Tierra fértil): cualquier colaborador puede
+// Benito IA es un ítem aparte (no vive dentro de Onboarding): cualquier colaborador puede
 // usarlo para pensar su propia iniciativa de IA, así que a propósito no aparece en este mapa —
 // queda visible para todos los roles.
 // Evaluaciones (antes Desempeño) SÍ lo ve todo el mundo (un colaborador necesita entrar ahí a
@@ -8797,7 +8808,7 @@ function switchTab(tab) {
     b.classList.toggle('active', b.dataset.tab === tab);
   });
   if (FORMACION_TABS.includes(tab)) {
-    document.getElementById('ssg-formacion').classList.remove('collapsed');
+    document.getElementById('sg-onboarding').classList.remove('collapsed');
   }
   document.getElementById('alert-panel').classList.remove('open');
   const searchResults = document.getElementById('home-search-results');
@@ -11351,7 +11362,7 @@ const BENITO_FAQ = [
   { keywords: ['cumpleaños','aniversario','calendario'], respuesta: 'Los cumpleaños y aniversarios laborales del equipo están en Calendario, y también salen en Inicio el día que le toca a alguien.' },
   { keywords: ['aviso','anuncio','comunicado','noticia'], respuesta: 'Los avisos que publica la empresa están en Bandeja de entrada — ahí también verás si tienes alguna evaluación pendiente.' },
   { keywords: ['evaluacion','desempeño','encuesta'], respuesta: 'Tus evaluaciones pendientes están en Evaluaciones, y también te avisamos en Bandeja de entrada.' },
-  { keywords: ['curso','capacitacion','certificacion','formacion','aprender'], respuesta: 'Eso vive en Tierra fértil, en el menú de la izquierda — por ahora es donde se hace seguimiento a la inducción de nuevo ingreso.' },
+  { keywords: ['curso','capacitacion','certificacion','formacion','aprender'], respuesta: 'Eso vive en Onboarding, en el menú de la izquierda — por ahora es donde se hace seguimiento a la inducción de nuevo ingreso.' },
   { keywords: ['politica','reglamento','norma'], respuesta: 'Las políticas y reglamentos de la empresa están en Políticas, en el menú de la izquierda.' },
   { keywords: ['perfil','mis datos','mi informacion'], respuesta: 'Tu perfil está en Perfil, en el menú de la izquierda.' },
   { keywords: ['rol','permiso','administrador','simular'], respuesta: 'Los roles y permisos los asigna quien tenga acceso de Administrador, desde Configuración.' },
