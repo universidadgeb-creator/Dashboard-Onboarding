@@ -4096,6 +4096,28 @@
       <input type="text" class="rv-search-input" id="perm-buscar" placeholder="Buscar colaborador…" oninput="renderPermResultados()" autocomplete="off">
       <div id="perm-resultados" class="sim-resultados"></div>
     </div>
+
+    <div class="config-card" style="margin-top:16px">
+      <div class="config-card-title">Cambiar rol real (Supabase)</div>
+      <div class="config-desc">
+        Esto SÍ cambia el permiso de verdad — a diferencia del buscador de arriba, que solo simula
+        cómo se ve la app con otro rol. Pon el correo real con el que esa persona inicia sesión
+        (tiene que ser exacto). Si ya tenía la sesión abierta, necesita cerrar sesión y volver a
+        entrar para que se refleje.
+      </div>
+      <div class="alta-grid" style="margin-top:10px">
+        <label class="alta-campo">Correo real *<input type="email" id="rolreal-correo" placeholder="nombre@correo.com"></label>
+        <label class="alta-campo">Nombre (opcional, solo para identificarla)<input type="text" id="rolreal-nombre" placeholder="Nombre y apellidos"></label>
+        <label class="alta-campo">Rol
+          <select id="rolreal-select">
+            <option value="colaborador">Colaborador</option>
+            <option value="lider">Líder</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </label>
+      </div>
+      <button class="btn-nuevo-colab" style="margin-top:10px" onclick="actualizarRolReal()">Actualizar rol en Supabase</button>
+    </div>
   </div>
 
 </div>
@@ -9087,6 +9109,34 @@ function cambiarRolColab(key, rol) {
   if (rol === 'colaborador') delete roles[key]; else roles[key] = rol;
   localStorage.setItem(ROLES_KEY, JSON.stringify(roles));
   renderDirectorio();
+}
+
+// A diferencia de cambiarRolColab (arriba, solo local/simulación), esto sí escribe de verdad en
+// Supabase — es lo único que realmente cambia qué puede ver alguien al iniciar sesión de verdad.
+// Intenta actualizar primero (sin tocar su nombre ya guardado); si no existía esa fila todavía,
+// la crea. Así nunca se borra por accidente el nombre real de alguien que ya tenía cuenta.
+async function actualizarRolReal() {
+  const email = document.getElementById('rolreal-correo').value.trim().toLowerCase();
+  const nombre = document.getElementById('rolreal-nombre').value.trim();
+  const rol = document.getElementById('rolreal-select').value;
+  if (!email) { alert('Falta el correo real con el que esa persona inicia sesión.'); return; }
+
+  const { data: actualizado, error: errUpd } = await supabaseClient.from('colaboradores')
+    .update({ rol_acceso: rol })
+    .eq('email', email)
+    .select();
+  if (errUpd) { alert('No se pudo actualizar el rol: ' + errUpd.message); return; }
+
+  if (!actualizado || actualizado.length === 0) {
+    const { error: errIns } = await supabaseClient.from('colaboradores')
+      .insert({ email, nombre: nombre || email, rol_acceso: rol });
+    if (errIns) { alert('No se pudo crear la cuenta con ese rol: ' + errIns.message); return; }
+  }
+
+  alert(`Listo — ${email} ahora tiene el rol "${nombreRol(rol)}" en Supabase. Si ya tenía sesión abierta, necesita cerrar sesión y volver a entrar para que se refleje.`);
+  document.getElementById('rolreal-correo').value = '';
+  document.getElementById('rolreal-nombre').value = '';
+  document.getElementById('rolreal-select').value = 'colaborador';
 }
 
 // El equipo de un líder = todos los colaboradores que reportan a esta persona directa o
