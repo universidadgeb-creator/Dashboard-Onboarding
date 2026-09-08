@@ -3685,7 +3685,10 @@
     <p class="bandeja-sub">Sigue el checklist de onboarding de cada nuevo ingreso agregado desde "+ Nuevo colaborador" en Colaboradores — con la fecha real en la que se completó cada paso, comparada contra el plazo esperado.</p>
     <div class="rv-suc-chips" id="oc-unidades-chips"></div>
     <div class="kpi-row" id="oc-kpis"></div>
-    <input type="text" class="rv-search-input" id="oc-buscar" placeholder="Buscar por nombre…" oninput="renderOcLista()" autocomplete="off" style="max-width:420px;margin:14px 0">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0">
+      <input type="text" class="rv-search-input" id="oc-buscar" placeholder="Buscar por nombre…" oninput="renderOcLista()" autocomplete="off" style="max-width:420px">
+      <select class="filter-select" id="oc-mes" onchange="ocAplicarFiltros()"><option value="">Todos los meses</option></select>
+    </div>
     <div id="oc-lista"></div>
   </div>
 
@@ -13770,28 +13773,53 @@ let _ocUnidadActiva = null; // filtro por unidad de negocio (reutiliza UNIDADES_
 async function renderOnboardingChecklist() {
   const { data, error } = await supabaseClient.from('onboarding_checklist').select('*').order('fecha_ingreso', { ascending: false });
   _ocRegistros = error ? [] : data;
+  ocPoblarMeses();
+  ocAplicarFiltros();
+}
+
+// Meses disponibles según fecha_ingreso — mismo par getMesSort()/getMes() (valor ordenable +
+// etiqueta "sep 2026") que ya usa el filtro de meses del resto de Onboarding.
+function ocPoblarMeses() {
+  const sel = document.getElementById('oc-mes');
+  const cur = sel.value;
+  const mesMap = {};
+  _ocRegistros.forEach(r => {
+    const k = getMesSort(r.fecha_ingreso), v = getMes(r.fecha_ingreso);
+    if (k && v !== '—') mesMap[k] = v;
+  });
+  const entries = Object.entries(mesMap).sort((a, b) => b[0].localeCompare(a[0]));
+  sel.innerHTML = '<option value="">Todos los meses</option>' +
+    entries.map(([k, v]) => `<option value="${k}"${k === cur ? ' selected' : ''}>${v}</option>`).join('');
+}
+
+function ocAplicarFiltros() {
   renderOcUnidadesChips();
   renderOcKpis();
   renderOcLista();
 }
 
-function ocRegistrosPorUnidad() {
-  if (!_ocUnidadActiva) return _ocRegistros;
-  const unidad = UNIDADES_NEGOCIO.find(u => u.nombre === _ocUnidadActiva);
-  return unidad ? _ocRegistros.filter(r => unidad.sucursales.includes(r.sucursal)) : _ocRegistros;
+function ocRegistrosFiltrados() {
+  let rows = _ocRegistros;
+  if (_ocUnidadActiva) {
+    const unidad = UNIDADES_NEGOCIO.find(u => u.nombre === _ocUnidadActiva);
+    if (unidad) rows = rows.filter(r => unidad.sucursales.includes(r.sucursal));
+  }
+  const mesSel = document.getElementById('oc-mes').value;
+  if (mesSel) rows = rows.filter(r => getMesSort(r.fecha_ingreso) === mesSel);
+  return rows;
 }
 
 function renderOcUnidadesChips() {
   const chipsEl = document.getElementById('oc-unidades-chips');
-  chipsEl.innerHTML = `<button class="rv-suc-chip ${!_ocUnidadActiva?'active':''}" onclick="selectOcUnidad(null)">Todas <span class="rv-suc-chip-n">${_ocRegistros.length}</span></button>` +
-    UNIDADES_NEGOCIO.map(u => `<button class="rv-suc-chip ${_ocUnidadActiva===u.nombre?'active':''}" onclick="selectOcUnidad('${u.nombre.replace(/'/g,"\\'")}')">${escapeHtml(u.nombre)} <span class="rv-suc-chip-n">${_ocRegistros.filter(r => u.sucursales.includes(r.sucursal)).length}</span></button>`).join('');
+  const mesSel = document.getElementById('oc-mes').value;
+  const base = mesSel ? _ocRegistros.filter(r => getMesSort(r.fecha_ingreso) === mesSel) : _ocRegistros;
+  chipsEl.innerHTML = `<button class="rv-suc-chip ${!_ocUnidadActiva?'active':''}" onclick="selectOcUnidad(null)">Todas <span class="rv-suc-chip-n">${base.length}</span></button>` +
+    UNIDADES_NEGOCIO.map(u => `<button class="rv-suc-chip ${_ocUnidadActiva===u.nombre?'active':''}" onclick="selectOcUnidad('${u.nombre.replace(/'/g,"\\'")}')">${escapeHtml(u.nombre)} <span class="rv-suc-chip-n">${base.filter(r => u.sucursales.includes(r.sucursal)).length}</span></button>`).join('');
 }
 
 function selectOcUnidad(nombre) {
   _ocUnidadActiva = _ocUnidadActiva === nombre ? null : nombre;
-  renderOcUnidadesChips();
-  renderOcKpis();
-  renderOcLista();
+  ocAplicarFiltros();
 }
 
 function ocProgreso(row) {
@@ -13814,7 +13842,7 @@ function ocPasoEstado(row, paso) {
 }
 
 function renderOcKpis() {
-  const base = ocRegistrosPorUnidad();
+  const base = ocRegistrosFiltrados();
   const total = base.length;
   const completos = base.filter(r => ocProgreso(r).pct === 100).length;
   const conAtrasos = base.filter(r => REGISTRO_PASOS.some(p => ocPasoEstado(r, p).tarde)).length;
@@ -13826,7 +13854,7 @@ function renderOcKpis() {
 
 function renderOcLista() {
   const el = document.getElementById('oc-lista');
-  const base = ocRegistrosPorUnidad();
+  const base = ocRegistrosFiltrados();
   const q = normName(document.getElementById('oc-buscar').value);
   const filtrados = q ? base.filter(r => normName(r.colaborador_nombre).includes(q)) : base;
   if (!filtrados.length) {
