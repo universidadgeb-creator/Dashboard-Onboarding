@@ -552,6 +552,31 @@
   .rv-grupo-children { padding: 10px 14px 14px; }
   .rv-grupo-children .rv-grupo { background: #fff; }
 
+  /* CHECKLIST DE NUEVO INGRESO */
+  .oc-card { border: 1px solid #E6DFF5; border-radius: 12px; margin-bottom: 10px; overflow: hidden; background: #fff; }
+  .oc-card-header { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 16px; cursor: pointer; }
+  .oc-card-header:hover { background: #FBFAFE; }
+  .oc-card-nombre { font-weight: 700; font-size: 13.5px; }
+  .oc-card-meta { font-size: 11.5px; color: #6B6280; margin-top: 2px; }
+  .oc-card-progreso { display: flex; align-items: center; gap: 10px; min-width: 160px; }
+  .oc-progreso-track { width: 110px; height: 8px; background: #F5F2FC; border-radius: 4px; overflow: hidden; }
+  .oc-progreso-fill { height: 100%; border-radius: 4px; background: var(--verde-acento); transition: width .4s ease; }
+  .oc-progreso-pct { font-size: 12px; font-weight: 700; color: #1E1B2E; width: 34px; text-align: right; }
+  .oc-card-chevron { transition: transform .15s; font-size: 10px; color: #6B6280; }
+  .oc-card.collapsed .oc-card-body { display: none; }
+  .oc-card.collapsed .oc-card-chevron { transform: rotate(-90deg); }
+  .oc-card-body { padding: 4px 16px 16px; border-top: 1px solid #F5F2FC; }
+  .oc-paso { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #F8F6FC; flex-wrap: wrap; }
+  .oc-paso:last-child { border-bottom: none; }
+  .oc-paso-check { width: 17px; height: 17px; flex-shrink: 0; cursor: pointer; accent-color: var(--verde-acento); }
+  .oc-paso-label { font-size: 12.5px; flex: 1; min-width: 180px; }
+  .oc-paso-plazo { font-size: 10.5px; color: #6B6280; background: #F5F2FC; border-radius: 5px; padding: 2px 7px; white-space: nowrap; }
+  .oc-paso-fecha { font-size: 12px; padding: 4px 6px; border: 1px solid #E6DFF5; border-radius: 6px; }
+  .oc-paso-fecha:disabled { opacity: .4; }
+  .oc-paso-estado { font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+  .oc-paso-estado.ok { background: #16A34A22; color: #16A34A; }
+  .oc-paso-estado.tarde { background: #DC262622; color: #DC2626; }
+
   /* NPS */
   .nps-badge { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; font-weight: 700; font-size: 11px; }
   .nps-promotor { background: var(--verde-ok-bg); color: var(--verde-ok); }
@@ -2876,6 +2901,9 @@
       <span>Onboarding</span><span class="sg-chevron">⌄</span>
     </button>
     <div class="sidebar-group-body">
+      <button class="sidebar-item" data-tab="checklist" onclick="switchTab('checklist')">
+        <span class="si-icon"></span><span class="si-label">Checklist de Nuevo Ingreso</span>
+      </button>
       <button class="sidebar-item" data-tab="preonboarding" onclick="switchTab('preonboarding')">
         <span class="si-icon"></span><span class="si-label">Preonboarding</span>
       </button>
@@ -3644,6 +3672,19 @@
       <input type="text" class="rv-search-input" id="rv-buscar" placeholder="Buscar por nombre de colaborador o de líder…" oninput="renderRvBusqueda()" autocomplete="off" style="max-width:420px">
       <div id="rv-admin-lista" style="margin-top:14px"></div>
     </div>
+  </div>
+
+  <!-- CHECKLIST DE NUEVO INGRESO — se llena solo con gente agregada desde "+ Nuevo colaborador".
+       Cada paso guarda la fecha real en que se completó, comparada contra el plazo esperado
+       (contado desde la fecha de ingreso) para saber si se hizo a tiempo o no. -->
+  <div class="tab-panel" id="panel-checklist">
+    <div class="section-header">
+      <div class="section-title">Checklist de Nuevo Ingreso</div>
+    </div>
+    <p class="bandeja-sub">Sigue el checklist de onboarding de cada nuevo ingreso agregado desde "+ Nuevo colaborador" en Colaboradores — con la fecha real en la que se completó cada paso, comparada contra el plazo esperado.</p>
+    <div class="kpi-row" id="oc-kpis"></div>
+    <input type="text" class="rv-search-input" id="oc-buscar" placeholder="Buscar por nombre…" oninput="renderOcLista()" autocomplete="off" style="max-width:420px;margin:14px 0">
+    <div id="oc-lista"></div>
   </div>
 
   <!-- RECLUTAMIENTO — vacantes, cobertura, efectividad, personas contratadas (vista previa) -->
@@ -6259,7 +6300,7 @@ function closeRutaModalDirect() {
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeRutaModalDirect(); });
 
 const ONBOARDING_TABS = ['preonboarding','treinta','evaluacion','certificaciones','ruta'];
-const FORMACION_TABS = ['preonboarding','ajuste10','treinta','evaluacion','certificaciones','ruta'];
+const FORMACION_TABS = ['preonboarding','ajuste10','treinta','evaluacion','certificaciones','ruta','checklist'];
 
 // Qué tan alto tiene que ser el rol para ver cada sección de la barra izquierda. Lo que no
 // aparece aquí (Inicio, Bandeja, Calendario, Perfil, Expediente, Políticas, Permisos y
@@ -8765,6 +8806,7 @@ function afShowTeamToast(msg){
 const ROL_MINIMO_TAB = {
   directorio: 'lider', revisiones: 'lider', ruta: 'admin', configuracion: 'admin', reclutamiento: 'admin',
   preonboarding: 'admin', ajuste10: 'admin', treinta: 'admin', evaluacion: 'admin', certificaciones: 'admin',
+  checklist: 'admin',
 };
 // Servicio (Política de Apariencia / Ambiente Físico) no tiene mínimo de rol a propósito:
 // cualquier colaborador puede consultar sus resultados generales por sucursal. Los paneles
@@ -8825,6 +8867,7 @@ function switchTab(tab) {
   if (tab === 'apariencia') servAparInit();
   if (tab === 'ambientefisico') servAfInit();
   if (tab === 'revisiones') renderRevisionesVerticales();
+  if (tab === 'checklist') renderOnboardingChecklist();
   // Sin esto, al venir de una tabla larga ya scrolleada, la pestaña nueva abre a
   // media página en vez de en su encabezado. 'auto' y no 'smooth' a propósito:
   // animar el salto sobre un panel que apenas está apareciendo se siente como un
@@ -9206,7 +9249,7 @@ function closeAltaModalDirect() {
 }
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeAltaModalDirect(); });
 
-function guardarAltaColaborador() {
+async function guardarAltaColaborador() {
   const val = id => document.getElementById(id).value.trim();
   const nombre = val('alta-nombre');
   const contratacion = val('alta-contratacion');
@@ -9214,6 +9257,8 @@ function guardarAltaColaborador() {
     alert('Falta el nombre completo o la fecha de contratación — son obligatorios.');
     return;
   }
+  const sucursal = val('alta-sucursal');
+  const lider = val('alta-lider');
   const dias = [...document.querySelectorAll('#alta-dias input:checked')].map(i => i.value);
   const registro = {
     id: Date.now(),
@@ -9224,9 +9269,9 @@ function guardarAltaColaborador() {
     domicilio: val('alta-domicilio'),
     contratacion,
     area: val('alta-area'),
-    sucursal: val('alta-sucursal'),
+    sucursal,
     rol: val('alta-rol'),
-    lider: val('alta-lider'),
+    lider,
     supervisorAusencias: val('alta-supervisor-ausencias'),
     horario: val('alta-horario'),
     horas: val('alta-horas'),
@@ -9240,12 +9285,27 @@ function guardarAltaColaborador() {
   lista.push(registro);
   localStorage.setItem(COLAB_PREVIEW_KEY, JSON.stringify(lista));
 
+  // Además de la vista previa local, esto SÍ se manda de verdad a Supabase — nada más lo mínimo
+  // (nombre, fecha de ingreso, sucursal, líder) para poder armarle su Checklist de Nuevo Ingreso.
+  // A propósito no se manda RFC/NSS/CURP/sueldo/domicilio ni el resto de los datos personales.
+  const { error: ocError } = await supabaseClient.from('onboarding_checklist').insert({
+    colaborador_key: normName(nombre),
+    colaborador_nombre: nombre,
+    fecha_ingreso: contratacion,
+    sucursal: sucursal || null,
+    lider: lider || null,
+  });
+
   document.querySelectorAll('#alta-modal-panel input[type=text], #alta-modal-panel input[type=date], #alta-modal-panel input[type=email], #alta-modal-panel input[type=number]').forEach(i => i.value = '');
   closeAltaModalDirect();
   _colabIndexCache = null;
   _orgChartBuilt = false;
   renderDirectorio();
-  alert(`${nombre} se agregó como vista previa. Aparece marcado como "Vista previa" en el Directorio — recuerda que esto no se guardó en ningún Sheet, solo en este navegador.`);
+  if (ocError) {
+    alert(`${nombre} se agregó como vista previa, pero no se pudo crear su Checklist de Nuevo Ingreso: ${ocError.message}`);
+  } else {
+    alert(`${nombre} se agregó como vista previa (marcado así en el Directorio, solo en este navegador) y ya tiene su Checklist de Nuevo Ingreso listo para llenar.`);
+  }
 }
 
 // ── BANDEJA DE ENTRADA / AVISOS (vista previa — solo localStorage, nunca se envía a nadie) ──
@@ -13592,6 +13652,149 @@ async function cargarUsuarioActual(session) {
     .eq('email', email)
     .maybeSingle();
   _usuarioActual = (!error && data) ? data : { email, nombre: email, rol_acceso: 'colaborador' };
+}
+
+// ── CHECKLIST DE NUEVO INGRESO — se llena solo con gente agregada desde "+ Nuevo colaborador"
+// (ver guardarAltaColaborador). Los 18 pasos y sus plazos son los mismos que ya se usaban en
+// Trello, con "Alta en Factorial" renombrado a "Alta en Vivo 47 Hub". Los plazos están en días
+// corridos desde la fecha de ingreso; los pasos sin plazo (max: null) solo registran la fecha,
+// sin comparar a tiempo/tarde.
+const REGISTRO_PASOS = [
+  { id: 'alta_vivo47hub', label: 'Alta en Vivo 47 Hub', max: 2 },
+  { id: 'entrega_uniforme', label: 'Entrega de uniforme', max: 3 },
+  { id: 'firma_contrato', label: 'Alta y firma de contrato (Colaborador y gerente)', max: 14 },
+  { id: 'bienvenida_whatsapp', label: 'Bienvenida a grupo de WhatsApp', max: 3 },
+  { id: 'asignacion_locker', label: 'Asignación de Locker', max: 3 },
+  { id: 'presentacion_lider', label: 'Presentación líder y recorrido', max: 4 },
+  { id: 'aviso_tarjeta_nomina', label: 'Aviso llegada tarjeta de nómina', max: 7 },
+  { id: 'herramientas_trabajo', label: 'Herramientas de trabajo', max: 7 },
+  { id: 'alta_polywin', label: 'Alta en Polywin', max: 7 },
+  { id: 'induccion', label: 'Inducción', max: 9 },
+  { id: 'alta_app_vivo47', label: 'Alta en App Vivo47', max: 9 },
+  { id: 'vales_despensa', label: 'Entrega Vales de Despensa', max: 30 },
+  { id: 'base_datos_jornada', label: 'Agregar a la base de datos de jornada laboral vivo', max: null },
+  { id: 'carta_presentacion_ch', label: 'Enviar carta de presentación del equipo de CH', max: null },
+  { id: 'carpeta_expediente', label: 'Hacer carpeta con expediente completo', max: null },
+  { id: 'foto_drive', label: 'Toma de foto y subir a drive', max: 6 },
+  { id: 'listas_asistencia', label: 'Listas de asistencia', max: 6 },
+  { id: 'contrato_indeterminado', label: 'Entrega de contrato indeterminado', max: null },
+];
+
+let _ocRegistros = [];
+let _ocExpandedKeys = new Set();
+
+async function renderOnboardingChecklist() {
+  const { data, error } = await supabaseClient.from('onboarding_checklist').select('*').order('fecha_ingreso', { ascending: false });
+  _ocRegistros = error ? [] : data;
+  renderOcKpis();
+  renderOcLista();
+}
+
+function ocProgreso(row) {
+  const hechos = REGISTRO_PASOS.filter(p => row.pasos && row.pasos[p.id]).length;
+  const total = REGISTRO_PASOS.length;
+  return { hechos, total, pct: total ? Math.round(hechos / total * 100) : 0 };
+}
+
+// Estado de un paso puntual: si tiene fecha guardada, calcula si fue a tiempo o tarde contando
+// desde la fecha de ingreso; si el paso no tiene plazo definido, solo se registra la fecha.
+function ocPasoEstado(row, paso) {
+  const fechaStr = row.pasos ? row.pasos[paso.id] : null;
+  if (!fechaStr) return { hecha: false, fecha: null, tarde: false, diasTarde: null };
+  if (paso.max == null) return { hecha: true, fecha: fechaStr, tarde: false, diasTarde: null };
+  const ingreso = parseFecha(row.fecha_ingreso);
+  const completado = parseFecha(fechaStr);
+  const diasTomados = Math.round((completado - ingreso) / 86400000);
+  const tarde = diasTomados > paso.max;
+  return { hecha: true, fecha: fechaStr, tarde, diasTarde: tarde ? diasTomados - paso.max : 0 };
+}
+
+function renderOcKpis() {
+  const total = _ocRegistros.length;
+  const completos = _ocRegistros.filter(r => ocProgreso(r).pct === 100).length;
+  const conAtrasos = _ocRegistros.filter(r => REGISTRO_PASOS.some(p => ocPasoEstado(r, p).tarde)).length;
+  document.getElementById('oc-kpis').innerHTML =
+    kpiCard('Nuevos ingresos', total, '') +
+    kpiCard('Checklist completo', completos, '', 'green') +
+    kpiCard('Con pasos atrasados', conAtrasos, '', conAtrasos ? 'red' : 'green');
+}
+
+function renderOcLista() {
+  const el = document.getElementById('oc-lista');
+  const q = normName(document.getElementById('oc-buscar').value);
+  const filtrados = q ? _ocRegistros.filter(r => normName(r.colaborador_nombre).includes(q)) : _ocRegistros;
+  if (!filtrados.length) {
+    el.innerHTML = `<div class="bandeja-sub">${_ocRegistros.length ? 'Sin resultados.' : 'Todavía no se ha agregado ningún nuevo ingreso desde "+ Nuevo colaborador" en Colaboradores.'}</div>`;
+    return;
+  }
+  el.innerHTML = filtrados.map(row => ocCardHtml(row)).join('');
+}
+
+function ocCardHtml(row) {
+  const prog = ocProgreso(row);
+  const collapsed = !_ocExpandedKeys.has(row.id);
+  const color = prog.pct === 100 ? '#16A34A' : prog.pct >= 50 ? '#F59E0B' : '#DC2626';
+  const pasosHtml = REGISTRO_PASOS.map(p => ocPasoRowHtml(row, p)).join('');
+  return `<div class="oc-card${collapsed ? ' collapsed' : ''}">
+    <div class="oc-card-header" onclick="ocToggleCard('${row.id}', this)">
+      <div>
+        <div class="oc-card-nombre">${escapeHtml(row.colaborador_nombre)}</div>
+        <div class="oc-card-meta">Ingresó: ${fmtFecha(parseFecha(row.fecha_ingreso))}${row.sucursal ? ' · ' + escapeHtml(row.sucursal) : ''}${row.lider ? ' · Líder: ' + escapeHtml(row.lider) : ''}</div>
+      </div>
+      <div class="oc-card-progreso">
+        <div class="oc-progreso-track"><div class="oc-progreso-fill" style="width:${prog.pct}%;background:${color}"></div></div>
+        <span class="oc-progreso-pct">${prog.pct}%</span>
+        <span class="oc-card-chevron">⌄</span>
+      </div>
+    </div>
+    <div class="oc-card-body">${pasosHtml}</div>
+  </div>`;
+}
+
+function ocPasoRowHtml(row, paso) {
+  const estado = ocPasoEstado(row, paso);
+  const plazoTxt = paso.max == null ? 'Sin plazo' : `0–${paso.max} días`;
+  let estadoHtml = '';
+  if (estado.hecha && paso.max != null) {
+    estadoHtml = estado.tarde
+      ? `<span class="oc-paso-estado tarde">Fuera de tiempo — ${estado.diasTarde} día${estado.diasTarde === 1 ? '' : 's'} tarde</span>`
+      : `<span class="oc-paso-estado ok">A tiempo</span>`;
+  }
+  return `<div class="oc-paso">
+    <input type="checkbox" class="oc-paso-check" ${estado.hecha ? 'checked' : ''} onchange="ocPasoCheckChanged('${row.id}','${paso.id}',this.checked)">
+    <span class="oc-paso-label">${escapeHtml(paso.label)}</span>
+    <span class="oc-paso-plazo">${plazoTxt}</span>
+    <input type="date" class="oc-paso-fecha" value="${estado.fecha || ''}" ${estado.hecha ? '' : 'disabled'} onchange="ocPasoFechaChanged('${row.id}','${paso.id}',this.value)">
+    ${estadoHtml}
+  </div>`;
+}
+
+function ocToggleCard(rowId, headerEl) {
+  if (_ocExpandedKeys.has(rowId)) _ocExpandedKeys.delete(rowId); else _ocExpandedKeys.add(rowId);
+  headerEl.closest('.oc-card').classList.toggle('collapsed');
+}
+
+async function ocPasoCheckChanged(rowId, pasoId, checked) {
+  const row = _ocRegistros.find(r => r.id === rowId);
+  if (!row) return;
+  const fecha = checked ? new Date().toISOString().slice(0, 10) : null;
+  await ocGuardarPaso(row, pasoId, fecha);
+}
+
+async function ocPasoFechaChanged(rowId, pasoId, valor) {
+  const row = _ocRegistros.find(r => r.id === rowId);
+  if (!row || !valor) return;
+  await ocGuardarPaso(row, pasoId, valor);
+}
+
+async function ocGuardarPaso(row, pasoId, fechaOrNull) {
+  const pasos = { ...(row.pasos || {}) };
+  if (fechaOrNull) pasos[pasoId] = fechaOrNull; else delete pasos[pasoId];
+  const { error } = await supabaseClient.from('onboarding_checklist').update({ pasos, updated_at: new Date().toISOString() }).eq('id', row.id);
+  if (error) { alert('No se pudo guardar: ' + error.message); return; }
+  row.pasos = pasos;
+  renderOcKpis();
+  renderOcLista();
 }
 
 async function mostrarAppAutenticada() {
