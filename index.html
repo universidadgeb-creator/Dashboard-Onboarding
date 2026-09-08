@@ -3387,6 +3387,7 @@
     <div id="ruta-loading" class="state-box"><div class="spinner"></div><span class="state-msg">Cargando datos…</span></div>
     <div id="ruta-content" class="ruta-v2" style="display:none">
       <div id="ruta-estatus-note"></div>
+      <div class="rv-suc-chips" id="ruta-unidades-chips"></div>
       <div class="kpi-row" id="ruta-kpis"></div>
 
       <div class="panel-2col">
@@ -6016,10 +6017,38 @@ function renderFunnel(rows) {
   document.getElementById('ruta-funnel').innerHTML = html;
 }
 
+// Agrupa sucursales por unidad de negocio para los chips de arriba de Data — a mano, porque el
+// Sheet todavía no trae una columna "Unidad de Negocio" poblada (ver nota de ruta-estatus-note).
+// Las unidades sin sucursales propias listadas (Onara, Vivo 47 Physio, Nube, Seven Nutrition,
+// White Moose) hoy operan con un solo local, así que se usa el nombre de la unidad como sucursal.
+const UNIDADES_NEGOCIO = [
+  { nombre: 'Vivo 47', sucursales: ['Gourmetería', 'Valle Real', 'Naciones Unidas'] },
+  { nombre: 'Vivo 47 Center', sucursales: ['La Estancia'] },
+  { nombre: 'EasyFit', sucursales: ['Ávila Camacho', 'ITESO', 'Aleira', 'Cañadas'] },
+  { nombre: 'Onara', sucursales: ['Onara'] },
+  { nombre: 'Vivo 47 Physio', sucursales: ['Vivo 47 Physio'] },
+  { nombre: 'Nube', sucursales: ['Nube'] },
+  { nombre: 'Seven Nutrition', sucursales: ['Seven Nutrition'] },
+  { nombre: 'White Moose', sucursales: ['White Moose'] },
+];
+let _rutaUnidadActiva = null;
+
+function selectRutaUnidad(nombre) {
+  _rutaUnidadActiva = _rutaUnidadActiva === nombre ? null : nombre;
+  renderRuta();
+}
+
+function renderRutaUnidadesChips(rowsBase) {
+  const chipsEl = document.getElementById('ruta-unidades-chips');
+  const contarUnidad = u => rowsBase.filter(c => u.sucursales.includes(c.sucursal)).length;
+  chipsEl.innerHTML = `<button class="rv-suc-chip ${!_rutaUnidadActiva?'active':''}" onclick="selectRutaUnidad(null)">Todas <span class="rv-suc-chip-n">${rowsBase.length}</span></button>` +
+    UNIDADES_NEGOCIO.map(u => `<button class="rv-suc-chip ${_rutaUnidadActiva===u.nombre?'active':''}" onclick="selectRutaUnidad('${u.nombre.replace(/'/g,"\\'")}')">${escapeHtml(u.nombre)} <span class="rv-suc-chip-n">${contarUnidad(u)}</span></button>`).join('');
+}
+
 function renderRuta() {
   const { suc, rol, estatus } = getF();
   _rutaIndex = getColabIndex();
-  let rows = _rutaIndex.filter(c => {
+  const rowsBase = _rutaIndex.filter(c => {
     if (suc && c.sucursal !== suc) return false;
     if (estatus && c.estatus !== estatus) return false;
     if (rol) {
@@ -6031,6 +6060,9 @@ function renderRuta() {
     if (c.dias === null || c.dias > 91) return false; // solo ventana de onboarding: 0–91 días
     return true;
   });
+  renderRutaUnidadesChips(rowsBase);
+  const unidadSucursales = _rutaUnidadActiva ? UNIDADES_NEGOCIO.find(u => u.nombre === _rutaUnidadActiva).sucursales : null;
+  let rows = unidadSucursales ? rowsBase.filter(c => unidadSucursales.includes(c.sucursal)) : rowsBase;
   _rutaFocosSuc = null;
 
   const conEstatus = rows.filter(c => c.estatus !== 'desconocido');
