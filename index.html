@@ -75,14 +75,14 @@
   .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 6px; }
   .cal-weekdays span { text-align: center; font-size: 11px; font-weight: 700; color: var(--gris-medio); text-transform: uppercase; letter-spacing: 0.04em; }
   .cal-daygrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-  .cal-day-cell { min-height: 84px; background: #fff; border: 1px solid #E6DFF5; border-radius: 8px; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
+  .cal-day-cell { min-height: 84px; min-width: 0; background: #fff; border: 1px solid #E6DFF5; border-radius: 8px; padding: 6px; display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
   .cal-day-cell.empty { background: transparent; border-color: transparent; }
   .cal-day-cell.hoy { border-color: var(--verde-acento); box-shadow: 0 0 0 1px var(--verde-acento) inset; }
   .cal-day-num { font-size: 11px; font-weight: 700; color: var(--gris-medio); text-align: right; }
-  .cal-day-persona { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; cursor: pointer; }
+  .cal-day-persona { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; cursor: pointer; min-width: 0; }
   .cal-day-persona:hover .cal-day-persona-nombre { text-decoration: underline; }
   .cal-day-icon { font-size: 10px; flex-shrink: 0; }
-  .cal-day-persona-nombre { font-size: 10px; color: var(--blanco); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cal-day-persona-nombre { font-size: 10px; color: var(--blanco); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1 1 auto; }
   .cal-day-detalle { display: none; flex-basis: 100%; font-size: 9px; color: var(--verde-acento); font-weight: 600; padding-left: 14px; }
   .cal-day-persona.mostrar-detalle .cal-day-detalle { display: block; }
   .cal-day-mas { font-size: 10px; color: var(--verde-acento); cursor: pointer; font-weight: 600; }
