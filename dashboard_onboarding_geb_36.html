@@ -4218,7 +4218,7 @@
 
       <div class="alta-acciones">
         <button class="btn-refresh" onclick="closeAltaModalDirect()">Cancelar</button>
-        <button class="btn-nuevo-colab" onclick="guardarAltaColaborador()">Guardar (vista previa)</button>
+        <button class="btn-nuevo-colab" id="alta-guardar-btn" onclick="guardarAltaColaborador()">Guardar (vista previa)</button>
       </div>
     </div>
   </div>
@@ -6032,10 +6032,29 @@ const UNIDADES_NEGOCIO = [
   { nombre: 'Onara', sucursales: ['Onara'] },
   { nombre: 'Vivo 47 Physio', sucursales: ['Vivo 47 Physio'] },
   { nombre: 'Nube', sucursales: ['Nube'] },
-  { nombre: 'Seven Nutrition', sucursales: ['Seven Nutrition'] },
+  { nombre: 'Seven Nutrition', sucursales: ['Sev7n Nutrition'] },
   { nombre: 'White Moose', sucursales: ['White Moose'] },
 ];
 let _rutaUnidadActiva = null;
+
+// Filtra `rows` por las sucursales de la unidad de negocio elegida (o regresa `rows` tal cual si
+// no hay ninguna elegida, o si el nombre ya no existe en UNIDADES_NEGOCIO). Compartido entre Data
+// y el Checklist de Nuevo Ingreso — antes cada uno traía su propia copia de este filtro, y solo
+// una de las dos tenía el resguardo de que la unidad exista.
+function filtrarPorUnidadNegocio(rows, unidadNombre, sucursalField) {
+  if (!unidadNombre) return rows;
+  const unidad = UNIDADES_NEGOCIO.find(u => u.nombre === unidadNombre);
+  return unidad ? rows.filter(r => unidad.sucursales.includes(r[sucursalField])) : rows;
+}
+
+// Dibuja "Todas + una por unidad de negocio" dentro de `elId`, contando sobre `rowsBase` y
+// marcando activa la unidad `unidadActiva` — mismo compartido de arriba.
+function renderUnidadesChips(elId, rowsBase, sucursalField, unidadActiva, onSelectFnName) {
+  const chipsEl = document.getElementById(elId);
+  const contarUnidad = u => rowsBase.filter(r => u.sucursales.includes(r[sucursalField])).length;
+  chipsEl.innerHTML = `<button class="rv-suc-chip ${!unidadActiva?'active':''}" onclick="${onSelectFnName}(null)">Todas <span class="rv-suc-chip-n">${rowsBase.length}</span></button>` +
+    UNIDADES_NEGOCIO.map(u => `<button class="rv-suc-chip ${unidadActiva===u.nombre?'active':''}" onclick="${onSelectFnName}('${u.nombre.replace(/'/g,"\\'")}')">${escapeHtml(u.nombre)} <span class="rv-suc-chip-n">${contarUnidad(u)}</span></button>`).join('');
+}
 
 function selectRutaUnidad(nombre) {
   _rutaUnidadActiva = _rutaUnidadActiva === nombre ? null : nombre;
@@ -6043,10 +6062,7 @@ function selectRutaUnidad(nombre) {
 }
 
 function renderRutaUnidadesChips(rowsBase) {
-  const chipsEl = document.getElementById('ruta-unidades-chips');
-  const contarUnidad = u => rowsBase.filter(c => u.sucursales.includes(c.sucursal)).length;
-  chipsEl.innerHTML = `<button class="rv-suc-chip ${!_rutaUnidadActiva?'active':''}" onclick="selectRutaUnidad(null)">Todas <span class="rv-suc-chip-n">${rowsBase.length}</span></button>` +
-    UNIDADES_NEGOCIO.map(u => `<button class="rv-suc-chip ${_rutaUnidadActiva===u.nombre?'active':''}" onclick="selectRutaUnidad('${u.nombre.replace(/'/g,"\\'")}')">${escapeHtml(u.nombre)} <span class="rv-suc-chip-n">${contarUnidad(u)}</span></button>`).join('');
+  renderUnidadesChips('ruta-unidades-chips', rowsBase, 'sucursal', _rutaUnidadActiva, 'selectRutaUnidad');
 }
 
 function renderRuta() {
@@ -6065,8 +6081,7 @@ function renderRuta() {
     return true;
   });
   renderRutaUnidadesChips(rowsBase);
-  const unidadSucursales = _rutaUnidadActiva ? UNIDADES_NEGOCIO.find(u => u.nombre === _rutaUnidadActiva).sucursales : null;
-  let rows = unidadSucursales ? rowsBase.filter(c => unidadSucursales.includes(c.sucursal)) : rowsBase;
+  let rows = filtrarPorUnidadNegocio(rowsBase, _rutaUnidadActiva, 'sucursal');
   _rutaFocosSuc = null;
 
   const conEstatus = rows.filter(c => c.estatus !== 'desconocido');
@@ -9159,7 +9174,7 @@ async function actualizarRolReal() {
 
   const { data: actualizado, error: errUpd } = await supabaseClient.from('colaboradores')
     .update({ rol_acceso: rol })
-    .eq('email', email)
+    .ilike('email', email)
     .select();
   if (errUpd) { alert('No se pudo actualizar el rol: ' + errUpd.message); return; }
 
@@ -9335,7 +9350,9 @@ function closeAltaModalDirect() {
 }
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeAltaModalDirect(); });
 
+let _altaGuardando = false;
 async function guardarAltaColaborador() {
+  if (_altaGuardando) return; // evita duplicados si dan doble-click mientras espera a Supabase
   const val = id => document.getElementById(id).value.trim();
   const nombre = val('alta-nombre');
   const contratacion = val('alta-contratacion');
@@ -9367,31 +9384,43 @@ async function guardarAltaColaborador() {
     nss: val('alta-nss'),
     curp: val('alta-curp').toUpperCase(),
   };
-  const lista = getColaboradoresPreview();
-  lista.push(registro);
-  localStorage.setItem(COLAB_PREVIEW_KEY, JSON.stringify(lista));
 
-  // Además de la vista previa local, esto SÍ se manda de verdad a Supabase — nada más lo mínimo
-  // (nombre, fecha de ingreso, sucursal, líder) para poder armarle su Checklist de Nuevo Ingreso.
-  // A propósito no se manda RFC/NSS/CURP/sueldo/domicilio ni el resto de los datos personales.
+  _altaGuardando = true;
+  const btn = document.getElementById('alta-guardar-btn');
+  if (btn) btn.disabled = true;
+
+  // Se manda primero a Supabase (antes de tocar localStorage o cerrar el modal) — así, si falla,
+  // no queda nada a medias: el modal se queda abierto con los datos tal cual para reintentar, sin
+  // vista previa local duplicada ni colaborador "fantasma" sin checklist.
+  // A propósito solo se manda lo mínimo (nombre, fecha de ingreso, sucursal, líder) para poder
+  // armarle su Checklist de Nuevo Ingreso — nada de RFC/NSS/CURP/sueldo/domicilio.
   const { error: ocError } = await supabaseClient.from('onboarding_checklist').insert({
     colaborador_key: normName(nombre),
     colaborador_nombre: nombre,
     fecha_ingreso: contratacion,
-    sucursal: sucursal || null,
+    sucursal: sucursal ? clubNombre(sucursal) : null,
     lider: lider || null,
   });
 
+  if (ocError) {
+    _altaGuardando = false;
+    if (btn) btn.disabled = false;
+    alert(`No se pudo crear el Checklist de Nuevo Ingreso: ${ocError.message}\n\nNo se guardó nada — corrige lo que haga falta y dale Guardar otra vez.`);
+    return;
+  }
+
+  const lista = getColaboradoresPreview();
+  lista.push(registro);
+  localStorage.setItem(COLAB_PREVIEW_KEY, JSON.stringify(lista));
+
   document.querySelectorAll('#alta-modal-panel input[type=text], #alta-modal-panel input[type=date], #alta-modal-panel input[type=email], #alta-modal-panel input[type=number]').forEach(i => i.value = '');
   closeAltaModalDirect();
+  _altaGuardando = false;
+  if (btn) btn.disabled = false;
   _colabIndexCache = null;
   _orgChartBuilt = false;
   renderDirectorio();
-  if (ocError) {
-    alert(`${nombre} se agregó como vista previa, pero no se pudo crear su Checklist de Nuevo Ingreso: ${ocError.message}`);
-  } else {
-    alert(`${nombre} se agregó como vista previa (marcado así en el Directorio, solo en este navegador) y ya tiene su Checklist de Nuevo Ingreso listo para llenar.`);
-  }
+  alert(`${nombre} se agregó como vista previa (marcado así en el Directorio, solo en este navegador) y ya tiene su Checklist de Nuevo Ingreso listo para llenar.`);
 }
 
 // ── BANDEJA DE ENTRADA / AVISOS (vista previa — solo localStorage, nunca se envía a nadie) ──
@@ -13732,10 +13761,13 @@ function closeRvHistorialModalDirect() {
 
 async function cargarUsuarioActual(session) {
   const email = session.user.email;
+  // .ilike() en vez de .eq() — coincide sin importar mayúsculas/minúsculas, porque el correo
+  // guardado a mano desde "Cambiar rol real" se normaliza a minúsculas pero el de un login real
+  // puede venir con otra capitalización.
   const { data, error } = await supabaseClient
     .from('colaboradores')
     .select('*')
-    .eq('email', email)
+    .ilike('email', email)
     .maybeSingle();
   _usuarioActual = (!error && data) ? data : { email, nombre: email, rol_acceso: 'colaborador' };
 }
@@ -13745,6 +13777,11 @@ async function cargarUsuarioActual(session) {
 // Trello, con "Alta en Factorial" renombrado a "Alta en Vivo 47 Hub". Los plazos están en días
 // corridos desde la fecha de ingreso; los pasos sin plazo (max: null) solo registran la fecha,
 // sin comparar a tiempo/tarde.
+// IMPORTANTE: los "id" de aquí abajo son las llaves que ya quedaron guardadas dentro del jsonb
+// `pasos` de cada fila real en Supabase. Nunca renombres o borres un "id" existente — el
+// checklist ya marcado de alguien en proceso de onboarding se leería como "no hecho" de la nada,
+// sin aviso. Si un paso cambia de nombre, cambia solo el "label"; si de plano ya no aplica, déjalo
+// en el arreglo (puedes ocultarlo en la UI) en vez de quitarlo.
 const REGISTRO_PASOS = [
   { id: 'alta_vivo47hub', label: 'Alta en Vivo 47 Hub', max: 2 },
   { id: 'entrega_uniforme', label: 'Entrega de uniforme', max: 3 },
@@ -13769,9 +13806,12 @@ const REGISTRO_PASOS = [
 let _ocRegistros = [];
 let _ocExpandedKeys = new Set();
 let _ocUnidadActiva = null; // filtro por unidad de negocio (reutiliza UNIDADES_NEGOCIO de Data) — null = todas
+let _ocCargaId = 0; // token de la carga más reciente — si dos fetch se cruzan, solo aplica el último en pedirse
 
 async function renderOnboardingChecklist() {
+  const miCarga = ++_ocCargaId;
   const { data, error } = await supabaseClient.from('onboarding_checklist').select('*').order('fecha_ingreso', { ascending: false });
+  if (miCarga !== _ocCargaId) return; // llegó una carga más nueva mientras esperábamos esta — se descarta
   _ocRegistros = error ? [] : data;
   ocPoblarMeses();
   ocAplicarFiltros();
@@ -13799,22 +13839,16 @@ function ocAplicarFiltros() {
 }
 
 function ocRegistrosFiltrados() {
-  let rows = _ocRegistros;
-  if (_ocUnidadActiva) {
-    const unidad = UNIDADES_NEGOCIO.find(u => u.nombre === _ocUnidadActiva);
-    if (unidad) rows = rows.filter(r => unidad.sucursales.includes(r.sucursal));
-  }
+  let rows = filtrarPorUnidadNegocio(_ocRegistros, _ocUnidadActiva, 'sucursal');
   const mesSel = document.getElementById('oc-mes').value;
   if (mesSel) rows = rows.filter(r => getMesSort(r.fecha_ingreso) === mesSel);
   return rows;
 }
 
 function renderOcUnidadesChips() {
-  const chipsEl = document.getElementById('oc-unidades-chips');
   const mesSel = document.getElementById('oc-mes').value;
   const base = mesSel ? _ocRegistros.filter(r => getMesSort(r.fecha_ingreso) === mesSel) : _ocRegistros;
-  chipsEl.innerHTML = `<button class="rv-suc-chip ${!_ocUnidadActiva?'active':''}" onclick="selectOcUnidad(null)">Todas <span class="rv-suc-chip-n">${base.length}</span></button>` +
-    UNIDADES_NEGOCIO.map(u => `<button class="rv-suc-chip ${_ocUnidadActiva===u.nombre?'active':''}" onclick="selectOcUnidad('${u.nombre.replace(/'/g,"\\'")}')">${escapeHtml(u.nombre)} <span class="rv-suc-chip-n">${base.filter(r => u.sucursales.includes(r.sucursal)).length}</span></button>`).join('');
+  renderUnidadesChips('oc-unidades-chips', base, 'sucursal', _ocUnidadActiva, 'selectOcUnidad');
 }
 
 function selectOcUnidad(nombre) {
@@ -13920,8 +13954,10 @@ async function ocPasoCheckChanged(rowId, pasoId, checked) {
 
 async function ocPasoFechaChanged(rowId, pasoId, valor) {
   const row = _ocRegistros.find(r => r.id === rowId);
-  if (!row || !valor) return;
-  await ocGuardarPaso(row, pasoId, valor);
+  if (!row) return;
+  // valor === '' pasa cuando se borra la fecha con el botoncito "x" del input — hay que guardar
+  // ese borrado (null) también, si no el checkbox se queda marcado con la fecha vieja por debajo.
+  await ocGuardarPaso(row, pasoId, valor || null);
 }
 
 async function ocGuardarPaso(row, pasoId, fechaOrNull) {
