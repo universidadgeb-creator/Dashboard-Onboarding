@@ -14181,6 +14181,29 @@ function mpBuscarColab(nombreBuscado) {
   return idx.find(c => normName(c.nombre) === nk) || idx.find(c => similarNames(nk, normName(c.nombre))) || null;
 }
 
+// Fechas de ingreso que dio el usuario a mano, para llenar huecos puntuales — SOLO se usan si el
+// roster no tiene ya su propia fecha (nunca pisan el dato real del Sheet), o si la persona no se
+// encontró del todo en el roster general. Cuando dio un rango de 2 días ("22 y 23 de junio"), se
+// usa el primero. Ariadna Yareni y Victor Javier no están en el roster general (Victor
+// probablemente por ser una "vista previa" local en otro navegador) así que solo se les puede
+// mostrar la fecha/días — no se les puede cruzar Preonboarding/30/60/90 porque esos datos viven
+// pegados al registro del roster.
+const MP_FECHAS_MANUALES = {
+  'oswaldo villaneda johnston': '2026-08-10',
+  'francisco javier garcia rodriguez': '2026-08-10',
+  'ortiz ovalle rubi isabel': '2026-07-31',
+  'cabrera flores otmar octavio': '2026-07-31',
+  'ariadna yareni andrade arriero': '2026-08-10',
+  'victor javier soltero cardenas': '2026-09-07',
+};
+function mpFechaManual(nombreBuscado) {
+  const iso = MP_FECHAS_MANUALES[normName(nombreBuscado)];
+  return iso ? parseFecha(iso) : null;
+}
+function mpDiasDesde(fecha) {
+  return Math.floor((new Date() - fecha) / 86400000);
+}
+
 function mpTieneAjuste10(c) {
   return DATA.ajuste10.some(r => similarNames(normName(r['Nombre del colaborador']), c.key));
 }
@@ -14209,17 +14232,26 @@ function mpTieneEtapa(c, id) {
 function renderMpComparacion() {
   const filas = MP_LISTA_COMPARAR.map(nombreBuscado => {
     const c = mpBuscarColab(nombreBuscado);
-    if (!c) return { nombreBuscado, c: null };
-    if (c.dias === null) return { nombreBuscado, c, sinFecha: true };
-    const esperadas = mpEtapasEsperadas(c.dias);
+    const fechaManual = mpFechaManual(nombreBuscado);
+    if (!c) {
+      if (!fechaManual) return { nombreBuscado, c: null };
+      // No está en el roster general (ver nota en MP_FECHAS_MANUALES) — solo se puede mostrar
+      // días de antigüedad, no cruzar Preonboarding/30/60/90.
+      return { nombreBuscado, c: null, soloFecha: true, dias: mpDiasDesde(fechaManual) };
+    }
+    const dias = c.dias !== null ? c.dias : (fechaManual ? mpDiasDesde(fechaManual) : null);
+    if (dias === null) return { nombreBuscado, c, sinFecha: true };
+    const esperadas = mpEtapasEsperadas(dias);
     const faltantes = esperadas.filter(e => !mpTieneEtapa(c, e.id));
-    return { nombreBuscado, c, dias: c.dias, faltantes };
+    return { nombreBuscado, c, dias, faltantes, fechaRellenada: c.dias === null };
   });
 
-  const noEncontrados = filas.filter(f => !f.c).length;
+  const noEncontrados = filas.filter(f => !f.c && !f.soloFecha).length;
+  const soloFecha = filas.filter(f => f.soloFecha).length;
   const sinFecha = filas.filter(f => f.sinFecha).length;
   const conFaltantes = filas.filter(f => f.faltantes && f.faltantes.length).length;
   const alCorriente = filas.filter(f => f.faltantes && !f.faltantes.length).length;
+  const rellenadas = filas.filter(f => f.fechaRellenada).length;
 
   const comparables = alCorriente + conFaltantes;
   let headline, color;
@@ -14236,17 +14268,30 @@ function renderMpComparacion() {
   filas.forEach(f => { if (f.faltantes) f.faltantes.forEach(e => { conteoEtapas[e.label] = (conteoEtapas[e.label] || 0) + 1; }); });
   const etapasOrdenadas = Object.entries(conteoEtapas).sort((a, b) => b[1] - a[1]);
   if (etapasOrdenadas.length) observaciones.push(`El pendiente más común es "${etapasOrdenadas[0][0]}" — le falta a ${etapasOrdenadas[0][1]} persona${etapasOrdenadas[0][1] === 1 ? '' : 's'}.`);
+  if (rellenadas) observaciones.push(`A ${rellenadas === 1 ? '1 persona' : rellenadas + ' personas'} se le${rellenadas === 1 ? '' : 's'} completó la fecha de ingreso con la que diste a mano.`);
   if (sinFecha) observaciones.push(sinFecha === 1 ? '1 persona no tiene fecha de ingreso registrada, así que no se pudo evaluar.' : `${sinFecha} personas no tienen fecha de ingreso registrada, así que no se pudieron evaluar.`);
+  if (soloFecha) observaciones.push(soloFecha === 1 ? '1 persona no está en el roster general — solo se le puede mostrar antigüedad, no cruzar sus encuestas.' : `${soloFecha} personas no están en el roster general — solo se les puede mostrar antigüedad, no cruzar sus encuestas.`);
   if (noEncontrados) observaciones.push(noEncontrados === 1 ? '1 nombre no se encontró en el roster — puede que esté mal escrito o que sea una vista previa local de otro navegador.' : `${noEncontrados} nombres no se encontraron en el roster — puede que estén mal escritos o que sean vista previa local de otro navegador.`);
   mpSetResumen('comp', headline, color, observaciones);
 
   document.getElementById('mp-comp-kpis').innerHTML =
     kpiCard('Al corriente', alCorriente, '', 'green') +
     kpiCard('Con algo pendiente', conFaltantes, '', conFaltantes ? 'red' : 'green') +
-    kpiCard('Sin fecha de ingreso', sinFecha, '', sinFecha ? 'yellow' : 'green') +
+    kpiCard('Sin fecha / no cruzable', sinFecha + soloFecha, '', (sinFecha + soloFecha) ? 'yellow' : 'green') +
     kpiCard('No encontrados en el roster', noEncontrados, '', noEncontrados ? 'yellow' : 'green');
 
   document.getElementById('mp-comp-lista').innerHTML = filas.map(f => {
+    if (f.soloFecha) {
+      return `<div class="encuesta-card" style="margin-bottom:8px;border-left:4px solid #6B6280">
+        <div class="encuesta-card-head">
+          <div>
+            <div style="font-weight:700;font-size:13.5px">${escapeHtml(f.nombreBuscado)}</div>
+            <div class="encuesta-card-meta">${f.dias} días (fecha dada a mano) · no está en el roster general, no se pudieron cruzar sus encuestas</div>
+          </div>
+          <span class="estatus-badge estatus-desconocido">No cruzable</span>
+        </div>
+      </div>`;
+    }
     if (!f.c) {
       return `<div class="encuesta-card" style="margin-bottom:8px;border-left:4px solid #6B6280">
         <div class="encuesta-card-head">
@@ -14275,7 +14320,7 @@ function renderMpComparacion() {
       <div class="encuesta-card-head">
         <div>
           <div style="font-weight:700;font-size:13.5px">${escapeHtml(f.c.nombre)}</div>
-          <div class="encuesta-card-meta">${escapeHtml(f.c.sucursal || '')} · ${escapeHtml(f.c.rol || '')} · Líder: ${escapeHtml(f.c.lider || '—')} · ${f.dias} días</div>
+          <div class="encuesta-card-meta">${escapeHtml(f.c.sucursal || '')} · ${escapeHtml(f.c.rol || '')} · Líder: ${escapeHtml(f.c.lider || '—')} · ${f.dias} días${f.fechaRellenada ? ' (fecha dada a mano)' : ''}</div>
         </div>
         ${badge}
       </div>
