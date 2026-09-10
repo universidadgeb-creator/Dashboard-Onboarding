@@ -14191,8 +14191,8 @@ function mpBuscarColab(nombreBuscado) {
 const MP_FECHAS_MANUALES = {
   'oswaldo villaneda johnston': '2026-08-10',
   'francisco javier garcia rodriguez': '2026-08-10',
-  'ortiz ovalle rubi isabel': '2026-07-31',
-  'cabrera flores otmar octavio': '2026-07-31',
+  'ortiz ovalle rubi isabel': '2026-08-31',
+  'cabrera flores otmar octavio': '2026-08-31',
   'ariadna yareni andrade arriero': '2026-08-10',
   'victor javier soltero cardenas': '2026-09-07',
 };
@@ -14202,6 +14202,32 @@ function mpFechaManual(nombreBuscado) {
 }
 function mpDiasDesde(fecha) {
   return Math.floor((new Date() - fecha) / 86400000);
+}
+
+// Casos conocidos donde la misma persona real quedó partida en dos registros del roster porque
+// el Sheet la tiene con apodo en algunas respuestas ("Fanny Reyes") y con nombre completo en
+// otras ("Yajaira Estefania Reyes Ramirez") — el cruce difuso normal no los une solo porque el
+// apodo es demasiado distinto al nombre completo. Aquí se juntan a mano sus respuestas (nunca su
+// fecha de ingreso — esa se queda la del registro principal, la del apodo suele venir mal).
+const MP_ALIAS_NOMBRES = {
+  'yajaira estefania reyes ramirez': ['fanny reyes'],
+  'gabriela meza ramirez': ['gaby meza'],
+};
+function mpColabConAlias(c) {
+  const aliases = MP_ALIAS_NOMBRES[normName(c.nombre)];
+  if (!aliases) return c;
+  const idx = getColabIndex();
+  const merged = { ...c };
+  aliases.forEach(aliasKey => {
+    const aliasC = idx.find(x => normName(x.nombre) === aliasKey);
+    if (!aliasC) return;
+    merged.pre = merged.pre || aliasC.pre;
+    merged.d30 = merged.d30 || aliasC.d30;
+    merged.d60 = merged.d60 || aliasC.d60;
+    merged.d60l = merged.d60l || aliasC.d60l;
+    merged.d90 = merged.d90 || aliasC.d90;
+  });
+  return merged;
 }
 
 function mpTieneAjuste10(c) {
@@ -14231,7 +14257,8 @@ function mpTieneEtapa(c, id) {
 
 function renderMpComparacion() {
   const filas = MP_LISTA_COMPARAR.map(nombreBuscado => {
-    const c = mpBuscarColab(nombreBuscado);
+    const cBase = mpBuscarColab(nombreBuscado);
+    const c = cBase ? mpColabConAlias(cBase) : cBase;
     const fechaManual = mpFechaManual(nombreBuscado);
     if (!c) {
       if (!fechaManual) return { nombreBuscado, c: null };
