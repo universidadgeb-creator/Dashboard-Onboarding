@@ -3767,23 +3767,42 @@
     <p class="bandeja-sub" style="margin-top:-6px">Ojo: cada tarjeta de abajo es un problema reportado (aunque el texto lo describa en positivo, ej. "Recibió su uniforme en tiempo y forma" significa que ESA persona NO lo recibió a tiempo). Con cuántas personas y de qué rol/sucursal.</p>
     <div id="mp-30-temas"></div>
 
-    <div class="section-title" style="margin:28px 0 12px">Encuesta 60 y 90 días — quiénes ya respondieron</div>
-    <div class="panel-box mp-resumen" id="mp-6090-resumen">
-      <div class="mp-como-vamos" id="mp-6090-como-vamos"></div>
+    <div class="section-title" style="margin:28px 0 12px">Encuesta 60 días — colaborador y líder</div>
+    <p class="bandeja-sub">Incluye la respuesta del propio colaborador y, cuando ya existe, la de su líder — para ver el panorama completo de cómo va.</p>
+    <div class="panel-box mp-resumen" id="mp-60-resumen">
+      <div class="mp-como-vamos" id="mp-60-como-vamos"></div>
       <div class="mp-observaciones-label">Observaciones clave</div>
-      <ul class="mp-observaciones" id="mp-6090-observaciones"></ul>
+      <ul class="mp-observaciones" id="mp-60-observaciones"></ul>
     </div>
     <div class="mp-detalle-label">Detalle para revisión</div>
-    <div class="kpi-row" id="mp-6090-kpis"></div>
-    <div id="mp-6090-lista" style="margin-top:12px"></div>
+    <div class="kpi-row" id="mp-60-kpis"></div>
+    <div id="mp-60-lista" style="margin-top:12px"></div>
     <div class="panel-2col" style="margin-top:14px">
-      <div class="panel-box"><h4>Focos rojos por rol</h4><div id="mp-6090-rol"></div></div>
-      <div class="panel-box"><h4>Focos rojos por líder</h4><div id="mp-6090-lider"></div></div>
+      <div class="panel-box"><h4>Focos rojos por rol</h4><div id="mp-60-rol"></div></div>
+      <div class="panel-box"><h4>Focos rojos por líder</h4><div id="mp-60-lider"></div></div>
     </div>
-    <div class="panel-box" style="margin-top:14px"><h4>Focos rojos por sucursal</h4><div id="mp-6090-suc"></div></div>
+    <div class="panel-box" style="margin-top:14px"><h4>Focos rojos por sucursal</h4><div id="mp-60-suc"></div></div>
     <div class="mp-detalle-label">Detalle por tema (qué exactamente, a quién)</div>
     <p class="bandeja-sub" style="margin-top:-6px">Ojo: cada tarjeta de abajo es un problema reportado (aunque el texto lo describa en positivo, ej. "Recibió su uniforme en tiempo y forma" significa que ESA persona NO lo recibió a tiempo). Con cuántas personas y de qué rol/sucursal.</p>
-    <div id="mp-6090-temas"></div>
+    <div id="mp-60-temas"></div>
+
+    <div class="section-title" style="margin:28px 0 12px">Encuesta 90 días</div>
+    <div class="panel-box mp-resumen" id="mp-90-resumen">
+      <div class="mp-como-vamos" id="mp-90-como-vamos"></div>
+      <div class="mp-observaciones-label">Observaciones clave</div>
+      <ul class="mp-observaciones" id="mp-90-observaciones"></ul>
+    </div>
+    <div class="mp-detalle-label">Detalle para revisión</div>
+    <div class="kpi-row" id="mp-90-kpis"></div>
+    <div id="mp-90-lista" style="margin-top:12px"></div>
+    <div class="panel-2col" style="margin-top:14px">
+      <div class="panel-box"><h4>Focos rojos por rol</h4><div id="mp-90-rol"></div></div>
+      <div class="panel-box"><h4>Focos rojos por líder</h4><div id="mp-90-lider"></div></div>
+    </div>
+    <div class="panel-box" style="margin-top:14px"><h4>Focos rojos por sucursal</h4><div id="mp-90-suc"></div></div>
+    <div class="mp-detalle-label">Detalle por tema (qué exactamente, a quién)</div>
+    <p class="bandeja-sub" style="margin-top:-6px">Ojo: cada tarjeta de abajo es un problema reportado (aunque el texto lo describa en positivo, ej. "Recibió su uniforme en tiempo y forma" significa que ESA persona NO lo recibió a tiempo). Con cuántas personas y de qué rol/sucursal.</p>
+    <div id="mp-90-temas"></div>
   </div>
 
   <!-- RECLUTAMIENTO — vacantes, cobertura, efectividad, personas contratadas (vista previa) -->
@@ -14121,7 +14140,8 @@ function renderMedicionProvisional() {
   renderMpRotacion();
   renderMpAjuste10();
   renderMp30();
-  renderMp6090();
+  renderMp60();
+  renderMp90();
 }
 
 function renderMpRotacion() {
@@ -14460,42 +14480,64 @@ function renderMp30() {
   mpRenderTemas(focosPorPersona, 'mp-30-temas');
 }
 
-function renderMp6090() {
+function renderMp60() {
   const todos = getColabIndex().filter(c => c.estatus !== 'baja' && mpEsVivo47(c.sucursal));
-  const respondieron = todos.filter(c => c.d60 || c.d60l || c.d90);
-  const enVentanaSinResponder = todos.filter(c =>
-    ((mpEnVentana(c, VENTANA_60) && !(c.d60 || c.d60l)) || (mpEnVentana(c, VENTANA_90) && !c.d90)));
-  const focosPorPersona = respondieron.map(c => {
-    const etapa = c.d90 ? '90 días' : '60 días';
-    const focos = focosRojosDe(c).filter(f => f.fuente.startsWith('60') || f.fuente.startsWith('90'));
-    return { c, etapa, focos };
-  });
+  const respondieron = todos.filter(c => c.d60 || c.d60l);
+  const conLider = todos.filter(c => c.d60l);
+  const enVentanaSinResponder = todos.filter(c => mpEnVentana(c, VENTANA_60) && !(c.d60 || c.d60l));
+  const focosPorPersona = respondieron.map(c => ({ c, focos: focosRojosDe(c).filter(f => f.fuente === '60 días' || f.fuente === '60 días · líder') }));
   const totalFocos = focosPorPersona.reduce((s, x) => s + x.focos.length, 0);
 
-  document.getElementById('mp-6090-kpis').innerHTML =
-    kpiCard('Respondieron encuesta 60 o 90 días', respondieron.length, '') +
+  document.getElementById('mp-60-kpis').innerHTML =
+    kpiCard('Respondieron encuesta 60 días', respondieron.length, '') +
+    kpiCard('Con respuesta de su líder', conLider.length, '') +
     kpiCard('En ventana, sin responder', enVentanaSinResponder.length, '', enVentanaSinResponder.length ? 'yellow' : 'green') +
     kpiCard('Focos rojos', totalFocos, '', totalFocos ? 'red' : 'green');
 
-  mpSetResumenFocos('6090', respondieron, focosPorPersona, enVentanaSinResponder, 'las encuestas de 60 o 90 días');
+  mpSetResumenFocos('60', respondieron, focosPorPersona, enVentanaSinResponder, 'la encuesta de 60 días');
 
-  const el = document.getElementById('mp-6090-lista');
-  el.innerHTML = focosPorPersona.length ? focosPorPersona.map(({ c, etapa, focos }) => mpPersonaCardHtml(c, true, focos, etapa)).join('')
-    : '<div class="bandeja-sub">Nadie de estas sucursales ha respondido la encuesta de 60 o 90 días todavía.</div>';
+  const el = document.getElementById('mp-60-lista');
+  el.innerHTML = focosPorPersona.length ? focosPorPersona.map(({ c, focos }) => mpPersonaCardHtml(c, true, focos, null, narr60(c))).join('')
+    : '<div class="bandeja-sub">Nadie de estas sucursales ha respondido la encuesta de 60 días todavía (ni colaborador ni líder).</div>';
 
-  mpRenderFocosPorGrupo(focosPorPersona, 'mp-6090-rol', c => c.rol, 'Sin rol');
-  mpRenderFocosPorGrupo(focosPorPersona, 'mp-6090-lider', c => c.lider, 'Sin líder');
-  mpRenderFocosPorGrupo(focosPorPersona, 'mp-6090-suc', c => c.sucursal, 'Sin sucursal');
-  mpRenderTemas(focosPorPersona, 'mp-6090-temas');
+  mpRenderFocosPorGrupo(focosPorPersona, 'mp-60-rol', c => c.rol, 'Sin rol');
+  mpRenderFocosPorGrupo(focosPorPersona, 'mp-60-lider', c => c.lider, 'Sin líder');
+  mpRenderFocosPorGrupo(focosPorPersona, 'mp-60-suc', c => c.sucursal, 'Sin sucursal');
+  mpRenderTemas(focosPorPersona, 'mp-60-temas');
 }
 
-function mpPersonaCardHtml(c, respondio, focos, ventanaLabel) {
+function renderMp90() {
+  const todos = getColabIndex().filter(c => c.estatus !== 'baja' && mpEsVivo47(c.sucursal));
+  const respondieron = todos.filter(c => c.d90);
+  const enVentanaSinResponder = todos.filter(c => mpEnVentana(c, VENTANA_90) && !c.d90);
+  const focosPorPersona = respondieron.map(c => ({ c, focos: focosRojosDe(c).filter(f => f.fuente === '90 días') }));
+  const totalFocos = focosPorPersona.reduce((s, x) => s + x.focos.length, 0);
+
+  document.getElementById('mp-90-kpis').innerHTML =
+    kpiCard('Respondieron encuesta 90 días', respondieron.length, '') +
+    kpiCard('En ventana, sin responder', enVentanaSinResponder.length, '', enVentanaSinResponder.length ? 'yellow' : 'green') +
+    kpiCard('Focos rojos', totalFocos, '', totalFocos ? 'red' : 'green');
+
+  mpSetResumenFocos('90', respondieron, focosPorPersona, enVentanaSinResponder, 'la encuesta de 90 días');
+
+  const el = document.getElementById('mp-90-lista');
+  el.innerHTML = focosPorPersona.length ? focosPorPersona.map(({ c, focos }) => mpPersonaCardHtml(c, true, focos, null, narr90(c))).join('')
+    : '<div class="bandeja-sub">Nadie de estas sucursales ha respondido la encuesta de 90 días todavía.</div>';
+
+  mpRenderFocosPorGrupo(focosPorPersona, 'mp-90-rol', c => c.rol, 'Sin rol');
+  mpRenderFocosPorGrupo(focosPorPersona, 'mp-90-lider', c => c.lider, 'Sin líder');
+  mpRenderFocosPorGrupo(focosPorPersona, 'mp-90-suc', c => c.sucursal, 'Sin sucursal');
+  mpRenderTemas(focosPorPersona, 'mp-90-temas');
+}
+
+function mpPersonaCardHtml(c, respondio, focos, ventanaLabel, narrTexto) {
   const badge = !respondio
     ? `<span class="estatus-badge estatus-desconocido">Sin responder</span>`
     : focos.length
       ? `<span class="estatus-badge estatus-baja">${focos.length} foco${focos.length === 1 ? '' : 's'}</span>`
       : `<span class="estatus-badge estatus-activo">Sin focos</span>`;
   const metaExtra = ventanaLabel ? ` · ${ventanaLabel}` : '';
+  const narrHtml = narrTexto ? `<div class="rv-narr" style="margin-top:8px">${escapeHtml(narrTexto)}</div>` : '';
   return `<div class="encuesta-card" style="margin-bottom:8px">
     <div class="encuesta-card-head">
       <div>
@@ -14504,6 +14546,7 @@ function mpPersonaCardHtml(c, respondio, focos, ventanaLabel) {
       </div>
       ${badge}
     </div>
+    ${narrHtml}
   </div>`;
 }
 
