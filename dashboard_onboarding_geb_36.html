@@ -3723,6 +3723,18 @@
     <div class="kpi-row" id="mp-comp-kpis"></div>
     <div id="mp-comp-lista" style="margin-top:12px"></div>
 
+    <div class="section-title" style="margin:28px 0 12px">Rotación Temprana</div>
+    <p class="bandeja-sub">Quién de Vivo 47 está dado de baja, entre quienes ya tienen estatus registrado en el Sheet ("Datos Generales"/"Estatus Colaboradores"). Si alguien que ya no está no sale aquí, es porque a esa persona todavía no se le puso el estatus de baja en el Sheet — no lo puedo inventar desde aquí, hay que actualizarlo en la fuente.</p>
+    <div class="panel-box mp-resumen" id="mp-rotacion-resumen">
+      <div class="mp-como-vamos" id="mp-rotacion-como-vamos"></div>
+      <div class="mp-observaciones-label">Observaciones clave</div>
+      <ul class="mp-observaciones" id="mp-rotacion-observaciones"></ul>
+    </div>
+    <div class="mp-detalle-label">Detalle para revisión</div>
+    <div class="kpi-row" id="mp-rotacion-kpis"></div>
+    <div id="mp-rotacion-lista" style="margin-top:12px"></div>
+    <div class="panel-box" style="margin-top:14px"><h4>% Rotación por sucursal</h4><div id="mp-rotacion-suc"></div></div>
+
     <div class="section-title" style="margin:28px 0 12px">Entrevista de Ajuste 10-15</div>
     <div class="panel-box mp-resumen" id="mp-ajuste10-resumen">
       <div class="mp-como-vamos" id="mp-ajuste10-como-vamos"></div>
@@ -14095,9 +14107,57 @@ function mpSetResumenFocos(prefix, respondieron, focosPorPersona, enVentanaSinRe
 
 function renderMedicionProvisional() {
   renderMpComparacion();
+  renderMpRotacion();
   renderMpAjuste10();
   renderMp30();
   renderMp6090();
+}
+
+function renderMpRotacion() {
+  const todos = getColabIndex().filter(c => mpEsVivo47(c.sucursal));
+  const conEstatus = todos.filter(c => c.estatus !== 'desconocido');
+  const bajas = conEstatus.filter(c => c.estatus === 'baja');
+  const pct = conEstatus.length ? Math.round(bajas.length / conEstatus.length * 100) : null;
+
+  let headline, color;
+  if (!conEstatus.length) { headline = 'Todavía no hay estatus (activo/baja) registrado para Vivo 47.'; color = '#6B6280'; }
+  else if (pct <= 10) { headline = `Va bien — ${pct}% de rotación temprana.`; color = '#16A34A'; }
+  else if (pct <= 20) { headline = `Hay que vigilarlo — ${pct}% de rotación temprana.`; color = '#F59E0B'; }
+  else { headline = `Hay un foco rojo — ${pct}% de rotación temprana.`; color = '#DC2626'; }
+
+  const observaciones = [`${conEstatus.length} de ${todos.length} personas en estas sucursales tienen estatus registrado — al resto todavía no se le ha puesto (ni activo ni baja).`];
+  if (bajas.length) observaciones.push(`${bajas.length === 1 ? '1 persona dada de baja' : bajas.length + ' personas dadas de baja'}: ${bajas.map(c => c.nombre).join(', ')}.`);
+  else observaciones.push('Nadie de quien se tiene estatus está dado de baja por ahora.');
+  mpSetResumen('rotacion', headline, color, observaciones);
+
+  document.getElementById('mp-rotacion-kpis').innerHTML =
+    kpiCard('Con estatus registrado', conEstatus.length, `de ${todos.length} en Vivo 47`) +
+    kpiCard('Activos', conEstatus.length - bajas.length, '', 'green') +
+    kpiCard('Bajas', bajas.length, '', bajas.length ? 'red' : 'green') +
+    kpiCard('% Rotación temprana', pct === null ? '—' : `${pct}%`, '', pct === null ? '' : pct <= 10 ? 'green' : pct <= 20 ? 'yellow' : 'red');
+
+  const el = document.getElementById('mp-rotacion-lista');
+  el.innerHTML = bajas.length ? bajas.map(c => `<div class="encuesta-card" style="margin-bottom:8px;border-left:4px solid #DC2626">
+    <div class="encuesta-card-head">
+      <div>
+        <div style="font-weight:700;font-size:13.5px">${escapeHtml(c.nombre)}</div>
+        <div class="encuesta-card-meta">${escapeHtml(c.sucursal || '')} · ${escapeHtml(c.rol || '')} · Líder: ${escapeHtml(c.lider || '—')} · ${c.dias !== null ? c.dias + ' días' : 'sin fecha de ingreso'}</div>
+      </div>
+      <span class="estatus-badge estatus-baja">Baja</span>
+    </div>
+  </div>`).join('') : '<div class="bandeja-sub">Nadie de estas sucursales está dado de baja (entre quienes tienen estatus registrado).</div>';
+
+  const bySuc = {};
+  conEstatus.forEach(c => {
+    const s = c.sucursal || 'Sin sucursal';
+    bySuc[s] = bySuc[s] || { total: 0, bajas: 0 };
+    bySuc[s].total++;
+    if (c.estatus === 'baja') bySuc[s].bajas++;
+  });
+  const pctSuc = Object.fromEntries(Object.entries(bySuc).map(([s, v]) => [s, Math.round(v.bajas / v.total * 100)]));
+  const elSuc = document.getElementById('mp-rotacion-suc');
+  if (Object.keys(pctSuc).length) barChart(elSuc, pctSuc, true, true);
+  else elSuc.innerHTML = '<div class="focos-empty">Sin datos de estatus.</div>';
 }
 
 // Lista puntual que pasó el usuario — gente que debería estar en algún punto del recorrido de
