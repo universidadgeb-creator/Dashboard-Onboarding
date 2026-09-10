@@ -577,6 +577,13 @@
   .oc-paso-estado.ok { background: #16A34A22; color: #16A34A; }
   .oc-paso-estado.tarde { background: #DC262622; color: #DC2626; }
 
+  /* MEDICIÓN PROVISIONAL — "cómo vamos" + observaciones clave, arriba del detalle de cada sección */
+  .mp-resumen { border-left-width: 4px; border-left-style: solid; }
+  .mp-como-vamos { font-size: 15px; font-weight: 700; color: #1E1B2E; }
+  .mp-observaciones-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #6B6280; margin-top: 12px; }
+  .mp-observaciones { margin: 6px 0 0; padding-left: 18px; font-size: 12.5px; color: #423C58; line-height: 1.6; }
+  .mp-detalle-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #6B6280; margin: 22px 0 10px; }
+
   /* NPS */
   .nps-badge { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; font-weight: 700; font-size: 11px; }
   .nps-promotor { background: var(--verde-ok-bg); color: var(--verde-ok); }
@@ -3706,15 +3713,33 @@
     <p class="bandeja-sub">Solo Naciones Unidas, Valle Real y Gourmetería. Pantalla temporal para medir — se puede quitar cuando ya no se necesite.</p>
 
     <div class="section-title" style="margin:24px 0 12px">Comparación — a quién le falta qué (lista de 1 a 90 días)</div>
-    <p class="bandeja-sub">Según el día en el que va cada quien: quién no tiene Preonboarding, Entrevista de Ajuste 10-15, Encuesta 30/60/90 días — solo lo que ya le debería tocar según su fecha de ingreso.</p>
+    <p class="bandeja-sub">Según el día en el que va cada quien: quién no tiene Preonboarding o Encuesta 30/60/90 días — solo lo que ya le debería tocar según su fecha de ingreso. (Ajuste 10-15 no cuenta aquí — ver su propia sección abajo.)</p>
+    <div class="panel-box mp-resumen" id="mp-comp-resumen">
+      <div class="mp-como-vamos" id="mp-comp-como-vamos"></div>
+      <div class="mp-observaciones-label">Observaciones clave</div>
+      <ul class="mp-observaciones" id="mp-comp-observaciones"></ul>
+    </div>
+    <div class="mp-detalle-label">Detalle para revisión</div>
     <div class="kpi-row" id="mp-comp-kpis"></div>
     <div id="mp-comp-lista" style="margin-top:12px"></div>
 
-    <div class="section-title" style="margin:24px 0 12px">Entrevista de Ajuste 10-15</div>
+    <div class="section-title" style="margin:28px 0 12px">Entrevista de Ajuste 10-15</div>
+    <div class="panel-box mp-resumen" id="mp-ajuste10-resumen">
+      <div class="mp-como-vamos" id="mp-ajuste10-como-vamos"></div>
+      <div class="mp-observaciones-label">Observaciones clave</div>
+      <ul class="mp-observaciones" id="mp-ajuste10-observaciones"></ul>
+    </div>
+    <div class="mp-detalle-label">Detalle para revisión</div>
     <div class="kpi-row" id="mp-ajuste10-kpis"></div>
     <div id="mp-ajuste10-lista" style="margin-top:12px"></div>
 
-    <div class="section-title" style="margin:28px 0 12px">Encuesta 30 días — quiénes están en ventana ahorita</div>
+    <div class="section-title" style="margin:28px 0 12px">Encuesta 30 días — quiénes ya respondieron</div>
+    <div class="panel-box mp-resumen" id="mp-30-resumen">
+      <div class="mp-como-vamos" id="mp-30-como-vamos"></div>
+      <div class="mp-observaciones-label">Observaciones clave</div>
+      <ul class="mp-observaciones" id="mp-30-observaciones"></ul>
+    </div>
+    <div class="mp-detalle-label">Detalle para revisión</div>
     <div class="kpi-row" id="mp-30-kpis"></div>
     <div id="mp-30-lista" style="margin-top:12px"></div>
     <div class="panel-2col" style="margin-top:14px">
@@ -3722,7 +3747,13 @@
       <div class="panel-box"><h4>Focos rojos por líder</h4><div id="mp-30-lider"></div></div>
     </div>
 
-    <div class="section-title" style="margin:28px 0 12px">Encuesta 60 y 90 días — quiénes están en ventana ahorita</div>
+    <div class="section-title" style="margin:28px 0 12px">Encuesta 60 y 90 días — quiénes ya respondieron</div>
+    <div class="panel-box mp-resumen" id="mp-6090-resumen">
+      <div class="mp-como-vamos" id="mp-6090-como-vamos"></div>
+      <div class="mp-observaciones-label">Observaciones clave</div>
+      <ul class="mp-observaciones" id="mp-6090-observaciones"></ul>
+    </div>
+    <div class="mp-detalle-label">Detalle para revisión</div>
     <div class="kpi-row" id="mp-6090-kpis"></div>
     <div id="mp-6090-lista" style="margin-top:12px"></div>
     <div class="panel-2col" style="margin-top:14px">
@@ -14024,6 +14055,44 @@ function mpEnVentana(c, ventana) {
   return c.dias !== null && c.dias >= ventana.ini && c.dias <= ventana.fin;
 }
 
+// Rellena el bloque "Cómo vamos" + "Observaciones clave" de una sección — el detalle (KPIs,
+// tarjetas, gráficas) sigue ahí abajo como soporte, pero esto es lo primero que se lee.
+function mpSetResumen(prefix, headline, color, observaciones) {
+  const box = document.getElementById(`mp-${prefix}-resumen`);
+  box.style.borderLeftColor = color;
+  document.getElementById(`mp-${prefix}-como-vamos`).style.color = color;
+  document.getElementById(`mp-${prefix}-como-vamos`).textContent = headline;
+  document.getElementById(`mp-${prefix}-observaciones`).innerHTML = observaciones.length
+    ? observaciones.map(o => `<li>${escapeHtml(o)}</li>`).join('')
+    : '<li>Sin observaciones adicionales por ahora.</li>';
+}
+
+// Compartido entre 30 días y 60/90 días — ambas secciones evalúan "¿qué % de quienes
+// respondieron tiene algún foco rojo?" de la misma forma.
+function mpSetResumenFocos(prefix, respondieron, focosPorPersona, enVentanaSinResponder, etiquetaEncuesta) {
+  let headline, color;
+  if (!respondieron.length) {
+    headline = `Todavía no hay respuestas de ${etiquetaEncuesta} para Vivo 47.`;
+    color = '#6B6280';
+  } else {
+    const conFoco = focosPorPersona.filter(x => x.focos.length).length;
+    const pct = Math.round(conFoco / respondieron.length * 100);
+    if (pct <= 10) { headline = `Va muy bien — casi nadie tiene focos rojos en ${etiquetaEncuesta}.`; color = '#16A34A'; }
+    else if (pct <= 30) { headline = `Va bien en general, con algunos focos rojos puntuales.`; color = '#F59E0B'; }
+    else { headline = `Hay varios focos rojos — ${pct}% de quienes respondieron tiene al menos uno.`; color = '#DC2626'; }
+  }
+  const observaciones = [`${respondieron.length} persona${respondieron.length === 1 ? '' : 's'} ha${respondieron.length === 1 ? '' : 'n'} respondido ${etiquetaEncuesta} en estas sucursales.`];
+  if (enVentanaSinResponder.length) {
+    const n = enVentanaSinResponder.length;
+    observaciones.push(n === 1 ? '1 persona está en ventana y todavía no responde.' : `${n} personas están en ventana y todavía no responden.`);
+  }
+  const conteoMotivos = {};
+  focosPorPersona.forEach(({ focos }) => focos.forEach(f => { conteoMotivos[f.motivo] = (conteoMotivos[f.motivo] || 0) + 1; }));
+  const motivosOrdenados = Object.entries(conteoMotivos).sort((a, b) => b[1] - a[1]);
+  if (motivosOrdenados.length) observaciones.push(`El foco más recurrente es "${motivosOrdenados[0][0]}" (${motivosOrdenados[0][1]} caso${motivosOrdenados[0][1] === 1 ? '' : 's'}).`);
+  mpSetResumen(prefix, headline, color, observaciones);
+}
+
 function renderMedicionProvisional() {
   renderMpComparacion();
   renderMpAjuste10();
@@ -14058,9 +14127,11 @@ function mpTieneAjuste10(c) {
 
 // Qué etapas debería tener ya alguien con `dias` días de antigüedad — usa las mismas ventanas
 // (VENTANA_30/60/90) que ya usa Data, más el arranque de Ajuste 10-15 a partir del día 10.
+// Ajuste 10-15 NO cuenta como "pendiente" aquí a propósito — el proceso empezó hace poco, así
+// que a la gente que ya lleva más días no le aplica exigírselo retroactivo. Su avance real se ve
+// aparte, en la sección de Ajuste 10-15 más abajo.
 function mpEtapasEsperadas(dias) {
   const etapas = [{ id: 'pre', label: 'Preonboarding' }];
-  if (dias >= 10) etapas.push({ id: 'ajuste10', label: 'Entrevista Ajuste 10-15' });
   if (dias >= VENTANA_30.ini) etapas.push({ id: 'd30', label: 'Encuesta 30 días' });
   if (dias >= VENTANA_60.ini) etapas.push({ id: 'd60', label: 'Encuesta 60 días' });
   if (dias >= VENTANA_90.ini) etapas.push({ id: 'd90', label: 'Encuesta 90 días' });
@@ -14089,6 +14160,25 @@ function renderMpComparacion() {
   const sinFecha = filas.filter(f => f.sinFecha).length;
   const conFaltantes = filas.filter(f => f.faltantes && f.faltantes.length).length;
   const alCorriente = filas.filter(f => f.faltantes && !f.faltantes.length).length;
+
+  const comparables = alCorriente + conFaltantes;
+  let headline, color;
+  if (!comparables) { headline = 'Todavía no hay suficientes datos para evaluar a esta lista.'; color = '#6B6280'; }
+  else {
+    const pct = Math.round(alCorriente / comparables * 100);
+    if (pct >= 80) { headline = `Vamos bien — ${pct}% de esta lista está al corriente.`; color = '#16A34A'; }
+    else if (pct >= 50) { headline = `Vamos a la mitad — ${pct}% está al corriente, falta cerrar al resto.`; color = '#F59E0B'; }
+    else { headline = `Hay focos rojos — solo ${pct}% de esta lista está al corriente.`; color = '#DC2626'; }
+  }
+  const observaciones = [];
+  if (comparables) observaciones.push(`${alCorriente} de ${comparables} personas evaluables ya están al corriente con lo que les toca.`);
+  const conteoEtapas = {};
+  filas.forEach(f => { if (f.faltantes) f.faltantes.forEach(e => { conteoEtapas[e.label] = (conteoEtapas[e.label] || 0) + 1; }); });
+  const etapasOrdenadas = Object.entries(conteoEtapas).sort((a, b) => b[1] - a[1]);
+  if (etapasOrdenadas.length) observaciones.push(`El pendiente más común es "${etapasOrdenadas[0][0]}" — le falta a ${etapasOrdenadas[0][1]} persona${etapasOrdenadas[0][1] === 1 ? '' : 's'}.`);
+  if (sinFecha) observaciones.push(sinFecha === 1 ? '1 persona no tiene fecha de ingreso registrada, así que no se pudo evaluar.' : `${sinFecha} personas no tienen fecha de ingreso registrada, así que no se pudieron evaluar.`);
+  if (noEncontrados) observaciones.push(noEncontrados === 1 ? '1 nombre no se encontró en el roster — puede que esté mal escrito o que sea una vista previa local de otro navegador.' : `${noEncontrados} nombres no se encontraron en el roster — puede que estén mal escritos o que sean vista previa local de otro navegador.`);
+  mpSetResumen('comp', headline, color, observaciones);
 
   document.getElementById('mp-comp-kpis').innerHTML =
     kpiCard('Al corriente', alCorriente, '', 'green') +
@@ -14149,6 +14239,19 @@ function renderMpAjuste10() {
     kpiCard('Amarillo', counts.amarillo, '', counts.amarillo ? 'yellow' : 'green') +
     kpiCard('Rojo', counts.rojo, '', counts.rojo ? 'red' : 'green');
 
+  let headline, color;
+  if (!rows.length) { headline = 'Todavía no hay entrevistas de Ajuste 10-15 registradas para Vivo 47.'; color = '#6B6280'; }
+  else if (counts.rojo === 0 && counts.amarillo === 0) {
+    headline = rows.length === 1 ? 'Va muy bien — la entrevista hecha salió en verde.' : `Va muy bien — las ${rows.length} entrevistas hechas salieron en verde.`;
+    color = '#16A34A';
+  }
+  else if (counts.rojo === 0) { headline = 'Va bien en general, con algún amarillo a vigilar.'; color = '#F59E0B'; }
+  else { headline = `Hay ${counts.rojo} caso${counts.rojo === 1 ? '' : 's'} en rojo que vale la pena revisar de cerca.`; color = '#DC2626'; }
+  const observaciones = [`El proceso de Ajuste 10-15 empezó hace poco, así que todavía hay pocas entrevistas registradas (${rows.length}) — es normal que el número crezca con el tiempo.`];
+  if (counts.rojo) observaciones.push(`${counts.rojo} entrevista${counts.rojo === 1 ? '' : 's'} salió en rojo.`);
+  if (counts.amarillo) observaciones.push(`${counts.amarillo} entrevista${counts.amarillo === 1 ? '' : 's'} salió en amarillo.`);
+  mpSetResumen('ajuste10', headline, color, observaciones);
+
   const el = document.getElementById('mp-ajuste10-lista');
   if (!rows.length) { el.innerHTML = '<div class="bandeja-sub">Sin entrevistas de Ajuste 10-15 todavía para estas sucursales.</div>'; return; }
   const colorDe = sem => sem.includes('🔴') ? '#DC2626' : sem.includes('🟡') ? '#F59E0B' : sem.includes('🟢') ? '#16A34A' : '#6B6280';
@@ -14186,6 +14289,8 @@ function renderMp30() {
     kpiCard('En ventana, sin responder', enVentanaSinResponder.length, '', enVentanaSinResponder.length ? 'yellow' : 'green') +
     kpiCard('Focos rojos', totalFocos, '', totalFocos ? 'red' : 'green');
 
+  mpSetResumenFocos('30', respondieron, focosPorPersona, enVentanaSinResponder, 'la encuesta de 30 días');
+
   const el = document.getElementById('mp-30-lista');
   el.innerHTML = focosPorPersona.length ? focosPorPersona.map(({ c, focos }) => mpPersonaCardHtml(c, true, focos)).join('')
     : '<div class="bandeja-sub">Nadie de estas sucursales ha respondido la encuesta de 30 días todavía.</div>';
@@ -14210,6 +14315,8 @@ function renderMp6090() {
     kpiCard('Respondieron encuesta 60 o 90 días', respondieron.length, '') +
     kpiCard('En ventana, sin responder', enVentanaSinResponder.length, '', enVentanaSinResponder.length ? 'yellow' : 'green') +
     kpiCard('Focos rojos', totalFocos, '', totalFocos ? 'red' : 'green');
+
+  mpSetResumenFocos('6090', respondieron, focosPorPersona, enVentanaSinResponder, 'las encuestas de 60 o 90 días');
 
   const el = document.getElementById('mp-6090-lista');
   el.innerHTML = focosPorPersona.length ? focosPorPersona.map(({ c, etapa, focos }) => mpPersonaCardHtml(c, true, focos, etapa)).join('')
