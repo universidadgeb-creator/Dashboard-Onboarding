@@ -3734,6 +3734,11 @@
     <div class="kpi-row" id="mp-rotacion-kpis"></div>
     <div id="mp-rotacion-lista" style="margin-top:12px"></div>
     <div class="panel-box" style="margin-top:14px"><h4>% Rotación por sucursal</h4><div id="mp-rotacion-suc"></div></div>
+    <div class="panel-box" style="margin-top:14px">
+      <h4>Tiempo de Baja</h4>
+      <p class="bandeja-sub" style="margin:-4px 0 10px">Días de antigüedad que tenía cada quien al momento de irse (1–90) — en qué tramo se está yendo la gente.</p>
+      <div id="mp-rotacion-tiempo"></div>
+    </div>
 
     <div class="section-title" style="margin:28px 0 12px">Entrevista de Ajuste 10-15</div>
     <div class="panel-box mp-resumen" id="mp-ajuste10-resumen">
@@ -3758,6 +3763,9 @@
       <div class="panel-box"><h4>Focos rojos por rol</h4><div id="mp-30-rol"></div></div>
       <div class="panel-box"><h4>Focos rojos por líder</h4><div id="mp-30-lider"></div></div>
     </div>
+    <div class="mp-detalle-label">Detalle por tema (qué exactamente, a quién)</div>
+    <p class="bandeja-sub" style="margin-top:-6px">Ojo: cada tarjeta de abajo es un problema reportado (aunque el texto lo describa en positivo, ej. "Recibió su uniforme en tiempo y forma" significa que ESA persona NO lo recibió a tiempo). Con cuántas personas y de qué rol/sucursal.</p>
+    <div id="mp-30-temas"></div>
 
     <div class="section-title" style="margin:28px 0 12px">Encuesta 60 y 90 días — quiénes ya respondieron</div>
     <div class="panel-box mp-resumen" id="mp-6090-resumen">
@@ -3773,6 +3781,9 @@
       <div class="panel-box"><h4>Focos rojos por líder</h4><div id="mp-6090-lider"></div></div>
     </div>
     <div class="panel-box" style="margin-top:14px"><h4>Focos rojos por sucursal</h4><div id="mp-6090-suc"></div></div>
+    <div class="mp-detalle-label">Detalle por tema (qué exactamente, a quién)</div>
+    <p class="bandeja-sub" style="margin-top:-6px">Ojo: cada tarjeta de abajo es un problema reportado (aunque el texto lo describa en positivo, ej. "Recibió su uniforme en tiempo y forma" significa que ESA persona NO lo recibió a tiempo). Con cuántas personas y de qué rol/sucursal.</p>
+    <div id="mp-6090-temas"></div>
   </div>
 
   <!-- RECLUTAMIENTO — vacantes, cobertura, efectividad, personas contratadas (vista previa) -->
@@ -14158,6 +14169,23 @@ function renderMpRotacion() {
   const elSuc = document.getElementById('mp-rotacion-suc');
   if (Object.keys(pctSuc).length) barChart(elSuc, pctSuc, true, true);
   else elSuc.innerHTML = '<div class="focos-empty">Sin datos de estatus.</div>';
+
+  // Tiempo de baja — mismo bucket de 10 en 10 días (1-90) que ya usa Data (renderBajasTrend),
+  // pero con el barChart de texto de esta página en vez de un canvas de Chart.js.
+  const bajasConDuracion = bajas.filter(c => c.diasDuro !== null && c.diasDuro >= 1 && c.diasDuro <= 90);
+  const elTiempo = document.getElementById('mp-rotacion-tiempo');
+  if (bajasConDuracion.length) {
+    const BUCKET = 10;
+    const buckets = {};
+    for (let start = 1; start <= 90; start += BUCKET) buckets[`${start}-${Math.min(start + BUCKET - 1, 90)}`] = 0;
+    bajasConDuracion.forEach(c => {
+      const b = `${Math.floor((c.diasDuro - 1) / BUCKET) * BUCKET + 1}-${Math.min(Math.floor((c.diasDuro - 1) / BUCKET) * BUCKET + BUCKET, 90)}`;
+      buckets[b] = (buckets[b] || 0) + 1;
+    });
+    barChart(elTiempo, buckets, false, false, '#7C3AED');
+  } else {
+    elTiempo.innerHTML = '<div class="focos-empty">Sin bajas con fecha registrada dentro de los primeros 90 días.</div>';
+  }
 }
 
 // Lista puntual que pasó el usuario — gente que debería estar en algún punto del recorrido de
@@ -14429,6 +14457,7 @@ function renderMp30() {
 
   mpRenderFocosPorGrupo(focosPorPersona, 'mp-30-rol', c => c.rol, 'Sin rol');
   mpRenderFocosPorGrupo(focosPorPersona, 'mp-30-lider', c => c.lider, 'Sin líder');
+  mpRenderTemas(focosPorPersona, 'mp-30-temas');
 }
 
 function renderMp6090() {
@@ -14457,6 +14486,7 @@ function renderMp6090() {
   mpRenderFocosPorGrupo(focosPorPersona, 'mp-6090-rol', c => c.rol, 'Sin rol');
   mpRenderFocosPorGrupo(focosPorPersona, 'mp-6090-lider', c => c.lider, 'Sin líder');
   mpRenderFocosPorGrupo(focosPorPersona, 'mp-6090-suc', c => c.sucursal, 'Sin sucursal');
+  mpRenderTemas(focosPorPersona, 'mp-6090-temas');
 }
 
 function mpPersonaCardHtml(c, respondio, focos, ventanaLabel) {
@@ -14489,6 +14519,36 @@ function mpRenderFocosPorGrupo(focosPorPersona, elId, campoFn, etiquetaVacia) {
   });
   if (Object.keys(porGrupo).length) barChart(el, porGrupo);
   else el.innerHTML = '<div class="focos-empty">Sin focos rojos.</div>';
+}
+
+// El detalle que de verdad se puede accionar: no "cuántos focos tiene el rol X" sino "de qué
+// tema específico se trata, a cuántos y de qué rol/sucursal" — ej. "Uniforme: 3 personas (2
+// Coach, 1 Limpieza)". Reutiliza los mismos `focos` que ya calcula focosRojosDe() (cada uno trae
+// `motivo` = la pregunta exacta de la encuesta), solo que agrupados distinto.
+function mpRenderTemas(focosPorPersona, elId) {
+  const el = document.getElementById(elId);
+  const porMotivo = {};
+  focosPorPersona.forEach(({ c, focos }) => {
+    focos.forEach(f => {
+      const m = porMotivo[f.motivo] = porMotivo[f.motivo] || { total: 0, porRol: {}, porSucursal: {} };
+      m.total++;
+      const rol = c.rol || 'Sin rol';
+      const suc = c.sucursal || 'Sin sucursal';
+      m.porRol[rol] = (m.porRol[rol] || 0) + 1;
+      m.porSucursal[suc] = (m.porSucursal[suc] || 0) + 1;
+    });
+  });
+  const temas = Object.entries(porMotivo).sort((a, b) => b[1].total - a[1].total);
+  if (!temas.length) { el.innerHTML = '<div class="focos-empty">Sin focos rojos por ahora.</div>'; return; }
+  const fmtGrupo = obj => Object.entries(obj).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${escapeHtml(k)} (${v})`).join(', ');
+  el.innerHTML = temas.map(([motivo, d]) => `<div class="encuesta-card" style="margin-bottom:8px;border-left:4px solid #DC2626">
+    <div class="encuesta-card-head">
+      <div style="font-weight:700;font-size:13px">${escapeHtml(motivo)}</div>
+      <span class="estatus-badge estatus-baja">${d.total} persona${d.total === 1 ? '' : 's'}</span>
+    </div>
+    <div class="encuesta-card-meta" style="margin-top:6px"><strong>Por rol:</strong> ${fmtGrupo(d.porRol)}</div>
+    <div class="encuesta-card-meta" style="margin-top:2px"><strong>Por sucursal:</strong> ${fmtGrupo(d.porSucursal)}</div>
+  </div>`).join('');
 }
 
 async function mostrarAppAutenticada() {
