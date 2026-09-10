@@ -2926,6 +2926,12 @@
   </div>
 
   <div class="sidebar-bottom">
+    <!-- PROVISIONAL — pantalla temporal para medir onboarding de Vivo 47 (Naciones Unidas, Valle
+         Real, Gourmetería). Fácil de quitar: este botón + el panel-medicion-provisional completo
+         + la función renderMedicionProvisional() y su entrada en switchTab()/ROL_MINIMO_TAB. -->
+    <button class="sidebar-item" data-tab="medicionprov" onclick="switchTab('medicionprov')">
+      <span class="si-icon"></span><span class="si-label">📏 Medición Onboarding (provisional)</span>
+    </button>
     <button class="sidebar-item" data-tab="configuracion" onclick="switchTab('configuracion')">
       <span class="si-icon"></span><span class="si-label">Configuración</span>
     </button>
@@ -3690,6 +3696,35 @@
       <select class="filter-select" id="oc-mes" onchange="ocAplicarFiltros()"><option value="">Todos los meses</option></select>
     </div>
     <div id="oc-lista"></div>
+  </div>
+
+  <!-- PROVISIONAL — pantalla temporal, ver comentario junto al botón de la barra lateral. -->
+  <div class="tab-panel" id="panel-medicionprov">
+    <div class="section-header">
+      <div class="section-title">📏 Medición Onboarding — Vivo 47 (provisional)</div>
+    </div>
+    <p class="bandeja-sub">Solo Naciones Unidas, Valle Real y Gourmetería. Pantalla temporal para medir — se puede quitar cuando ya no se necesite.</p>
+
+    <div class="section-title" style="margin:24px 0 12px">Entrevista de Ajuste 10-15</div>
+    <div class="kpi-row" id="mp-ajuste10-kpis"></div>
+    <div id="mp-ajuste10-lista" style="margin-top:12px"></div>
+
+    <div class="section-title" style="margin:28px 0 12px">Encuesta 30 días — quiénes están en ventana ahorita</div>
+    <div class="kpi-row" id="mp-30-kpis"></div>
+    <div id="mp-30-lista" style="margin-top:12px"></div>
+    <div class="panel-2col" style="margin-top:14px">
+      <div class="panel-box"><h4>Focos rojos por rol</h4><div id="mp-30-rol"></div></div>
+      <div class="panel-box"><h4>Focos rojos por líder</h4><div id="mp-30-lider"></div></div>
+    </div>
+
+    <div class="section-title" style="margin:28px 0 12px">Encuesta 60 y 90 días — quiénes están en ventana ahorita</div>
+    <div class="kpi-row" id="mp-6090-kpis"></div>
+    <div id="mp-6090-lista" style="margin-top:12px"></div>
+    <div class="panel-2col" style="margin-top:14px">
+      <div class="panel-box"><h4>Focos rojos por rol</h4><div id="mp-6090-rol"></div></div>
+      <div class="panel-box"><h4>Focos rojos por líder</h4><div id="mp-6090-lider"></div></div>
+    </div>
+    <div class="panel-box" style="margin-top:14px"><h4>Focos rojos por sucursal</h4><div id="mp-6090-suc"></div></div>
   </div>
 
   <!-- RECLUTAMIENTO — vacantes, cobertura, efectividad, personas contratadas (vista previa) -->
@@ -8879,7 +8914,7 @@ function afShowTeamToast(msg){
 const ROL_MINIMO_TAB = {
   directorio: 'lider', revisiones: 'lider', ruta: 'admin', configuracion: 'admin', reclutamiento: 'admin',
   preonboarding: 'admin', ajuste10: 'admin', treinta: 'admin', evaluacion: 'admin', certificaciones: 'admin',
-  checklist: 'admin',
+  checklist: 'admin', medicionprov: 'admin',
 };
 // Servicio (Política de Apariencia / Ambiente Físico) no tiene mínimo de rol a propósito:
 // cualquier colaborador puede consultar sus resultados generales por sucursal. Los paneles
@@ -8941,6 +8976,7 @@ function switchTab(tab) {
   if (tab === 'ambientefisico') servAfInit();
   if (tab === 'revisiones') renderRevisionesVerticales();
   if (tab === 'checklist') renderOnboardingChecklist();
+  if (tab === 'medicionprov') renderMedicionProvisional();
   // Sin esto, al venir de una tabla larga ya scrolleada, la pestaña nueva abre a
   // media página en vez de en su encabezado. 'auto' y no 'smooth' a propósito:
   // animar el salto sobre un panel que apenas está apareciendo se siente como un
@@ -13968,6 +14004,138 @@ async function ocGuardarPaso(row, pasoId, fechaOrNull) {
   row.pasos = pasos;
   renderOcKpis();
   renderOcLista();
+}
+
+// ── MEDICIÓN ONBOARDING — PROVISIONAL (Vivo 47: Naciones Unidas, Valle Real, Gourmetería) ──
+// Reutiliza focosRojosDe()/VENTANA_30/60/90/barChart() ya construidos para Data. Pantalla
+// temporal — quitar junto con el botón de la barra lateral y panel-medicionprov cuando ya no
+// se necesite medir esto.
+const VIVO47_SUCURSALES_PROV = ['Naciones Unidas', 'Valle Real', 'Gourmetería'];
+
+function mpEsVivo47(sucursal) {
+  return VIVO47_SUCURSALES_PROV.includes(String(sucursal || '').trim());
+}
+function mpEnVentana(c, ventana) {
+  return c.dias !== null && c.dias >= ventana.ini && c.dias <= ventana.fin;
+}
+
+function renderMedicionProvisional() {
+  renderMpAjuste10();
+  renderMp30();
+  renderMp6090();
+}
+
+function renderMpAjuste10() {
+  const rows = DATA.ajuste10.filter(r => mpEsVivo47(r['Sucursal ']));
+  const counts = { verde: 0, amarillo: 0, rojo: 0, otro: 0 };
+  rows.forEach(r => {
+    const sem = String(r['Resultado del semáforo'] || '');
+    if (sem.includes('🟢')) counts.verde++;
+    else if (sem.includes('🟡')) counts.amarillo++;
+    else if (sem.includes('🔴')) counts.rojo++;
+    else counts.otro++;
+  });
+  document.getElementById('mp-ajuste10-kpis').innerHTML =
+    kpiCard('Entrevistas (Vivo 47)', rows.length, '') +
+    kpiCard('Verde', counts.verde, '', 'green') +
+    kpiCard('Amarillo', counts.amarillo, '', counts.amarillo ? 'yellow' : 'green') +
+    kpiCard('Rojo', counts.rojo, '', counts.rojo ? 'red' : 'green');
+
+  const el = document.getElementById('mp-ajuste10-lista');
+  if (!rows.length) { el.innerHTML = '<div class="bandeja-sub">Sin entrevistas de Ajuste 10-15 todavía para estas sucursales.</div>'; return; }
+  const colorDe = sem => sem.includes('🔴') ? '#DC2626' : sem.includes('🟡') ? '#F59E0B' : sem.includes('🟢') ? '#16A34A' : '#6B6280';
+  el.innerHTML = rows.map(r => {
+    const sem = String(r['Resultado del semáforo'] || 'Sin semáforo');
+    const color = colorDe(sem);
+    const obs = String(r['Observaciones adicionales / justificación del semáforo'] || '').trim();
+    return `<div class="encuesta-card" style="margin-bottom:8px;border-left:4px solid ${color}">
+      <div class="encuesta-card-head">
+        <div>
+          <div style="font-weight:700;font-size:13.5px">${escapeHtml(r['Nombre del colaborador'] || 'Sin nombre')}</div>
+          <div class="encuesta-card-meta">${escapeHtml(String(r['Sucursal ']||'').trim())} · ${escapeHtml(r['Rol']||'')} · Líder: ${escapeHtml(r['Nombre del líder']||'—')}</div>
+        </div>
+        <span class="estatus-badge" style="background:${color}22;color:${color}">${escapeHtml(sem)}</span>
+      </div>
+      ${obs ? `<div class="encuesta-card-meta" style="margin-top:8px">"${escapeHtml(obs)}"</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderMp30() {
+  const idx = getColabIndex().filter(c => c.estatus !== 'baja' && mpEsVivo47(c.sucursal) && mpEnVentana(c, VENTANA_30));
+  const conRespuesta = idx.filter(c => c.d30);
+  const focosPorPersona = idx.map(c => ({ c, focos: focosRojosDe(c).filter(f => f.fuente === '30 días') }));
+  const totalFocos = focosPorPersona.reduce((s, x) => s + x.focos.length, 0);
+
+  document.getElementById('mp-30-kpis').innerHTML =
+    kpiCard('En ventana de 30 días', idx.length, '') +
+    kpiCard('Ya respondieron', conRespuesta.length, '') +
+    kpiCard('Focos rojos', totalFocos, '', totalFocos ? 'red' : 'green');
+
+  const el = document.getElementById('mp-30-lista');
+  el.innerHTML = idx.length ? focosPorPersona.map(({ c, focos }) => mpPersonaCardHtml(c, c.d30, focos)).join('')
+    : '<div class="bandeja-sub">Nadie de estas sucursales está en ventana de 30 días ahorita.</div>';
+
+  mpRenderFocosPorGrupo(focosPorPersona, 'mp-30-rol', c => c.rol, 'Sin rol');
+  mpRenderFocosPorGrupo(focosPorPersona, 'mp-30-lider', c => c.lider, 'Sin líder');
+}
+
+function renderMp6090() {
+  const idx = getColabIndex().filter(c => c.estatus !== 'baja' && mpEsVivo47(c.sucursal) &&
+    (mpEnVentana(c, VENTANA_60) || mpEnVentana(c, VENTANA_90)));
+  const focosPorPersona = idx.map(c => {
+    const es60 = mpEnVentana(c, VENTANA_60);
+    const ventanaLabel = es60 ? '60 días' : '90 días';
+    const focos = focosRojosDe(c).filter(f => f.fuente.startsWith(es60 ? '60' : '90'));
+    return { c, ventanaLabel, respondio: !!(c.d60 || c.d60l || c.d90), focos };
+  });
+  const totalFocos = focosPorPersona.reduce((s, x) => s + x.focos.length, 0);
+  const conRespuesta = focosPorPersona.filter(x => x.respondio).length;
+
+  document.getElementById('mp-6090-kpis').innerHTML =
+    kpiCard('En ventana 60-90 días', idx.length, '') +
+    kpiCard('Ya respondieron', conRespuesta, '') +
+    kpiCard('Focos rojos', totalFocos, '', totalFocos ? 'red' : 'green');
+
+  const el = document.getElementById('mp-6090-lista');
+  el.innerHTML = idx.length ? focosPorPersona.map(({ c, ventanaLabel, respondio, focos }) => mpPersonaCardHtml(c, respondio, focos, ventanaLabel)).join('')
+    : '<div class="bandeja-sub">Nadie de estas sucursales está en ventana de 60-90 días ahorita.</div>';
+
+  mpRenderFocosPorGrupo(focosPorPersona, 'mp-6090-rol', c => c.rol, 'Sin rol');
+  mpRenderFocosPorGrupo(focosPorPersona, 'mp-6090-lider', c => c.lider, 'Sin líder');
+  mpRenderFocosPorGrupo(focosPorPersona, 'mp-6090-suc', c => c.sucursal, 'Sin sucursal');
+}
+
+function mpPersonaCardHtml(c, respondio, focos, ventanaLabel) {
+  const badge = !respondio
+    ? `<span class="estatus-badge estatus-desconocido">Sin responder</span>`
+    : focos.length
+      ? `<span class="estatus-badge estatus-baja">${focos.length} foco${focos.length === 1 ? '' : 's'}</span>`
+      : `<span class="estatus-badge estatus-activo">Sin focos</span>`;
+  const metaExtra = ventanaLabel ? ` · ${ventanaLabel}` : '';
+  return `<div class="encuesta-card" style="margin-bottom:8px">
+    <div class="encuesta-card-head">
+      <div>
+        <div style="font-weight:700;font-size:13.5px">${escapeHtml(c.nombre)}</div>
+        <div class="encuesta-card-meta">${escapeHtml(c.sucursal || '')} · ${escapeHtml(c.rol || 'Sin rol')} · Líder: ${escapeHtml(c.lider || '—')} · ${c.dias} días${metaExtra}</div>
+      </div>
+      ${badge}
+    </div>
+  </div>`;
+}
+
+// Suma los focos rojos de `focosPorPersona` agrupados por lo que devuelva `campoFn(c)`, y los
+// dibuja como barChart en `elId` (o un aviso de "sin focos" si no hay ninguno).
+function mpRenderFocosPorGrupo(focosPorPersona, elId, campoFn, etiquetaVacia) {
+  const el = document.getElementById(elId);
+  const porGrupo = {};
+  focosPorPersona.forEach(({ c, focos }) => {
+    if (!focos.length) return;
+    const key = campoFn(c) || etiquetaVacia;
+    porGrupo[key] = (porGrupo[key] || 0) + focos.length;
+  });
+  if (Object.keys(porGrupo).length) barChart(el, porGrupo);
+  else el.innerHTML = '<div class="focos-empty">Sin focos rojos.</div>';
 }
 
 async function mostrarAppAutenticada() {
