@@ -2920,6 +2920,12 @@
       <button class="sidebar-item" data-tab="treinta" onclick="switchTab('treinta')">
         <span class="si-icon"></span><span class="si-label">Encuesta 30 Días</span>
       </button>
+      <button class="sidebar-item" data-tab="sesenta" onclick="switchTab('sesenta')">
+        <span class="si-icon"></span><span class="si-label">Encuesta 60 Días</span>
+      </button>
+      <button class="sidebar-item" data-tab="noventa" onclick="switchTab('noventa')">
+        <span class="si-icon"></span><span class="si-label">Encuesta 90 Días</span>
+      </button>
       <button class="sidebar-item" data-tab="evaluacion" onclick="switchTab('evaluacion')">
         <span class="si-icon"></span><span class="si-label">Evaluación Inducción</span>
       </button>
@@ -3185,6 +3191,86 @@
             <th>Seguimiento</th>
           </tr></thead>
           <tbody id="d30-tbody"></tbody>
+        </table>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ENCUESTA 60 DÍAS -->
+  <div class="tab-panel" id="panel-sesenta">
+    <div id="d60-loading" class="state-box"><div class="spinner"></div><span class="state-msg">Cargando datos…</span></div>
+    <div id="d60-content" style="display:none">
+      <div class="kpi-row" id="d60-kpis"></div>
+      <div class="section-title">Real vs Meta <span class="meta-linea">· meta 80% con calificación saludable (≥4/5)</span></div>
+      <div class="metas-mensual panel-box" style="padding:0;overflow:hidden;margin-bottom:12px"><div class="table-scroll"><table class="metas-mensual-table"><thead><tr id="d60-meta-head"></tr></thead><tbody id="d60-meta-body"></tbody></table></div></div>
+      <div class="panel-box" style="margin-bottom:24px;padding:18px">
+        <h4>Tendencia</h4>
+        <canvas id="d60-trend-canvas" height="120"></canvas>
+      </div>
+      <div class="panel-2col">
+        <div class="panel-box"><h4>Respuestas por sucursal</h4><div id="d60-by-suc"></div></div>
+        <div class="panel-box"><h4>Riesgo de rotación (marcado por el líder)</h4><div id="d60-riesgo"></div></div>
+      </div>
+      <div class="section-title">Ítems con menor calificación</div>
+      <p class="bandeja-sub">% de respuestas (colaborador + líder) que calificaron este punto por debajo de 4/5.</p>
+      <div class="panel-box" style="margin-bottom:24px;padding:18px"><div id="d60-items"></div></div>
+      <div class="section-header">
+        <div class="section-title">Detalle por colaborador</div>
+        <div class="toggle-wrap">
+          <span class="alerta-count" id="d60-alerta-count"></span>
+          <span class="toggle-label">Solo alertas</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="d60-toggle-alerta" onchange="renderD60Tab()">
+            <div class="toggle-track"></div>
+            <div class="toggle-knob"></div>
+          </label>
+        </div>
+      </div>
+      <div class="table-wrapper"><div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>Nombre</th><th>Sucursal</th><th>Rol</th><th>Líder</th><th>Mes</th>
+            <th>Autoeval. colaborador</th><th>Eval. líder</th><th>Riesgo (líder)</th>
+          </tr></thead>
+          <tbody id="d60-tbody"></tbody>
+        </table>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ENCUESTA 90 DÍAS -->
+  <div class="tab-panel" id="panel-noventa">
+    <div id="d90-loading" class="state-box"><div class="spinner"></div><span class="state-msg">Cargando datos…</span></div>
+    <div id="d90-content" style="display:none">
+      <div class="kpi-row" id="d90-kpis"></div>
+      <div class="section-title">Real vs Meta <span class="meta-linea">· meta 80% con calificación saludable (≥4/5)</span></div>
+      <div class="metas-mensual panel-box" style="padding:0;overflow:hidden;margin-bottom:12px"><div class="table-scroll"><table class="metas-mensual-table"><thead><tr id="d90-meta-head"></tr></thead><tbody id="d90-meta-body"></tbody></table></div></div>
+      <div class="panel-box" style="margin-bottom:24px;padding:18px">
+        <h4>Tendencia</h4>
+        <canvas id="d90-trend-canvas" height="120"></canvas>
+      </div>
+      <div class="panel-box" style="margin-bottom:24px"><h4>Respuestas por sucursal</h4><div id="d90-by-suc"></div></div>
+      <div class="section-title">Ítems con menor calificación</div>
+      <p class="bandeja-sub">% de respuestas que calificaron este punto por debajo de 4/5.</p>
+      <div class="panel-box" style="margin-bottom:24px;padding:18px"><div id="d90-items"></div></div>
+      <div class="section-header">
+        <div class="section-title">Detalle por colaborador</div>
+        <div class="toggle-wrap">
+          <span class="alerta-count" id="d90-alerta-count"></span>
+          <span class="toggle-label">Solo alertas</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="d90-toggle-alerta" onchange="renderD90Tab()">
+            <div class="toggle-track"></div>
+            <div class="toggle-knob"></div>
+          </label>
+        </div>
+      </div>
+      <div class="table-wrapper"><div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>Nombre</th><th>Sucursal</th><th>Rol</th><th>Líder</th><th>Mes</th><th>Promedio</th>
+          </tr></thead>
+          <tbody id="d90-tbody"></tbody>
         </table>
       </div></div>
     </div>
@@ -4918,6 +5004,8 @@ function applyFilters() {
   if (ACTIVE==='preonboarding') renderPre();
   if (ACTIVE==='ajuste10') renderAjuste10();
   if (ACTIVE==='treinta') renderD30();
+  if (ACTIVE==='sesenta') renderD60Tab();
+  if (ACTIVE==='noventa') renderD90Tab();
   if (ACTIVE==='evaluacion') renderEv();
   if (ACTIVE==='certificaciones') renderCert();
   if (ACTIVE==='ruta') renderRuta();
@@ -5346,6 +5434,280 @@ function renderD30() {
   }).join('');
 }
 
+// ── ENCUESTA 60 DÍAS — une autoevaluación del colaborador (d60) y evaluación del líder
+// (d60l) en una sola fila por persona, para ver el panorama completo de cómo va cada quien. ──
+function d60ItemsBajos(rows) {
+  const stats = {};
+  [...D60_LIKERT, ...D60L_LIKERT].forEach(label => { stats[label] = { total: 0, bajo: 0 }; });
+  rows.forEach(c => {
+    if (c.d60) D60_LIKERT.forEach(label => {
+      const v = parseFloat(c.d60[label]);
+      if (!isNaN(v)) { stats[label].total++; if (v < 4) stats[label].bajo++; }
+    });
+    if (c.d60l) D60L_LIKERT.forEach(label => {
+      const v = parseFloat(c.d60l[label]);
+      if (!isNaN(v)) { stats[label].total++; if (v < 4) stats[label].bajo++; }
+    });
+  });
+  return Object.fromEntries(
+    Object.entries(stats)
+      .filter(([,v]) => v.total > 0)
+      .map(([label, v]) => [truncar(label, 70), Math.round(v.bajo / v.total * 100)])
+      .sort((a,b) => b[1]-a[1])
+  );
+}
+
+function d60HasAlert(c) {
+  if (c.d60 && D60_LIKERT.some(label => { const v = parseFloat(c.d60[label]); return !isNaN(v) && v < 4; })) return true;
+  if (c.d60l && D60L_LIKERT.some(label => { const v = parseFloat(c.d60l[label]); return !isNaN(v) && v < 4; })) return true;
+  if (c.d60l && /🟡|🔴/.test(String(c.d60l['¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?']||''))) return true;
+  return false;
+}
+
+function riesgoLabelCorto(v) {
+  const s = String(v||'').trim();
+  return s ? s.split(' — ')[0] : 'Sin marcar';
+}
+
+function renderD60Tab() {
+  const {suc, mes, trim} = getF();
+  const rows = getColabIndex().filter(c => c.d60 || c.d60l).filter(c => {
+    if (suc && c.sucursal !== suc) return false;
+    const marca = (c.d60 && c.d60['Marca temporal']) || (c.d60l && c.d60l['Marca temporal']);
+    if (mes && getMes(marca) !== mes) return false;
+    if (trim && !mesEnTrimestre(getMes(marca), trim)) return false;
+    return true;
+  });
+
+  const conColab = rows.filter(c => c.d60);
+  const conLider = rows.filter(c => c.d60l);
+  const avgColab = avg(conColab.map(c => avgLikert(c.d60, D60_LIKERT)).filter(v=>v!==null));
+  const avgLider = avg(conLider.map(c => avgLikert(c.d60l, D60L_LIKERT)).filter(v=>v!==null));
+  const enRiesgo = conLider.filter(c => /🟡|🔴/.test(String(c.d60l['¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?']||''))).length;
+
+  document.getElementById('d60-kpis').innerHTML =
+    kpiCard('Respuestas colaborador', conColab.length, '') +
+    kpiCard('Respuestas líder', conLider.length, '') +
+    kpiCard('Autoeval. promedio', avgColab!==null?`${avgColab.toFixed(1)}/5`:'—', '', avgColab>=4?'green':avgColab>=3?'yellow':'red') +
+    kpiCard('Eval. líder promedio', avgLider!==null?`${avgLider.toFixed(1)}/5`:'—', '', avgLider>=4?'green':avgLider>=3?'yellow':'red') +
+    kpiCard('En riesgo (líder)', conLider.length?`${Math.round(enRiesgo/conLider.length*100)}%`:'—', `${enRiesgo}/${conLider.length}`, enRiesgo===0?'green':'red');
+
+  // Real vs Meta — % de respuestas (colaborador + líder) con calificación saludable (≥4/5)
+  const respuestas = [];
+  rows.forEach(c => {
+    if (c.d60) respuestas.push({ marca: c.d60['Marca temporal'], avgV: avgLikert(c.d60, D60_LIKERT), sucursal: c.sucursal });
+    if (c.d60l) respuestas.push({ marca: c.d60l['Marca temporal'], avgV: avgLikert(c.d60l, D60L_LIKERT), sucursal: c.sucursal });
+  });
+  const meses = getMesesOrdenados(respuestas, r => r.marca);
+  const pctPorMes = agruparPorMes(respuestas, r => r.marca, r => r.avgV===null?null:(r.avgV>=4?100:0));
+  const bySucMes = agruparPorMesSuc(respuestas, r => r.marca, r => r.sucursal||'Sin sucursal', r => r.avgV===null?null:(r.avgV>=4?100:0));
+  buildMetaTable(document.getElementById('d60-meta-head'), document.getElementById('d60-meta-body'), meses,
+    [{ label: '% con calificación saludable (≥4/5)', data: pctPorMes }], 80, 10, 'd60-trend-canvas', 'sesenta', bySucMes);
+
+  const bySuc = {};
+  rows.forEach(c => { const s = c.sucursal||'Sin sucursal'; bySuc[s] = (bySuc[s]||0)+1; });
+  barChart(document.getElementById('d60-by-suc'), bySuc);
+
+  const byRiesgo = {};
+  conLider.forEach(c => { const k = riesgoLabelCorto(c.d60l['¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?']); byRiesgo[k] = (byRiesgo[k]||0)+1; });
+  const elRiesgo = document.getElementById('d60-riesgo');
+  if (Object.keys(byRiesgo).length) barChart(elRiesgo, byRiesgo, false, false, '#7C3AED');
+  else elRiesgo.innerHTML = '<div class="focos-empty">Todavía no hay evaluaciones de líder.</div>';
+
+  const itemsBajos = d60ItemsBajos(rows);
+  const elItems = document.getElementById('d60-items');
+  if (Object.keys(itemsBajos).length) barChart(elItems, itemsBajos, true, true);
+  else elItems.innerHTML = '<div class="focos-empty">Sin datos suficientes todavía.</div>';
+
+  const soloAlertas60 = document.getElementById('d60-toggle-alerta').checked;
+  const alertCount60 = rows.filter(d60HasAlert).length;
+  const cntEl60 = document.getElementById('d60-alerta-count');
+  cntEl60.textContent = `${alertCount60} con alerta`;
+  cntEl60.classList.toggle('visible', alertCount60 > 0);
+
+  const visibles60 = soloAlertas60 ? rows.filter(d60HasAlert) : rows;
+  const tbody = document.getElementById('d60-tbody');
+  if (!visibles60.length) { tbody.innerHTML = `<tr><td colspan="8" class="empty">Sin resultados.</td></tr>`; return; }
+
+  window._d60Rows = visibles60;
+  tbody.innerHTML = visibles60.map((c, idx) => {
+    const hasAlert = d60HasAlert(c);
+    const aColab = c.d60 ? avgLikert(c.d60, D60_LIKERT) : null;
+    const aLider = c.d60l ? avgLikert(c.d60l, D60L_LIKERT) : null;
+    const marca = (c.d60 && c.d60['Marca temporal']) || (c.d60l && c.d60l['Marca temporal']);
+    const riesgo = c.d60l ? riesgoLabelCorto(c.d60l['¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?']) : '—';
+    return `<tr class="${hasAlert?'alerta-row':''}" style="cursor:pointer" onclick="openModal60(window._d60Rows[${idx}])">
+      <td class="td-name">${escapeHtml(c.nombre)} <span style="font-size:10px;color:#6B6280;margin-left:4px">↗</span></td>
+      <td class="td-sucursal">${escapeHtml(c.sucursal||'—')}</td>
+      <td style="font-size:11px">${escapeHtml(c.rol||'—')}</td>
+      <td style="font-size:11px">${escapeHtml(c.lider||'—')}</td>
+      <td class="td-mes">${getMes(marca)}</td>
+      <td>${aColab!==null?`<span style="color:${aColab>=4?'var(--verde-ok)':'var(--rojo)'}">${aColab.toFixed(1)}/5</span>`:'<span style="color:#6B6280">Sin responder</span>'}</td>
+      <td>${aLider!==null?`<span style="color:${aLider>=4?'var(--verde-ok)':'var(--rojo)'}">${aLider.toFixed(1)}/5</span>`:'<span style="color:#6B6280">Sin responder</span>'}</td>
+      <td style="font-size:11px">${escapeHtml(riesgo)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function openModal60(c) {
+  document.getElementById('modal-nombre').textContent = c.nombre || '—';
+  document.getElementById('modal-meta').innerHTML = [
+    c.sucursal, c.rol, c.lider?`Líder: ${c.lider}`:null, `${c.dias!==null?c.dias+' días':''}`
+  ].filter(Boolean).map(v => `<span>${escapeHtml(v)}</span>`).join('');
+
+  let html = `<div class="modal-section-label">Panorama</div><div class="rv-narr">${escapeHtml(narr60(c))}</div>`;
+
+  const likertItem = (label, v) => {
+    const val = parseFloat(v);
+    const esAlerta = !isNaN(val) && val < 4;
+    return `<div class="modal-item ${esAlerta?'alerta':''}">
+      <span class="modal-item-label">${escapeHtml(label)}</span>
+      <div class="modal-item-vals">
+        <span class="modal-resp ${isNaN(val)?'neutro':esAlerta?'mal':'ok'}">${isNaN(val)?'—':val+'/5'}</span>
+        ${esAlerta?`<span class="modal-esperado">Esperado: ≥4</span>`:''}
+      </div>
+    </div>`;
+  };
+
+  if (c.d60) {
+    html += `<div class="modal-section-label">Autoevaluación del colaborador</div>`;
+    html += D60_LIKERT.map(label => likertItem(label, c.d60[label])).join('');
+  }
+  if (c.d60l) {
+    html += `<div class="modal-section-label">Evaluación del líder (${escapeHtml(c.d60l['Nombre del líder']||c.lider||'—')})</div>`;
+    html += D60L_LIKERT.map(label => likertItem(label, c.d60l[label])).join('');
+    const riesgo = c.d60l['¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?'] || '';
+    const causa = c.d60l['¿Cuál es la causa principal?'] || '';
+    const accion = c.d60l['¿Qué acción vas a tomar o ya tomaste?'] || '';
+    const faltas = String(c.d60l['¿Ha tenido faltas o retardos que preocupen en este periodo?']||'').toLowerCase();
+    html += `<div class="modal-item ${/🟡|🔴/.test(riesgo)?'alerta':''}">
+      <span class="modal-item-label">Riesgo de rotación marcado por el líder</span>
+      <div class="modal-item-vals"><span class="modal-resp ${/🔴/.test(riesgo)?'mal':/🟡/.test(riesgo)?'neutro':'ok'}">${escapeHtml(riesgo)||'—'}</span></div>
+    </div>`;
+    if (causa) html += `<div class="modal-item"><div style="flex:1"><div class="modal-item-label">Causa principal</div><div class="modal-sent-resp">"${escapeHtml(causa)}"</div></div></div>`;
+    if (accion) html += `<div class="modal-item"><div style="flex:1"><div class="modal-item-label">Acción del líder</div><div class="modal-sent-resp">"${escapeHtml(accion)}"</div></div></div>`;
+    if (faltas==='sí'||faltas==='si') html += `<div class="modal-item alerta"><span class="modal-item-label">Faltas o retardos que preocupan en este periodo</span><div class="modal-item-vals"><span class="modal-resp mal">Sí</span></div></div>`;
+  }
+
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+// ── ENCUESTA 90 DÍAS ──
+function d90ItemsBajos(rows) {
+  const stats = {};
+  D90_LIKERT.forEach(label => { stats[label] = { total: 0, bajo: 0 }; });
+  rows.forEach(c => {
+    if (!c.d90) return;
+    D90_LIKERT.forEach(label => {
+      const v = parseFloat(c.d90[label]);
+      if (!isNaN(v)) { stats[label].total++; if (v < 4) stats[label].bajo++; }
+    });
+  });
+  return Object.fromEntries(
+    Object.entries(stats)
+      .filter(([,v]) => v.total > 0)
+      .map(([label, v]) => [truncar(label, 70), Math.round(v.bajo / v.total * 100)])
+      .sort((a,b) => b[1]-a[1])
+  );
+}
+
+function d90HasAlert(c) {
+  if (!c.d90) return false;
+  return D90_LIKERT.some(label => { const v = parseFloat(c.d90[label]); return !isNaN(v) && v < 4; });
+}
+
+function renderD90Tab() {
+  const {suc, mes, trim} = getF();
+  const rows = getColabIndex().filter(c => c.d90).filter(c => {
+    if (suc && c.sucursal !== suc) return false;
+    const marca = c.d90['Marca temporal'];
+    if (mes && getMes(marca) !== mes) return false;
+    if (trim && !mesEnTrimestre(getMes(marca), trim)) return false;
+    return true;
+  });
+
+  const n = rows.length;
+  const avgGeneral = avg(rows.map(c => avgLikert(c.d90, D90_LIKERT)).filter(v=>v!==null));
+  const saludables = rows.filter(c => { const v = avgLikert(c.d90, D90_LIKERT); return v!==null && v>=4; }).length;
+
+  document.getElementById('d90-kpis').innerHTML =
+    kpiCard('Respuestas', n, '') +
+    kpiCard('Promedio general', avgGeneral!==null?`${avgGeneral.toFixed(1)}/5`:'—', '', avgGeneral>=4?'green':avgGeneral>=3?'yellow':'red') +
+    kpiCard('Con calificación saludable (≥4/5)', n?`${Math.round(saludables/n*100)}%`:'—', `${saludables}/${n}`, n && saludables/n>=0.8?'green':'yellow');
+
+  const respuestas = rows.map(c => ({ marca: c.d90['Marca temporal'], avgV: avgLikert(c.d90, D90_LIKERT), sucursal: c.sucursal }));
+  const meses = getMesesOrdenados(respuestas, r => r.marca);
+  const pctPorMes = agruparPorMes(respuestas, r => r.marca, r => r.avgV===null?null:(r.avgV>=4?100:0));
+  const bySucMes = agruparPorMesSuc(respuestas, r => r.marca, r => r.sucursal||'Sin sucursal', r => r.avgV===null?null:(r.avgV>=4?100:0));
+  buildMetaTable(document.getElementById('d90-meta-head'), document.getElementById('d90-meta-body'), meses,
+    [{ label: '% con calificación saludable (≥4/5)', data: pctPorMes }], 80, 10, 'd90-trend-canvas', 'noventa', bySucMes);
+
+  const bySuc = {};
+  rows.forEach(c => { const s = c.sucursal||'Sin sucursal'; bySuc[s] = (bySuc[s]||0)+1; });
+  barChart(document.getElementById('d90-by-suc'), bySuc);
+
+  const itemsBajos = d90ItemsBajos(rows);
+  const elItems = document.getElementById('d90-items');
+  if (Object.keys(itemsBajos).length) barChart(elItems, itemsBajos, true, true);
+  else elItems.innerHTML = '<div class="focos-empty">Sin datos suficientes todavía.</div>';
+
+  const soloAlertas90 = document.getElementById('d90-toggle-alerta').checked;
+  const alertCount90 = rows.filter(d90HasAlert).length;
+  const cntEl90 = document.getElementById('d90-alerta-count');
+  cntEl90.textContent = `${alertCount90} con alerta`;
+  cntEl90.classList.toggle('visible', alertCount90 > 0);
+
+  const visibles90 = soloAlertas90 ? rows.filter(d90HasAlert) : rows;
+  const tbody = document.getElementById('d90-tbody');
+  if (!visibles90.length) { tbody.innerHTML = `<tr><td colspan="6" class="empty">Sin resultados.</td></tr>`; return; }
+
+  window._d90Rows = visibles90;
+  tbody.innerHTML = visibles90.map((c, idx) => {
+    const hasAlert = d90HasAlert(c);
+    const av = avgLikert(c.d90, D90_LIKERT);
+    return `<tr class="${hasAlert?'alerta-row':''}" style="cursor:pointer" onclick="openModal90(window._d90Rows[${idx}])">
+      <td class="td-name">${escapeHtml(c.nombre)} <span style="font-size:10px;color:#6B6280;margin-left:4px">↗</span></td>
+      <td class="td-sucursal">${escapeHtml(c.sucursal||'—')}</td>
+      <td style="font-size:11px">${escapeHtml(c.rol||'—')}</td>
+      <td style="font-size:11px">${escapeHtml(c.lider||'—')}</td>
+      <td class="td-mes">${getMes(c.d90['Marca temporal'])}</td>
+      <td>${av!==null?`<span style="color:${av>=4?'var(--verde-ok)':'var(--rojo)'}">${av.toFixed(1)}/5</span>`:'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function openModal90(c) {
+  document.getElementById('modal-nombre').textContent = c.nombre || '—';
+  document.getElementById('modal-meta').innerHTML = [
+    c.sucursal, c.rol, c.lider?`Líder: ${c.lider}`:null, `${c.dias!==null?c.dias+' días':''}`
+  ].filter(Boolean).map(v => `<span>${escapeHtml(v)}</span>`).join('');
+
+  let html = `<div class="modal-section-label">Panorama</div><div class="rv-narr">${escapeHtml(narr90(c))}</div>`;
+  html += `<div class="modal-section-label">Respuestas</div>`;
+  html += D90_LIKERT.map(label => {
+    const val = parseFloat(c.d90[label]);
+    const esAlerta = !isNaN(val) && val < 4;
+    return `<div class="modal-item ${esAlerta?'alerta':''}">
+      <span class="modal-item-label">${escapeHtml(label)}</span>
+      <div class="modal-item-vals">
+        <span class="modal-resp ${isNaN(val)?'neutro':esAlerta?'mal':'ok'}">${isNaN(val)?'—':val+'/5'}</span>
+        ${esAlerta?`<span class="modal-esperado">Esperado: ≥4</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  const cambio = c.d90['Si pudieras cambiar una sola cosa de tu experiencia en GEB, ¿cuál sería?'] || '';
+  const algo = c.d90['¿Algo que quieras que tu líder o GEB sepa?'] || '';
+  if (cambio) html += `<div class="modal-item"><div style="flex:1"><div class="modal-item-label">Qué cambiaría</div><div class="modal-sent-resp">"${escapeHtml(cambio)}"</div></div></div>`;
+  if (algo) html += `<div class="modal-item"><div style="flex:1"><div class="modal-item-label">Algo que quiera que su líder o GEB sepa</div><div class="modal-sent-resp">"${escapeHtml(algo)}"</div></div></div>`;
+
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
 // ── EVALUACIÓN ──
 function renderEv() {
   const {suc,mes,lider,rol} = getF();
@@ -5564,13 +5926,13 @@ function renderCert() {
   const byRol = {};
   completos.forEach(r => { const k = r['Rol']||'Sin rol'; byRol[k] = (byRol[k]||0)+1; });
   const elRol = document.getElementById('cert-by-rol');
-  if (Object.keys(byRol).length) barChart(elRol, byRol);
+  if (Object.keys(byRol).length) barChart(elRol, byRol, false, true);
   else elRol.innerHTML = '<div class="focos-empty">Todavía no hay certificaciones completadas.</div>';
 
   const byArea = {};
   completos.forEach(r => { const k = r['Área']||'Sin área'; byArea[k] = (byArea[k]||0)+1; });
   const elArea = document.getElementById('cert-by-area');
-  if (Object.keys(byArea).length) barChart(elArea, byArea);
+  if (Object.keys(byArea).length) barChart(elArea, byArea, false, true);
   else elArea.innerHTML = '<div class="focos-empty">Todavía no hay certificaciones completadas.</div>';
 }
 
@@ -6392,8 +6754,8 @@ function closeRutaModalDirect() {
 }
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeRutaModalDirect(); });
 
-const ONBOARDING_TABS = ['preonboarding','treinta','evaluacion','certificaciones','ruta'];
-const FORMACION_TABS = ['preonboarding','ajuste10','treinta','evaluacion','certificaciones','ruta','checklist'];
+const ONBOARDING_TABS = ['preonboarding','treinta','sesenta','noventa','evaluacion','certificaciones','ruta'];
+const FORMACION_TABS = ['preonboarding','ajuste10','treinta','sesenta','noventa','evaluacion','certificaciones','ruta','checklist'];
 
 // Qué tan alto tiene que ser el rol para ver cada sección de la barra izquierda. Lo que no
 // aparece aquí (Inicio, Bandeja, Calendario, Perfil, Expediente, Políticas, Permisos y
@@ -8898,7 +9260,7 @@ function afShowTeamToast(msg){
 
 const ROL_MINIMO_TAB = {
   directorio: 'lider', revisiones: 'lider', ruta: 'admin', configuracion: 'admin', reclutamiento: 'admin',
-  preonboarding: 'admin', ajuste10: 'admin', treinta: 'admin', evaluacion: 'admin', certificaciones: 'admin',
+  preonboarding: 'admin', ajuste10: 'admin', treinta: 'admin', sesenta: 'admin', noventa: 'admin', evaluacion: 'admin', certificaciones: 'admin',
   checklist: 'admin', medicionprov: 'admin',
 };
 // Servicio (Política de Apariencia / Ambiente Físico) no tiene mínimo de rol a propósito:
@@ -10468,7 +10830,7 @@ document.addEventListener('click', (e) => {
 // ── LOAD ALL ──
 async function loadAll() {
   // reset loaders
-  ['pre','ajuste10','d30','ev','cert','ruta','cal','dir','inicio'].forEach(k=>{
+  ['pre','ajuste10','d30','d60','d90','ev','cert','ruta','cal','dir','inicio'].forEach(k=>{
     document.getElementById(`${k}-loading`).style.display='flex';
     document.getElementById(`${k}-content`).style.display='none';
     document.getElementById(`${k}-loading`).innerHTML='<div class="spinner"></div><span class="state-msg">Cargando datos…</span>';
@@ -10600,7 +10962,7 @@ async function loadAll() {
     _orgChartBuilt = false;
     populateFilters();
 
-    ['pre','ajuste10','d30','ev','cert','ruta','cal','dir','inicio'].forEach(k=>{
+    ['pre','ajuste10','d30','d60','d90','ev','cert','ruta','cal','dir','inicio'].forEach(k=>{
       document.getElementById(`${k}-loading`).style.display='none';
       document.getElementById(`${k}-content`).style.display='block';
     });
@@ -10610,7 +10972,7 @@ async function loadAll() {
     renderAlertas();
     aplicarSimulacion();
   } catch(e) {
-    ['pre','ajuste10','d30','ev','cert','ruta','cal','dir','inicio'].forEach(k => errMsg(k, e));
+    ['pre','ajuste10','d30','d60','d90','ev','cert','ruta','cal','dir','inicio'].forEach(k => errMsg(k, e));
   }
 }
 
