@@ -3705,6 +3705,11 @@
     </div>
     <p class="bandeja-sub">Solo Naciones Unidas, Valle Real y Gourmetería. Pantalla temporal para medir — se puede quitar cuando ya no se necesite.</p>
 
+    <div class="section-title" style="margin:24px 0 12px">Comparación — a quién le falta qué (lista de 1 a 90 días)</div>
+    <p class="bandeja-sub">Según el día en el que va cada quien: quién no tiene Preonboarding, Entrevista de Ajuste 10-15, Encuesta 30/60/90 días — solo lo que ya le debería tocar según su fecha de ingreso.</p>
+    <div class="kpi-row" id="mp-comp-kpis"></div>
+    <div id="mp-comp-lista" style="margin-top:12px"></div>
+
     <div class="section-title" style="margin:24px 0 12px">Entrevista de Ajuste 10-15</div>
     <div class="kpi-row" id="mp-ajuste10-kpis"></div>
     <div id="mp-ajuste10-lista" style="margin-top:12px"></div>
@@ -14020,9 +14025,112 @@ function mpEnVentana(c, ventana) {
 }
 
 function renderMedicionProvisional() {
+  renderMpComparacion();
   renderMpAjuste10();
   renderMp30();
   renderMp6090();
+}
+
+// Lista puntual que pasó el usuario — gente que debería estar en algún punto del recorrido de
+// 1 a 90 días. Se cruza por nombre (difuso, igual que el resto de la app) contra el roster para
+// ver, según cuántos días lleva cada quien, qué encuestas ya le deberían haber hecho y cuáles le
+// faltan. Si alguien no aparece, puede ser que esté en Colaboradores solo como "vista previa"
+// local (con "+ Nuevo colaborador") — eso solo lo ve el navegador de quien lo agregó.
+const MP_LISTA_COMPARAR = [
+  'Imelda Valerio Villagrana', 'Maria Jose Espinosa Rivas', 'Salvador Ramirez Contreras',
+  'Ochoa Pérez Abraham', 'Meza Ramirez Gabriela', 'Víctor Jesús Aguilera Martínez',
+  'Isaac Israel Elizondo Olivares', 'Oscar Esteban Uribe Adame', 'Yajaira Estefania Reyes Ramirez',
+  'Ruvalcaba Palomera Maximus Gabriel', 'Ariadna Yareni Andrade Arriero', 'Oswaldo Villaneda Johnston',
+  'Francisco Javier Garcia Rodriguez', 'Evan Zuleth Almanzor Olmos', 'Caroline Noemi Lara Hurtado',
+  'Simón Pérez Baltzar', 'Ortiz Ovalle Rubí Isabel', 'Cabrera Flores Otmar Octavio',
+  'Victor Javier Soltero Cardenas',
+];
+
+function mpBuscarColab(nombreBuscado) {
+  const idx = getColabIndex();
+  const nk = normName(nombreBuscado);
+  return idx.find(c => normName(c.nombre) === nk) || idx.find(c => similarNames(nk, normName(c.nombre))) || null;
+}
+
+function mpTieneAjuste10(c) {
+  return DATA.ajuste10.some(r => similarNames(normName(r['Nombre del colaborador']), c.key));
+}
+
+// Qué etapas debería tener ya alguien con `dias` días de antigüedad — usa las mismas ventanas
+// (VENTANA_30/60/90) que ya usa Data, más el arranque de Ajuste 10-15 a partir del día 10.
+function mpEtapasEsperadas(dias) {
+  const etapas = [{ id: 'pre', label: 'Preonboarding' }];
+  if (dias >= 10) etapas.push({ id: 'ajuste10', label: 'Entrevista Ajuste 10-15' });
+  if (dias >= VENTANA_30.ini) etapas.push({ id: 'd30', label: 'Encuesta 30 días' });
+  if (dias >= VENTANA_60.ini) etapas.push({ id: 'd60', label: 'Encuesta 60 días' });
+  if (dias >= VENTANA_90.ini) etapas.push({ id: 'd90', label: 'Encuesta 90 días' });
+  return etapas;
+}
+function mpTieneEtapa(c, id) {
+  if (id === 'pre') return !!c.pre;
+  if (id === 'ajuste10') return mpTieneAjuste10(c);
+  if (id === 'd30') return !!c.d30;
+  if (id === 'd60') return !!(c.d60 || c.d60l);
+  if (id === 'd90') return !!c.d90;
+  return false;
+}
+
+function renderMpComparacion() {
+  const filas = MP_LISTA_COMPARAR.map(nombreBuscado => {
+    const c = mpBuscarColab(nombreBuscado);
+    if (!c) return { nombreBuscado, c: null };
+    if (c.dias === null) return { nombreBuscado, c, sinFecha: true };
+    const esperadas = mpEtapasEsperadas(c.dias);
+    const faltantes = esperadas.filter(e => !mpTieneEtapa(c, e.id));
+    return { nombreBuscado, c, dias: c.dias, faltantes };
+  });
+
+  const noEncontrados = filas.filter(f => !f.c).length;
+  const sinFecha = filas.filter(f => f.sinFecha).length;
+  const conFaltantes = filas.filter(f => f.faltantes && f.faltantes.length).length;
+  const alCorriente = filas.filter(f => f.faltantes && !f.faltantes.length).length;
+
+  document.getElementById('mp-comp-kpis').innerHTML =
+    kpiCard('Al corriente', alCorriente, '', 'green') +
+    kpiCard('Con algo pendiente', conFaltantes, '', conFaltantes ? 'red' : 'green') +
+    kpiCard('Sin fecha de ingreso', sinFecha, '', sinFecha ? 'yellow' : 'green') +
+    kpiCard('No encontrados en el roster', noEncontrados, '', noEncontrados ? 'yellow' : 'green');
+
+  document.getElementById('mp-comp-lista').innerHTML = filas.map(f => {
+    if (!f.c) {
+      return `<div class="encuesta-card" style="margin-bottom:8px;border-left:4px solid #6B6280">
+        <div class="encuesta-card-head">
+          <div style="font-weight:700;font-size:13.5px">${escapeHtml(f.nombreBuscado)}</div>
+          <span class="estatus-badge estatus-desconocido">No encontrado en el roster</span>
+        </div>
+      </div>`;
+    }
+    if (f.sinFecha) {
+      return `<div class="encuesta-card" style="margin-bottom:8px;border-left:4px solid #6B6280">
+        <div class="encuesta-card-head">
+          <div>
+            <div style="font-weight:700;font-size:13.5px">${escapeHtml(f.c.nombre)}</div>
+            <div class="encuesta-card-meta">${escapeHtml(f.c.sucursal || '')}</div>
+          </div>
+          <span class="estatus-badge estatus-desconocido">Sin fecha de ingreso registrada</span>
+        </div>
+      </div>`;
+    }
+    const hayFaltantes = f.faltantes.length > 0;
+    const color = hayFaltantes ? '#DC2626' : '#16A34A';
+    const badge = hayFaltantes
+      ? `<span class="estatus-badge estatus-baja">Falta: ${f.faltantes.map(e => escapeHtml(e.label)).join(', ')}</span>`
+      : `<span class="estatus-badge estatus-activo">Al corriente</span>`;
+    return `<div class="encuesta-card" style="margin-bottom:8px;border-left:4px solid ${color}">
+      <div class="encuesta-card-head">
+        <div>
+          <div style="font-weight:700;font-size:13.5px">${escapeHtml(f.c.nombre)}</div>
+          <div class="encuesta-card-meta">${escapeHtml(f.c.sucursal || '')} · ${escapeHtml(f.c.rol || '')} · Líder: ${escapeHtml(f.c.lider || '—')} · ${f.dias} días</div>
+        </div>
+        ${badge}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderMpAjuste10() {
@@ -14061,45 +14169,51 @@ function renderMpAjuste10() {
   }).join('');
 }
 
+// OJO: la población es "quién YA RESPONDIÓ" la encuesta (donde está el dato real en el Sheet),
+// no "quién está justo en la ventana de días hoy" — la mayoría de quienes respondieron su
+// encuesta de 30/60/90 días ya llevan mucho más tiempo en la empresa que esa ventana, así que
+// filtrar por ventana-actual dejaba prácticamente todo fuera. La ventana de días solo se usa
+// aparte, para el conteo de "en ventana sin responder" (a quién hay que seguir).
 function renderMp30() {
-  const idx = getColabIndex().filter(c => c.estatus !== 'baja' && mpEsVivo47(c.sucursal) && mpEnVentana(c, VENTANA_30));
-  const conRespuesta = idx.filter(c => c.d30);
-  const focosPorPersona = idx.map(c => ({ c, focos: focosRojosDe(c).filter(f => f.fuente === '30 días') }));
+  const todos = getColabIndex().filter(c => c.estatus !== 'baja' && mpEsVivo47(c.sucursal));
+  const respondieron = todos.filter(c => c.d30);
+  const enVentanaSinResponder = todos.filter(c => mpEnVentana(c, VENTANA_30) && !c.d30);
+  const focosPorPersona = respondieron.map(c => ({ c, focos: focosRojosDe(c).filter(f => f.fuente === '30 días') }));
   const totalFocos = focosPorPersona.reduce((s, x) => s + x.focos.length, 0);
 
   document.getElementById('mp-30-kpis').innerHTML =
-    kpiCard('En ventana de 30 días', idx.length, '') +
-    kpiCard('Ya respondieron', conRespuesta.length, '') +
+    kpiCard('Respondieron encuesta 30 días', respondieron.length, '') +
+    kpiCard('En ventana, sin responder', enVentanaSinResponder.length, '', enVentanaSinResponder.length ? 'yellow' : 'green') +
     kpiCard('Focos rojos', totalFocos, '', totalFocos ? 'red' : 'green');
 
   const el = document.getElementById('mp-30-lista');
-  el.innerHTML = idx.length ? focosPorPersona.map(({ c, focos }) => mpPersonaCardHtml(c, c.d30, focos)).join('')
-    : '<div class="bandeja-sub">Nadie de estas sucursales está en ventana de 30 días ahorita.</div>';
+  el.innerHTML = focosPorPersona.length ? focosPorPersona.map(({ c, focos }) => mpPersonaCardHtml(c, true, focos)).join('')
+    : '<div class="bandeja-sub">Nadie de estas sucursales ha respondido la encuesta de 30 días todavía.</div>';
 
   mpRenderFocosPorGrupo(focosPorPersona, 'mp-30-rol', c => c.rol, 'Sin rol');
   mpRenderFocosPorGrupo(focosPorPersona, 'mp-30-lider', c => c.lider, 'Sin líder');
 }
 
 function renderMp6090() {
-  const idx = getColabIndex().filter(c => c.estatus !== 'baja' && mpEsVivo47(c.sucursal) &&
-    (mpEnVentana(c, VENTANA_60) || mpEnVentana(c, VENTANA_90)));
-  const focosPorPersona = idx.map(c => {
-    const es60 = mpEnVentana(c, VENTANA_60);
-    const ventanaLabel = es60 ? '60 días' : '90 días';
-    const focos = focosRojosDe(c).filter(f => f.fuente.startsWith(es60 ? '60' : '90'));
-    return { c, ventanaLabel, respondio: !!(c.d60 || c.d60l || c.d90), focos };
+  const todos = getColabIndex().filter(c => c.estatus !== 'baja' && mpEsVivo47(c.sucursal));
+  const respondieron = todos.filter(c => c.d60 || c.d60l || c.d90);
+  const enVentanaSinResponder = todos.filter(c =>
+    ((mpEnVentana(c, VENTANA_60) && !(c.d60 || c.d60l)) || (mpEnVentana(c, VENTANA_90) && !c.d90)));
+  const focosPorPersona = respondieron.map(c => {
+    const etapa = c.d90 ? '90 días' : '60 días';
+    const focos = focosRojosDe(c).filter(f => f.fuente.startsWith('60') || f.fuente.startsWith('90'));
+    return { c, etapa, focos };
   });
   const totalFocos = focosPorPersona.reduce((s, x) => s + x.focos.length, 0);
-  const conRespuesta = focosPorPersona.filter(x => x.respondio).length;
 
   document.getElementById('mp-6090-kpis').innerHTML =
-    kpiCard('En ventana 60-90 días', idx.length, '') +
-    kpiCard('Ya respondieron', conRespuesta, '') +
+    kpiCard('Respondieron encuesta 60 o 90 días', respondieron.length, '') +
+    kpiCard('En ventana, sin responder', enVentanaSinResponder.length, '', enVentanaSinResponder.length ? 'yellow' : 'green') +
     kpiCard('Focos rojos', totalFocos, '', totalFocos ? 'red' : 'green');
 
   const el = document.getElementById('mp-6090-lista');
-  el.innerHTML = idx.length ? focosPorPersona.map(({ c, ventanaLabel, respondio, focos }) => mpPersonaCardHtml(c, respondio, focos, ventanaLabel)).join('')
-    : '<div class="bandeja-sub">Nadie de estas sucursales está en ventana de 60-90 días ahorita.</div>';
+  el.innerHTML = focosPorPersona.length ? focosPorPersona.map(({ c, etapa, focos }) => mpPersonaCardHtml(c, true, focos, etapa)).join('')
+    : '<div class="bandeja-sub">Nadie de estas sucursales ha respondido la encuesta de 60 o 90 días todavía.</div>';
 
   mpRenderFocosPorGrupo(focosPorPersona, 'mp-6090-rol', c => c.rol, 'Sin rol');
   mpRenderFocosPorGrupo(focosPorPersona, 'mp-6090-lider', c => c.lider, 'Sin líder');
