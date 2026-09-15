@@ -9687,7 +9687,7 @@ function borrarDatosPreview() {
 function renderConfiguracion() {
   const lu = document.getElementById('last-updated').textContent;
   document.getElementById('cfg-last-updated').textContent = lu && lu !== '—' ? lu : 'Aún no se ha cargado';
-  document.getElementById('cfg-fuente-estatus').textContent = _estatusFuente === 'sheet' ? "Hoja 'Estatus Colaboradores'" : 'Respaldo (Excel importado)';
+  document.getElementById('cfg-fuente-estatus').textContent = _estatusFuente === 'sheet' ? "Hoja 'Hoja Maestra'" : 'Respaldo (Excel importado)';
   const sim = getSimulacionActiva();
   document.getElementById('cfg-vista-actual').textContent = sim ? `${sim.c.nombre} (${nombreRol(sim.rol)})` : 'Administrador (sin simular)';
   document.getElementById('cfg-tu-nombre').textContent = getNombreUsuario() || 'Sin definir';
@@ -10827,6 +10827,147 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// ── Adaptadores "Hoja Maestra" → forma que cada pantalla ya sabía leer ──
+// Desde que existe "Hoja Maestra" (una sola fila por persona, con roster + todas las
+// encuestas de onboarding juntas) ya no hace falta cruzar por nombre entre ~7 hojas distintas
+// — eso era el origen de casi todos los registros duplicados que arreglamos esta sesión
+// (Fanny Reyes / Yajaira Estefania, Gaby Meza / Gabriela Meza, Yareni sin fila propia, etc.).
+// Estas funciones solo traducen cada fila de Hoja Maestra a la forma exacta de columnas que
+// el resto del código ya esperaba de cada encuesta por separado — nada más abajo cambió.
+function hmChecklistVal(v) {
+  const s = String(v||'').trim().toLowerCase();
+  if (s === 'sí' || s === 'si') return '3 = Lo recibí claro y completo';
+  if (s === 'no') return '1 = No lo recibí';
+  return '';
+}
+function hmToEstatusRow(hm) {
+  return {
+    'Nombre completo': hm['Nombre completo'],
+    'Sucursal': hm['Sucursal'],
+    'Rol': hm['Rol'],
+    'Líder': hm['Líder'],
+    'Fecha de Ingreso': hm['Fecha de Ingreso'],
+    'Estatus': hm['Estatus'],
+    'Fecha de Baja': hm['Fecha de Baja'],
+    'Motivo de baja': hm['Motivo de Baja'],
+  };
+}
+function hmToPreRow(hm) {
+  return {
+    'Marca temporal': hm['Marca temporal Preonboarding'],
+    'Nombre:': hm['Nombre completo'],
+    'Sucursal': hm['Sucursal'],
+    'Unidad de Negocio': hm['Unidad de Negocio'],
+    'Checklist [Recibí mi carta oferta con información clara.]': hmChecklistVal(hm['Checklist: Carta oferta clara (Sí/No)']),
+    'Checklist [Recibí lista de documentos necesarios.]': hmChecklistVal(hm['Checklist: Lista de documentos necesarios (Sí/No)']),
+    'Checklist [Recibí información completa de mi inducción (fecha, hora, sucursal, ubicación).]': hmChecklistVal(hm['Checklist: Información completa de inducción (Sí/No)']),
+    'Checklist [Me compartieron el nombre de mi líder directo.]': hmChecklistVal(hm['Checklist: Nombre de líder directo compartido (Sí/No)']),
+    'Checklist [Alguien estuvo disponible para resolver mis dudas.]': hmChecklistVal(hm['Checklist: Alguien disponible para dudas (Sí/No)']),
+    'Checklist [Los tiempos del proceso fueron respetados (entrevista, respuesta, ingreso).]': hmChecklistVal(hm['Checklist: Tiempos del proceso respetados (Sí/No)']),
+    'El trato del equipo de reclutamiento fue amable.  ': hm['Trato del equipo de reclutamiento fue amable (1-5)'],
+    'Me sentí escuchado(a) durante el proceso. ': hm['Me sentí escuchado(a) durante el proceso (1-5)'],
+    'Me explicaron claramente el rol y expectativas. ': hm['Me explicaron claramente el rol y expectativas (1-5)'],
+    'El proceso fue puntual y respetuoso con mi tiempo. ': hm['El proceso fue puntual y respetuoso con mi tiempo (1-5)'],
+    'Me sentí bienvenido(a) antes de iniciar. ': hm['Me sentí bienvenido(a) antes de iniciar (1-5)'],
+    'La comunicación fue clara y profesional. ': hm['La comunicación fue clara y profesional (1-5)'],
+    'Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  ': hm['NPS proceso de ingreso (0-10)'],
+    '¿Qué fue lo mejor de tu proceso antes de ingresar? ': hm['Qué fue lo mejor de tu proceso antes de ingresar'],
+    '  ¿Qué pudimos haber hecho mejor?  ': hm['Qué pudimos haber hecho mejor'],
+    'Si algo no fue claro, ¿qué fue específicamente?  ': hm['Si algo no fue claro qué fue específicamente'],
+  };
+}
+// "Área", "Fecha de esta llamada" y "Reclutador que aplica la llamada" todavía no existen en
+// Hoja Maestra — si se agregan ahí después con esos nombres exactos, se leen solas sin tocar
+// código. Mientras tanto Área sale vacía y Fecha de esta llamada usa la marca temporal.
+function hmToAjuste10Row(hm) {
+  return {
+    'Marca temporal': hm['Marca temporal Ajuste10-15'],
+    'Nombre del colaborador': hm['Nombre completo'],
+    'Sucursal ': hm['Sucursal'],
+    'Rol': hm['Rol'],
+    'Área': hm['Área'] || '',
+    'Nombre del líder': hm['Líder'],
+    'Fecha de esta llamada': hm['Fecha de esta llamada'] || hm['Marca temporal Ajuste10-15'],
+    'Reclutador que aplica la llamada': hm['Reclutador que aplica la llamada'] || '',
+    'Resultado del semáforo': hm['Resultado del semáforo Ajuste10-15'],
+    'Observaciones adicionales / justificación del semáforo': hm['Observaciones Ajuste10-15'],
+  };
+}
+function hmToD30Row(hm) {
+  return {
+    'Marca temporal': hm['Marca temporal 30 días'],
+    'Nombre': hm['Nombre completo'],
+    'Sucursal': hm['Sucursal'],
+    'Unidad de Negocio': hm['Unidad de Negocio'],
+    'Rol': hm['Rol'],
+    'Turno': hm['Turno'],
+    'Fecha de Ingreso': hm['Fecha de Ingreso'],
+    '  ¿Esta organización y el trabajo coinciden con lo anunciado?  ': hm['Organización y trabajo coinciden con lo anunciado (Sí/No)'],
+    '  ¿Tomé la decisión correcta al aceptar este trabajo?  ': hm['Tomé la decisión correcta al aceptar (Sí/No)'],
+    '  ¿Me siento conectado con esta organización?  ': hm['Me siento conectado con la organización (Sí/No)'],
+    'Equipo': hm['Sentimiento Equipo'],
+    'Incorporación': hm['Sentimiento Incorporación'],
+    'Líder': hm['Sentimiento Líder'],
+    'Pertenencia': hm['Sentimiento Pertenencia'],
+    'Futuro': hm['Sentimiento Futuro'],
+    '  ¿Tu líder se reunió contigo para explicarte los indicadores clave de desempeño de tu rol?': hm['Líder explicó KPIs del rol (Sí/No)'],
+    '  ¿Recibiste por escrito tu certificación de rol?': hm['Recibió certificación de rol por escrito (Sí/No)'],
+    '  ¿Tu capacitación se cumplió al pie de la letra?  ': hm['Capacitación se cumplió al pie de la letra (Sí/No)'],
+    '  ¿Alguien te dio un recorrido por la empresa y te presentó a la mayoría de los miembros del equipo?  ': hm['Recorrido y presentación con el equipo (Sí/No)'],
+    '  ¿Te hemos compartido un plan claro de tu desarrollo aquí con nosotros?  ': hm['Plan claro de desarrollo (Sí/No)'],
+    '  ¿Te hemos compartido cómo será tu formación y capacitación en los próximos 12 meses con nosotros?  ': hm['Plan de formación próximos 12 meses (Sí/No)'],
+    '  ¿Recibiste tu uniforme en tiempo y forma?  ': hm['Recibió uniforme a tiempo (Sí/No)'],
+    '  ¿Recibiste tu gafete en tiempo y forma?  ': hm['Recibió gafete a tiempo (Sí/No)'],
+    '  ¿Se te entregó tu tarjeta de vales a tiempo?  ': hm['Recibió tarjeta de vales a tiempo (Sí/No)'],
+    '  ¿Se te avisó a tiempo de tu tarjeta de nómina?  ': hm['Aviso a tiempo de tarjeta de nómina (Sí/No)'],
+  };
+}
+function hmToD60Row(hm) {
+  return {
+    'Marca temporal': hm['Marca temporal 60 días'],
+    'Nombre completo': hm['Nombre completo'],
+    'Sucursal': hm['Sucursal'],
+    'Rol': hm['Rol'],
+    'Después de 2 meses, siento que este es mi lugar. Formo parte real del equipo, no solo alguien nuevo.': hm['Siento que este es mi lugar (1-5)'],
+    'Ya domino lo básico de mi puesto y me siento capaz de resolver situaciones sin depender de que alguien me diga qué hacer.': hm['Domino lo básico de mi puesto (1-5)'],
+    'Mi líder conoce cómo voy y me ha dado seguimiento.': hm['Mi líder conoce cómo voy (1-5)'],
+    'Tengo compañeros con quienes puedo contar.': hm['Tengo compañeros con quienes contar (1-5)'],
+    'Me veo aquí en un año. Este trabajo va en la dirección que yo esperaba.': hm['Me veo aquí en un año (1-5)'],
+  };
+}
+function hmToD60LRow(hm) {
+  return {
+    'Marca temporal': hm['Marca temporal 60 días líder'],
+    'Nombre del colaborador evaluado': hm['Nombre completo'],
+    'Nombre del líder': hm['Líder'],
+    'El colaborador ejecuta las funciones básicas de su puesto con autonomía, sin necesitar supervisión constante.': hm['Ejecuta funciones básicas con autonomía (1-5)'],
+    'El colaborador está integrado con el equipo.': hm['Está integrado con el equipo (1-5)'],
+    'Su actitud refleja los valores de GEB (GRAACCIEE).': hm['Su actitud refleja valores GEB GRAACCIEE (1-5)'],
+    'Ha mostrado iniciativa propia — propone, pregunta, no solo ejecuta lo que se le indica.': hm['Ha mostrado iniciativa propia (1-5)'],
+    'Cuando le doy retroalimentación, la recibe bien y la aplica.': hm['Recibe bien la retroalimentación y la aplica (1-5)'],
+    '¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?': hm['Riesgo de rotación próximos 30 días'],
+    '¿Cuál es la causa principal?': hm['Causa principal'],
+    '¿Qué acción vas a tomar o ya tomaste?': hm['Acción a tomar'],
+    '¿Ha tenido faltas o retardos que preocupen en este periodo?': hm['Faltas o retardos que preocupen (Sí/No)'],
+  };
+}
+function hmToD90Row(hm) {
+  return {
+    'Marca temporal': hm['Marca temporal 90 días'],
+    'Nombre completo': hm['Nombre completo'],
+    'Sucursal': hm['Sucursal'],
+    'Rol / puesto': hm['Rol'],
+    'Después de 3 meses, me siento parte de esta empresa.': hm['Me siento parte de esta empresa (1-5)'],
+    'Domino por completo mi rol y me siento capaz de resolver lo que se me presente sin depender de que me guíen.': hm['Domino por completo mi rol (1-5)'],
+    'Mi líder ha estado presente en mi proceso, no solo al inicio — sé en qué punto estoy con él/ella.': hm['Mi líder ha estado presente en mi proceso (1-5)'],
+    'Tengo relaciones reales con mis compañeros, más allá de lo laboral.': hm['Tengo relaciones reales con compañeros (1-5)'],
+    'Quiero quedarme aquí. Este es el trabajo en el que me veo a largo plazo.': hm['Quiero quedarme aquí (1-5)'],
+    'Siento que mi esfuerzo estos 3 meses ha sido reconocido.': hm['Mi esfuerzo ha sido reconocido (1-5)'],
+    'Si pudieras cambiar una sola cosa de tu experiencia en GEB, ¿cuál sería?': hm['Qué cambiarías de tu experiencia en GEB'],
+    '¿Algo que quieras que tu líder o GEB sepa?': hm['Algo que quieras que tu líder o GEB sepa'],
+  };
+}
+
 // ── LOAD ALL ──
 async function loadAll() {
   // reset loaders
@@ -10843,30 +10984,34 @@ async function loadAll() {
   };
 
   try {
-    const [pre, d30, ev, cert, d60, d60l, d90] = await Promise.all([
-      fetchSheet('Preonboarding'),
-      fetchSheet('Encuesta 30 días'),
+    const [hmRaw, ev, cert] = await Promise.all([
+      fetchSheet('Hoja Maestra'),
       fetchSheet('Evaluación'),
       fetchSheet('Seguimiento Certificaciones'),
-      fetchSheet('60 días'),
-      fetchSheet('60 días líder'),
-      fetchSheet('90 días'),
     ]);
 
-    // Hoja de estatus/rotación es opcional — aún no existe hasta que se cree en el Sheet.
-    // Se carga aparte para que su ausencia no tumbe el resto del dashboard.
-    try {
-      const estatus = await fetchSheet('Datos Generales');
-      const filtrados = Array.isArray(estatus) ? estatus.filter(r => {
-        const nombre = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
-        return nombre !== undefined;
-      }) : [];
-      if (filtrados.length) { DATA.estatus = filtrados; _estatusFuente = 'sheet'; }
-      else { DATA.estatus = ESTATUS_FALLBACK; _estatusFuente = 'excel'; }
-    } catch (eEstatus) {
+    // "Hoja Maestra" — una sola fila por persona, con roster + todas las encuestas de
+    // onboarding juntas (Preonboarding, Ajuste 10-15, 30/60/60-líder/90 días). Reemplaza a
+    // las 7 hojas que antes se leían por separado, incluyendo "Datos Generales" para
+    // estatus/rotación — ver los adaptadores hmTo*Row() arriba de esta función.
+    const hmRows = (Array.isArray(hmRaw) ? hmRaw : []).filter(r => {
+      const nombre = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
+      return nombre !== undefined && !String(r['Nombre completo']||'').trim().toLowerCase().startsWith('ejemplo');
+    });
+
+    if (hmRows.length) {
+      DATA.estatus = hmRows.map(hmToEstatusRow);
+      _estatusFuente = 'sheet';
+    } else {
       DATA.estatus = ESTATUS_FALLBACK;
       _estatusFuente = 'excel';
     }
+    DATA.pre = hmRows.filter(r => r['Marca temporal Preonboarding']).map(hmToPreRow);
+    DATA.ajuste10 = hmRows.filter(r => r['Marca temporal Ajuste10-15']).map(hmToAjuste10Row);
+    DATA.d30 = hmRows.filter(r => r['Marca temporal 30 días']).map(hmToD30Row);
+    DATA.d60 = hmRows.filter(r => r['Marca temporal 60 días']).map(hmToD60Row);
+    DATA.d60l = hmRows.filter(r => r['Marca temporal 60 días líder']).map(hmToD60LRow);
+    DATA.d90 = hmRows.filter(r => r['Marca temporal 90 días']).map(hmToD90Row);
 
     // Hoja "Empleados" — roster completo con cumpleaños y aniversarios, para el calendario.
     // Opcional también: si no existe o falla, el calendario simplemente sale vacío.
@@ -10878,53 +11023,13 @@ async function loadAll() {
     }
 
     // "Hoja 5" — roster de toda la empresa (no solo Vivo 47). Opcional: si falla, seguimos
-    // con lo que ya trae "Empleados"/"Datos Generales".
+    // con lo que ya trae "Empleados"/"Hoja Maestra".
     try {
       DATA.hoja5 = await fetchHoja5();
     } catch (eHoja5) {
       DATA.hoja5 = [];
     }
 
-    // "entrevista ajuste 10" — llamada de seguimiento a 10-15 días. Opcional: si la hoja no
-    // existe o falla, la pestaña simplemente sale sin datos, no tumba el resto.
-    // Esta hoja mezcla dos cosas en las mismas 4 columnas: filas de respuesta real de la
-    // llamada (arriba) y, después de una fila marcador con "Marca temporal"==="Hechas", un
-    // mini-tracker de 4 columnas ya resuelto en el Sheet: Hecha | su reclutador | Faltante |
-    // su reclutador. No se calcula nada por antigüedad aquí — solo se lee tal cual.
-    try {
-      const rawAjuste10 = await fetchSheet('entrevista ajuste 10');
-      DATA.ajuste10 = [];
-      AJUSTE10_HECHAS = [];
-      AJUSTE10_FALTANTES = [];
-      let enListaHechasFaltantes = false;
-      (Array.isArray(rawAjuste10) ? rawAjuste10 : []).forEach(r => {
-        const marca = r['Marca temporal'];
-        const nombreCol = r['Nombre del colaborador'];
-        const rolCol = r['Rol'];
-        const sucCol = r['Sucursal '];
-        if (marca === 'Hechas') { enListaHechasFaltantes = true; return; }
-        if (enListaHechasFaltantes) {
-          if (marca) AJUSTE10_HECHAS.push({ nombre: String(marca).trim(), reclutador: String(nombreCol||'').trim() });
-          if (rolCol) AJUSTE10_FALTANTES.push({ nombre: String(rolCol).trim(), reclutador: String(sucCol||'').trim() });
-          return;
-        }
-        if (nombreCol && marca) DATA.ajuste10.push(r);
-      });
-    } catch (eAjuste10) {
-      DATA.ajuste10 = [];
-      AJUSTE10_HECHAS = [];
-      AJUSTE10_FALTANTES = [];
-    }
-
-    // Filtro permisivo: acepta cualquier fila que tenga algún valor en las primeras columnas
-    DATA.pre = pre.filter(r => {
-      const nombre = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
-      return nombre !== undefined;
-    });
-    DATA.d30 = d30.filter(r => {
-      const nombre = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
-      return nombre !== undefined;
-    });
     DATA.ev  = ev.filter(r => {
       if (!r['Nombre del colaborador'] || !r['Marca temporal']) return false;
       // Excluir filas vacías con solo ceros — pero si el líder dejó UNA casilla en blanco
@@ -10944,22 +11049,20 @@ async function loadAll() {
       if (String(nombre[1]).trim().toUpperCase().includes('COLABORADORES')) return false;
       return true;
     });
-    DATA.d60 = d60.filter(r => {
-      const nombre = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
-      return nombre !== undefined;
-    });
-    DATA.d60l = d60l.filter(r => {
-      const nombre = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
-      return nombre !== undefined;
-    });
-    DATA.d90 = d90.filter(r => {
-      const nombre = Object.entries(r).find(([k,v]) => k.toLowerCase().includes('nombre') && v && String(v).trim().length > 1);
-      return nombre !== undefined;
-    });
 
     document.getElementById('last-updated').textContent = '↑ ' + new Date().toLocaleTimeString('es-MX');
     _colabIndexCache = null; // los datos son nuevos — que el próximo getColabIndex() reconstruya
     _orgChartBuilt = false;
+
+    // "Quién falta" de Ajuste 10-15 — antes venía de una lista mantenida a mano en la misma
+    // hoja; ahora se calcula solo: cualquiera con 10+ días de antigüedad que todavía no tenga
+    // su "Marca temporal Ajuste10-15" en Hoja Maestra.
+    const nombresConAjuste10 = new Set(DATA.ajuste10.map(r => normName(r['Nombre del colaborador'])));
+    AJUSTE10_HECHAS = DATA.ajuste10.map(r => ({ nombre: r['Nombre del colaborador'], reclutador: r['Reclutador que aplica la llamada'] || '' }));
+    AJUSTE10_FALTANTES = getColabIndex()
+      .filter(c => c.estatus !== 'baja' && c.dias !== null && c.dias >= 10 && !nombresConAjuste10.has(c.key))
+      .map(c => ({ nombre: c.nombre, reclutador: '' }));
+
     populateFilters();
 
     ['pre','ajuste10','d30','d60','d90','ev','cert','ruta','cal','dir','inicio'].forEach(k=>{
