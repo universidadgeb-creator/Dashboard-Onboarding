@@ -883,6 +883,11 @@
   .rv-suc-chip.active { background: var(--rv-blue, #7C3AED); border-color: var(--rv-blue, #7C3AED); color: #fff; }
   .rv-suc-chip-n { font-size: 10px; opacity: 0.85; }
 
+  .onboarding-etapas { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .onboarding-etapa-btn { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 700; padding: 9px 18px; border-radius: 8px; border: 1px solid var(--rv-border, #E6DFF5); background: var(--rv-surface, #fff); color: var(--rv-text2, #6B6280); cursor: pointer; transition: all 0.15s; }
+  .onboarding-etapa-btn:hover { border-color: var(--rv-blue, #7C3AED); color: var(--rv-blue, #7C3AED); }
+  .onboarding-etapa-btn.active { background: var(--rv-blue, #7C3AED); border-color: var(--rv-blue, #7C3AED); color: #fff; }
+
   .rv-search-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
   .rv-search-input { flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid var(--rv-border); border-radius: 6px; font-size: 12px; font-family: 'Inter', sans-serif; color: var(--rv-text); background: var(--rv-surface); }
   .rv-search-input:focus { outline: none; border-color: var(--rv-blue); }
@@ -2911,20 +2916,8 @@
       <button class="sidebar-item" data-tab="checklist" onclick="switchTab('checklist')">
         <span class="si-icon"></span><span class="si-label">Checklist de Nuevo Ingreso</span>
       </button>
-      <button class="sidebar-item" data-tab="preonboarding" onclick="switchTab('preonboarding')">
-        <span class="si-icon"></span><span class="si-label">Preonboarding</span>
-      </button>
-      <button class="sidebar-item" data-tab="ajuste10" onclick="switchTab('ajuste10')">
-        <span class="si-icon"></span><span class="si-label">Entrevista de Ajuste 10-15</span>
-      </button>
-      <button class="sidebar-item" data-tab="treinta" onclick="switchTab('treinta')">
-        <span class="si-icon"></span><span class="si-label">Encuesta 30 Días</span>
-      </button>
-      <button class="sidebar-item" data-tab="sesenta" onclick="switchTab('sesenta')">
-        <span class="si-icon"></span><span class="si-label">Encuesta 60 Días</span>
-      </button>
-      <button class="sidebar-item" data-tab="noventa" onclick="switchTab('noventa')">
-        <span class="si-icon"></span><span class="si-label">Encuesta 90 Días</span>
+      <button class="sidebar-item" data-tab="onboarding" onclick="switchTab('onboarding')">
+        <span class="si-icon"></span><span class="si-label">🧭 Onboarding</span>
       </button>
       <button class="sidebar-item" data-tab="evaluacion" onclick="switchTab('evaluacion')">
         <span class="si-icon"></span><span class="si-label">Evaluación Inducción</span>
@@ -3072,6 +3065,23 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ONBOARDING — cáscara compartida: filtra por unidad de negocio y muestra la etapa
+       elegida activando también el panel-* de esa etapa (ver switchTab/selectOnboardingEtapa).
+       El contenido real de cada etapa sigue viviendo en su panel de siempre, sin tocar. -->
+  <div class="tab-panel" id="panel-onboarding">
+    <div class="section-header">
+      <div class="section-title">Onboarding</div>
+    </div>
+    <div class="rv-suc-chips" id="onboarding-unidades-chips" style="margin-bottom:14px"></div>
+    <div class="onboarding-etapas" id="onboarding-etapa-selector">
+      <button class="onboarding-etapa-btn active" data-etapa="pre" onclick="selectOnboardingEtapa('pre')">Preonboarding</button>
+      <button class="onboarding-etapa-btn" data-etapa="ajuste10" onclick="selectOnboardingEtapa('ajuste10')">Ajuste 10-15</button>
+      <button class="onboarding-etapa-btn" data-etapa="d30" onclick="selectOnboardingEtapa('d30')">30 días</button>
+      <button class="onboarding-etapa-btn" data-etapa="d60" onclick="selectOnboardingEtapa('d60')">60 días</button>
+      <button class="onboarding-etapa-btn" data-etapa="d90" onclick="selectOnboardingEtapa('d90')">90 días</button>
     </div>
   </div>
 
@@ -5001,11 +5011,7 @@ function clearFilters() {
   applyFilters();
 }
 function applyFilters() {
-  if (ACTIVE==='preonboarding') renderPre();
-  if (ACTIVE==='ajuste10') renderAjuste10();
-  if (ACTIVE==='treinta') renderD30();
-  if (ACTIVE==='sesenta') renderD60Tab();
-  if (ACTIVE==='noventa') renderD90Tab();
+  if (ACTIVE==='onboarding') renderOnboardingEtapa();
   if (ACTIVE==='evaluacion') renderEv();
   if (ACTIVE==='certificaciones') renderCert();
   if (ACTIVE==='ruta') renderRuta();
@@ -5028,28 +5034,31 @@ function populateFilters() {
   const meses = Object.entries(mesMap).sort((a,b)=>a[0].localeCompare(b[0])).map(([,v])=>v);
   fillSelect('f-mes', [...new Set(meses)], 'Todos los meses');
 
-  fillSelect('f-lider', uniq(DATA.ev.map(r=>r['Nombre del líder evaluador'])), 'Todos los líderes');
+  fillSelect('f-lider', uniq([...DATA.ev.map(r=>r['Nombre del líder evaluador']), ...getColabIndex().map(c=>c.lider)]), 'Todos los líderes');
   // f-rol tiene opciones fijas, no necesita popularse
 }
 function updateEvFilters() {
   const show = ACTIVE === 'evaluacion';
   const showRuta = ACTIVE === 'ruta';
-  document.getElementById('f-lider').style.display = show ? '' : 'none';
+  const showOnboarding = ACTIVE === 'onboarding';
+  document.getElementById('f-lider').style.display = (show || showOnboarding) ? '' : 'none';
   document.getElementById('f-rol').style.display = (show || showRuta) ? '' : 'none';
   document.getElementById('f-estatus').style.display = showRuta ? '' : 'none';
-  document.getElementById('ev-divider').style.display = (show || showRuta) ? '' : 'none';
+  document.getElementById('ev-divider').style.display = (show || showRuta || showOnboarding) ? '' : 'none';
 }
 
 // ── PREONBOARDING ──
 function renderPre() {
-  const {suc, mes, trim} = getF();
-  const rows = DATA.pre.filter(r => {
+  const {suc, mes, trim, lider} = getF();
+  let rows = DATA.pre.filter(r => {
     if (!r['Nombre:'] && !r['Nombre']) return false;
     if (suc && r['Sucursal'] !== suc) return false;
     if (mes && getMes(r['Marca temporal']) !== mes) return false;
     if (trim && !mesEnTrimestre(getMes(r['Marca temporal']), trim)) return false;
     return true;
   });
+  rows = filtrarPorUnidadNegocio(rows, _onboardingUnidadActiva, 'Sucursal');
+  rows = filtrarPorLiderRoster(rows, 'Nombre:', lider);
 
   const npsRows = rows.filter(r => r['Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  '] !== '' && r['Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  '] !== null);
   const npsVals = npsRows.map(r => parseFloat(r['Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  '])).filter(n => !isNaN(n) && n >= 0 && n <= 10);
@@ -5216,8 +5225,27 @@ async function copiarRecordatorioAjuste10(reclutador, btn) {
 }
 
 function renderAjuste10() {
-  const hechas = AJUSTE10_HECHAS.length;
-  const faltantes = AJUSTE10_FALTANTES.length;
+  const { suc, lider } = getF();
+  const idxFiltrado = getColabIndex().filter(c => {
+    if (suc && c.sucursal !== suc) return false;
+    if (lider && c.lider !== lider) return false;
+    if (_onboardingUnidadActiva) {
+      const u = UNIDADES_NEGOCIO.find(x => x.nombre === _onboardingUnidadActiva);
+      if (u && !u.sucursales.includes(c.sucursal)) return false;
+    }
+    return true;
+  });
+  const keysFiltrados = new Set(idxFiltrado.map(x => x.key));
+  const hechasFiltradas = idxFiltrado.filter(c => c.estatus !== 'baja' && mpTieneAjuste10(c))
+    .map(c => {
+      const r = DATA.ajuste10.find(row => similarNames(normName(row['Nombre del colaborador']), c.key));
+      return { nombre: c.nombre, reclutador: (r && r['Reclutador que aplica la llamada']) || '' };
+    });
+  const faltantesFiltradas = idxFiltrado.filter(c => c.estatus !== 'baja' && c.dias !== null && c.dias >= 10 && !mpTieneAjuste10(c))
+    .map(c => ({ nombre: c.nombre, reclutador: '' }));
+
+  const hechas = hechasFiltradas.length;
+  const faltantes = faltantesFiltradas.length;
   const total = hechas + faltantes;
   const pct = total > 0 ? Math.round(hechas / total * 100) : null;
 
@@ -5233,7 +5261,7 @@ function renderAjuste10() {
     gruposEl.innerHTML = `<div class="avisos-empty">Nadie pendiente 🎉</div>`;
   } else {
     const porReclutador = {};
-    AJUSTE10_FALTANTES.forEach(item => {
+    faltantesFiltradas.forEach(item => {
       const r = item.reclutador || 'Sin reclutador asignado';
       (porReclutador[r] = porReclutador[r] || []).push(item);
     });
@@ -5250,15 +5278,16 @@ function renderAjuste10() {
   }
 
   document.getElementById('ajuste10-hechas').innerHTML = hechas
-    ? AJUSTE10_HECHAS.map(item => `<div class="resultado-texto-item">✅ ${escapeHtml(item.nombre)}${item.reclutador ? ` <span style="color:var(--gris-texto)">— ${escapeHtml(item.reclutador)}</span>` : ''}</div>`).join('')
+    ? hechasFiltradas.map(item => `<div class="resultado-texto-item">✅ ${escapeHtml(item.nombre)}${item.reclutador ? ` <span style="color:var(--gris-texto)">— ${escapeHtml(item.reclutador)}</span>` : ''}</div>`).join('')
     : `<div class="avisos-empty">Todavía no hay llamadas registradas.</div>`;
 
+  const filasTabla = DATA.ajuste10.filter(r => keysFiltrados.has(normName(r['Nombre del colaborador'])) || idxFiltrado.some(c => similarNames(c.key, normName(r['Nombre del colaborador']))));
   const tbody = document.getElementById('ajuste10-tbody');
-  if (!DATA.ajuste10.length) {
+  if (!filasTabla.length) {
     tbody.innerHTML = `<tr><td colspan="9" class="empty">Sin llamadas registradas todavía.</td></tr>`;
     return;
   }
-  tbody.innerHTML = DATA.ajuste10.map(r => `
+  tbody.innerHTML = filasTabla.map(r => `
     <tr>
       <td class="td-name">${escapeHtml(r['Nombre del colaborador'] || '—')}</td>
       <td class="td-sucursal">${escapeHtml(String(r['Sucursal '] || '—').trim())}</td>
@@ -5317,14 +5346,16 @@ function d30HasAlert(r) {
 }
 
 function renderD30() {
-  const {suc, mes, trim} = getF();
-  const rows = DATA.d30.filter(r => {
+  const {suc, mes, trim, lider} = getF();
+  let rows = DATA.d30.filter(r => {
     if (!r['Nombre']) return false;
     if (suc && r['Sucursal']!==suc) return false;
     if (mes && getMes(r['Marca temporal'])!==mes) return false;
     if (trim && !mesEnTrimestre(getMes(r['Marca temporal']), trim)) return false;
     return true;
   });
+  rows = filtrarPorUnidadNegocio(rows, _onboardingUnidadActiva, 'Sucursal');
+  rows = filtrarPorLiderRoster(rows, 'Nombre', lider);
 
   const n = rows.length;
   const siOrg = rows.filter(r=>isSi(r['  ¿Esta organización y el trabajo coinciden con lo anunciado?  '])).length;
@@ -5470,9 +5501,14 @@ function riesgoLabelCorto(v) {
 }
 
 function renderD60Tab() {
-  const {suc, mes, trim} = getF();
+  const {suc, mes, trim, lider} = getF();
   const rows = getColabIndex().filter(c => c.d60 || c.d60l).filter(c => {
     if (suc && c.sucursal !== suc) return false;
+    if (lider && c.lider !== lider) return false;
+    if (_onboardingUnidadActiva) {
+      const u = UNIDADES_NEGOCIO.find(x => x.nombre === _onboardingUnidadActiva);
+      if (u && !u.sucursales.includes(c.sucursal)) return false;
+    }
     const marca = (c.d60 && c.d60['Marca temporal']) || (c.d60l && c.d60l['Marca temporal']);
     if (mes && getMes(marca) !== mes) return false;
     if (trim && !mesEnTrimestre(getMes(marca), trim)) return false;
@@ -5619,9 +5655,14 @@ function d90HasAlert(c) {
 }
 
 function renderD90Tab() {
-  const {suc, mes, trim} = getF();
+  const {suc, mes, trim, lider} = getF();
   const rows = getColabIndex().filter(c => c.d90).filter(c => {
     if (suc && c.sucursal !== suc) return false;
+    if (lider && c.lider !== lider) return false;
+    if (_onboardingUnidadActiva) {
+      const u = UNIDADES_NEGOCIO.find(x => x.nombre === _onboardingUnidadActiva);
+      if (u && !u.sucursales.includes(c.sucursal)) return false;
+    }
     const marca = c.d90['Marca temporal'];
     if (mes && getMes(marca) !== mes) return false;
     if (trim && !mesEnTrimestre(getMes(marca), trim)) return false;
@@ -6447,6 +6488,52 @@ function renderRutaUnidadesChips(rowsBase) {
   renderUnidadesChips('ruta-unidades-chips', rowsBase, 'sucursal', _rutaUnidadActiva, 'selectRutaUnidad');
 }
 
+// ── ONBOARDING (vista única) — cáscara compartida por las 5 etapas ──
+// Cada etapa sigue viviendo en su propio panel/render de siempre (renderPre, renderAjuste10,
+// renderD30, renderD60Tab, renderD90Tab) — esto solo decide cuál se ve y aplica los filtros de
+// unidad de negocio y líder encima de lo que cada una ya filtraba (sucursal/mes/trimestre).
+let _onboardingUnidadActiva = null;
+let _onboardingEtapa = 'pre'; // 'pre' | 'ajuste10' | 'd30' | 'd60' | 'd90'
+const ONBOARDING_ETAPA_PANEL = {
+  pre: 'panel-preonboarding', ajuste10: 'panel-ajuste10',
+  d30: 'panel-treinta', d60: 'panel-sesenta', d90: 'panel-noventa',
+};
+const ONBOARDING_ETAPA_RENDER = {
+  pre: () => renderPre(), ajuste10: () => renderAjuste10(), d30: () => renderD30(),
+  d60: () => renderD60Tab(), d90: () => renderD90Tab(),
+};
+function selectOnboardingUnidad(nombre) {
+  _onboardingUnidadActiva = _onboardingUnidadActiva === nombre ? null : nombre;
+  renderOnboardingEtapa();
+}
+function selectOnboardingEtapa(etapa) {
+  const panelAnterior = document.getElementById(ONBOARDING_ETAPA_PANEL[_onboardingEtapa]);
+  if (panelAnterior) panelAnterior.classList.remove('active');
+  _onboardingEtapa = etapa;
+  document.getElementById(ONBOARDING_ETAPA_PANEL[etapa]).classList.add('active');
+  document.querySelectorAll('.onboarding-etapa-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.etapa === etapa));
+  renderOnboardingEtapa();
+}
+function renderOnboardingShell() {
+  renderUnidadesChips('onboarding-unidades-chips', getColabIndex(), 'sucursal', _onboardingUnidadActiva, 'selectOnboardingUnidad');
+}
+function renderOnboardingEtapa() {
+  renderOnboardingShell();
+  ONBOARDING_ETAPA_RENDER[_onboardingEtapa]();
+}
+// El campo "líder" no vive en todas las filas crudas de cada encuesta (ej. Preonboarding no lo
+// trae), pero sí en getColabIndex() — se cruza por nombre igual que el resto de la app.
+function filtrarPorLiderRoster(rows, nombreField, lider) {
+  if (!lider) return rows;
+  const idx = getColabIndex();
+  return rows.filter(r => {
+    const nk = normName(r[nombreField]);
+    const c = idx.find(x => x.key === nk) || idx.find(x => similarNames(x.key, nk));
+    return c && c.lider === lider;
+  });
+}
+
 function renderRuta() {
   const { suc, rol, estatus } = getF();
   _rutaIndex = getColabIndex();
@@ -6754,8 +6841,8 @@ function closeRutaModalDirect() {
 }
 document.addEventListener('keydown', e => { if (e.key==='Escape') closeRutaModalDirect(); });
 
-const ONBOARDING_TABS = ['preonboarding','treinta','sesenta','noventa','evaluacion','certificaciones','ruta'];
-const FORMACION_TABS = ['preonboarding','ajuste10','treinta','sesenta','noventa','evaluacion','certificaciones','ruta','checklist'];
+const ONBOARDING_TABS = ['onboarding','evaluacion','certificaciones','ruta'];
+const FORMACION_TABS = ['onboarding','evaluacion','certificaciones','ruta','checklist'];
 
 // Qué tan alto tiene que ser el rol para ver cada sección de la barra izquierda. Lo que no
 // aparece aquí (Inicio, Bandeja, Calendario, Perfil, Expediente, Políticas, Permisos y
@@ -9260,7 +9347,7 @@ function afShowTeamToast(msg){
 
 const ROL_MINIMO_TAB = {
   directorio: 'lider', revisiones: 'lider', ruta: 'admin', configuracion: 'admin', reclutamiento: 'admin',
-  preonboarding: 'admin', ajuste10: 'admin', treinta: 'admin', sesenta: 'admin', noventa: 'admin', evaluacion: 'admin', certificaciones: 'admin',
+  onboarding: 'admin', evaluacion: 'admin', certificaciones: 'admin',
   checklist: 'admin', medicionprov: 'admin',
 };
 // Servicio (Política de Apariencia / Ambiente Físico) no tiene mínimo de rol a propósito:
@@ -9312,6 +9399,7 @@ function switchTab(tab) {
   if (searchResults) searchResults.classList.remove('open');
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById(`panel-${tab}`).classList.add('active');
+  if (tab === 'onboarding') document.getElementById(ONBOARDING_ETAPA_PANEL[_onboardingEtapa]).classList.add('active');
   document.getElementById('filters-bar').style.display = ONBOARDING_TABS.includes(tab) ? 'flex' : 'none';
   document.getElementById('metas-bar').style.display = ONBOARDING_TABS.includes(tab) ? '' : 'none';
   updateEvFilters();
