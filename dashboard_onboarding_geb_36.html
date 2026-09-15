@@ -3076,6 +3076,14 @@
       <div class="section-title">Onboarding</div>
     </div>
     <div class="rv-suc-chips" id="onboarding-unidades-chips" style="margin-bottom:14px"></div>
+    <div class="toggle-wrap" style="margin-bottom:14px">
+      <span class="toggle-label">Solo colaboradores actualmente en 0-90 días</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="onboarding-toggle-90" onchange="toggleOnboardingSolo90()">
+        <div class="toggle-track"></div>
+        <div class="toggle-knob"></div>
+      </label>
+    </div>
     <div class="onboarding-etapas" id="onboarding-etapa-selector">
       <button class="onboarding-etapa-btn active" data-etapa="pre" onclick="selectOnboardingEtapa('pre')">Preonboarding</button>
       <button class="onboarding-etapa-btn" data-etapa="ajuste10" onclick="selectOnboardingEtapa('ajuste10')">Ajuste 10-15</button>
@@ -5059,6 +5067,7 @@ function renderPre() {
   });
   rows = filtrarPorUnidadNegocio(rows, _onboardingUnidadActiva, 'Sucursal');
   rows = filtrarPorLiderRoster(rows, 'Nombre:', lider);
+  rows = filtrarPorVentana090Roster(rows, 'Nombre:');
 
   const npsRows = rows.filter(r => r['Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  '] !== '' && r['Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  '] !== null);
   const npsVals = npsRows.map(r => parseFloat(r['Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  '])).filter(n => !isNaN(n) && n >= 0 && n <= 10);
@@ -5233,6 +5242,7 @@ function renderAjuste10() {
       const u = UNIDADES_NEGOCIO.find(x => x.nombre === _onboardingUnidadActiva);
       if (u && !u.sucursales.includes(c.sucursal)) return false;
     }
+    if (_onboardingSolo90 && !enVentana090(c)) return false;
     return true;
   });
   const keysFiltrados = new Set(idxFiltrado.map(x => x.key));
@@ -5356,6 +5366,7 @@ function renderD30() {
   });
   rows = filtrarPorUnidadNegocio(rows, _onboardingUnidadActiva, 'Sucursal');
   rows = filtrarPorLiderRoster(rows, 'Nombre', lider);
+  rows = filtrarPorVentana090Roster(rows, 'Nombre');
 
   const n = rows.length;
   const siOrg = rows.filter(r=>isSi(r['  ¿Esta organización y el trabajo coinciden con lo anunciado?  '])).length;
@@ -5509,6 +5520,7 @@ function renderD60Tab() {
       const u = UNIDADES_NEGOCIO.find(x => x.nombre === _onboardingUnidadActiva);
       if (u && !u.sucursales.includes(c.sucursal)) return false;
     }
+    if (_onboardingSolo90 && !enVentana090(c)) return false;
     const marca = (c.d60 && c.d60['Marca temporal']) || (c.d60l && c.d60l['Marca temporal']);
     if (mes && getMes(marca) !== mes) return false;
     if (trim && !mesEnTrimestre(getMes(marca), trim)) return false;
@@ -5663,6 +5675,7 @@ function renderD90Tab() {
       const u = UNIDADES_NEGOCIO.find(x => x.nombre === _onboardingUnidadActiva);
       if (u && !u.sucursales.includes(c.sucursal)) return false;
     }
+    if (_onboardingSolo90 && !enVentana090(c)) return false;
     const marca = c.d90['Marca temporal'];
     if (mes && getMes(marca) !== mes) return false;
     if (trim && !mesEnTrimestre(getMes(marca), trim)) return false;
@@ -6494,6 +6507,7 @@ function renderRutaUnidadesChips(rowsBase) {
 // unidad de negocio y líder encima de lo que cada una ya filtraba (sucursal/mes/trimestre).
 let _onboardingUnidadActiva = null;
 let _onboardingEtapa = 'pre'; // 'pre' | 'ajuste10' | 'd30' | 'd60' | 'd90'
+let _onboardingSolo90 = false; // solo colaboradores con 0-90 días de antigüedad ahora mismo
 const ONBOARDING_ETAPA_PANEL = {
   pre: 'panel-preonboarding', ajuste10: 'panel-ajuste10',
   d30: 'panel-treinta', d60: 'panel-sesenta', d90: 'panel-noventa',
@@ -6516,11 +6530,31 @@ function selectOnboardingEtapa(etapa) {
   renderOnboardingEtapa();
 }
 function renderOnboardingShell() {
-  renderUnidadesChips('onboarding-unidades-chips', getColabIndex(), 'sucursal', _onboardingUnidadActiva, 'selectOnboardingUnidad');
+  const base = _onboardingSolo90 ? getColabIndex().filter(enVentana090) : getColabIndex();
+  renderUnidadesChips('onboarding-unidades-chips', base, 'sucursal', _onboardingUnidadActiva, 'selectOnboardingUnidad');
 }
 function renderOnboardingEtapa() {
   renderOnboardingShell();
   ONBOARDING_ETAPA_RENDER[_onboardingEtapa]();
+}
+function toggleOnboardingSolo90() {
+  _onboardingSolo90 = document.getElementById('onboarding-toggle-90').checked;
+  renderOnboardingEtapa();
+}
+// "Actualmente en 0-90 días" = ya tiene fecha de ingreso y no lleva más de 90 días — se usa
+// tanto para colaboradores (getColabIndex()) como, vía filtrarPorVentana90Roster, para filas
+// crudas de cada encuesta que no traen "días" propio.
+function enVentana090(c) {
+  return c.dias !== null && c.dias !== undefined && c.dias >= 0 && c.dias <= 90;
+}
+function filtrarPorVentana090Roster(rows, nombreField) {
+  if (!_onboardingSolo90) return rows;
+  const idx = getColabIndex();
+  return rows.filter(r => {
+    const nk = normName(r[nombreField]);
+    const c = idx.find(x => x.key === nk) || idx.find(x => similarNames(x.key, nk));
+    return c && enVentana090(c);
+  });
 }
 // El campo "líder" no vive en todas las filas crudas de cada encuesta (ej. Preonboarding no lo
 // trae), pero sí en getColabIndex() — se cruza por nombre igual que el resto de la app.
