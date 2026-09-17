@@ -3084,6 +3084,14 @@
         <div class="toggle-knob"></div>
       </label>
     </div>
+    <div class="panel-box" style="margin-bottom:20px;padding:18px">
+      <h4>Resumen general</h4>
+      <div class="kpi-row" id="onboarding-resumen-kpis"></div>
+      <div style="margin-top:12px">
+        <label style="font-size:11px;color:#5B5470;font-weight:600;margin-right:8px">Uniformes/gafetes por rol:</label>
+        <select class="filter-select" id="onboarding-resumen-rol" onchange="renderOnboardingResumen()" style="display:inline-block;width:auto"><option value="">Todos los roles</option></select>
+      </div>
+    </div>
     <div class="onboarding-etapas" id="onboarding-etapa-selector">
       <button class="onboarding-etapa-btn active" data-etapa="pre" onclick="selectOnboardingEtapa('pre')">Preonboarding</button>
       <button class="onboarding-etapa-btn" data-etapa="ajuste10" onclick="selectOnboardingEtapa('ajuste10')">Ajuste 10-15</button>
@@ -3099,14 +3107,6 @@
       <div class="kpi-row" id="pre-kpis"></div>
       <div class="section-title">Real vs Meta <span class="meta-linea">· meta 95%</span></div>
       <div class="metas-mensual panel-box" style="padding:0;overflow:hidden;margin-bottom:12px"><div class="table-scroll"><table class="metas-mensual-table"><thead><tr id="pre-meta-head"></tr></thead><tbody id="pre-meta-body"></tbody></table></div></div>
-      <div class="panel-box" style="margin-bottom:24px;padding:18px">
-        <h4>Indicadores clave</h4>
-        <div class="kpi-row" id="pre-indicadores-kpis"></div>
-        <div style="margin-top:12px">
-          <label style="font-size:11px;color:#5B5470;font-weight:600;margin-right:8px">Uniformes/gafetes por rol:</label>
-          <select class="filter-select" id="pre-uniforme-rol" onchange="renderPre()" style="display:inline-block;width:auto"><option value="">Todos los roles</option></select>
-        </div>
-      </div>
       <div class="panel-2col">
         <div class="panel-box"><h4>Respuestas por sucursal</h4><div id="pre-by-suc"></div></div>
         <div class="panel-box"><h4>Respuestas por mes</h4><div id="pre-by-mes"></div></div>
@@ -5060,49 +5060,8 @@ function updateEvFilters() {
 }
 
 // ── PREONBOARDING ──
-// % Rotación en 90 días (misma ventana 0-91 días que usa Data), % Uniformes y % Gafetes
-// entregados (de la Encuesta 30 días, item Sí/No) — con filtro extra de rol solo para estos
-// dos últimos. Usa el roster (getColabIndex()) con los mismos filtros compartidos de
-// Onboarding (unidad/sucursal/líder/0-90 días), no solo quienes respondieron Preonboarding.
-function renderPreIndicadores() {
-  const { suc, lider } = getF();
-  const idx = getColabIndex().filter(c => {
-    if (suc && c.sucursal !== suc) return false;
-    if (lider && c.lider !== lider) return false;
-    if (_onboardingUnidadActiva) {
-      const u = UNIDADES_NEGOCIO.find(x => x.nombre === _onboardingUnidadActiva);
-      if (u && !u.sucursales.includes(c.sucursal)) return false;
-    }
-    if (_onboardingSolo90 && !enVentana090(c)) return false;
-    return true;
-  });
-
-  const enVentanaRot = idx.filter(c => c.dias !== null && c.dias <= 91 && c.estatus !== 'desconocido');
-  const bajasRot = enVentanaRot.filter(c => c.estatus === 'baja').length;
-  const pctRotacion = enVentanaRot.length ? Math.round(bajasRot / enVentanaRot.length * 100) : null;
-
-  const rolSel = document.getElementById('pre-uniforme-rol').value;
-  const conD30 = idx.filter(c => c.d30 && (!rolSel || c.rol === rolSel));
-  const conUniforme = conD30.filter(c => isSi(c.d30['  ¿Recibiste tu uniforme en tiempo y forma?  '])).length;
-  const conGafete = conD30.filter(c => isSi(c.d30['  ¿Recibiste tu gafete en tiempo y forma?  '])).length;
-  const pctUniforme = conD30.length ? Math.round(conUniforme / conD30.length * 100) : null;
-  const pctGafete = conD30.length ? Math.round(conGafete / conD30.length * 100) : null;
-
-  document.getElementById('pre-indicadores-kpis').innerHTML =
-    kpiCard('% Rotación en 90 días', pctRotacion!==null?`${pctRotacion}%`:'—', enVentanaRot.length?`${bajasRot} de ${enVentanaRot.length}`:'Sin datos de estatus', pctRotacion===null?'':pctRotacion<=10?'green':pctRotacion<=20?'yellow':'red') +
-    kpiCard('% Uniformes entregados', pctUniforme!==null?`${pctUniforme}%`:'—', conD30.length?`${conUniforme} de ${conD30.length} (30 días)`:'Sin respuestas de 30 días', pctUniforme===null?'':pctUniforme>=90?'green':pctUniforme>=70?'yellow':'red') +
-    kpiCard('% Gafetes entregados', pctGafete!==null?`${pctGafete}%`:'—', conD30.length?`${conGafete} de ${conD30.length} (30 días)`:'Sin respuestas de 30 días', pctGafete===null?'':pctGafete>=90?'green':pctGafete>=70?'yellow':'red');
-
-  const rolesDisponibles = uniq(idx.filter(c => c.d30).map(c => c.rol).filter(Boolean));
-  const selEl = document.getElementById('pre-uniforme-rol');
-  const valorActual = selEl.value;
-  selEl.innerHTML = '<option value="">Todos los roles</option>' + rolesDisponibles.map(r => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join('');
-  selEl.value = rolesDisponibles.includes(valorActual) ? valorActual : '';
-}
-
 function renderPre() {
   const {suc, mes, trim, lider} = getF();
-  renderPreIndicadores();
   let rows = DATA.pre.filter(r => {
     if (!r['Nombre:'] && !r['Nombre']) return false;
     if (suc && r['Sucursal'] !== suc) return false;
@@ -5279,17 +5238,7 @@ async function copiarRecordatorioAjuste10(reclutador, btn) {
 }
 
 function renderAjuste10() {
-  const { suc, lider } = getF();
-  const idxFiltrado = getColabIndex().filter(c => {
-    if (suc && c.sucursal !== suc) return false;
-    if (lider && c.lider !== lider) return false;
-    if (_onboardingUnidadActiva) {
-      const u = UNIDADES_NEGOCIO.find(x => x.nombre === _onboardingUnidadActiva);
-      if (u && !u.sucursales.includes(c.sucursal)) return false;
-    }
-    if (_onboardingSolo90 && !enVentana090(c)) return false;
-    return true;
-  });
+  const idxFiltrado = onboardingIdxFiltrado();
   const keysFiltrados = new Set(idxFiltrado.map(x => x.key));
   const hechasFiltradas = idxFiltrado.filter(c => c.estatus !== 'baja' && mpTieneAjuste10(c))
     .map(c => {
@@ -5557,15 +5506,8 @@ function riesgoLabelCorto(v) {
 }
 
 function renderD60Tab() {
-  const {suc, mes, trim, lider} = getF();
-  const rows = getColabIndex().filter(c => c.d60 || c.d60l).filter(c => {
-    if (suc && c.sucursal !== suc) return false;
-    if (lider && c.lider !== lider) return false;
-    if (_onboardingUnidadActiva) {
-      const u = UNIDADES_NEGOCIO.find(x => x.nombre === _onboardingUnidadActiva);
-      if (u && !u.sucursales.includes(c.sucursal)) return false;
-    }
-    if (_onboardingSolo90 && !enVentana090(c)) return false;
+  const {mes, trim} = getF();
+  const rows = onboardingIdxFiltrado().filter(c => c.d60 || c.d60l).filter(c => {
     const marca = (c.d60 && c.d60['Marca temporal']) || (c.d60l && c.d60l['Marca temporal']);
     if (mes && getMes(marca) !== mes) return false;
     if (trim && !mesEnTrimestre(getMes(marca), trim)) return false;
@@ -5712,15 +5654,8 @@ function d90HasAlert(c) {
 }
 
 function renderD90Tab() {
-  const {suc, mes, trim, lider} = getF();
-  const rows = getColabIndex().filter(c => c.d90).filter(c => {
-    if (suc && c.sucursal !== suc) return false;
-    if (lider && c.lider !== lider) return false;
-    if (_onboardingUnidadActiva) {
-      const u = UNIDADES_NEGOCIO.find(x => x.nombre === _onboardingUnidadActiva);
-      if (u && !u.sucursales.includes(c.sucursal)) return false;
-    }
-    if (_onboardingSolo90 && !enVentana090(c)) return false;
+  const {mes, trim} = getF();
+  const rows = onboardingIdxFiltrado().filter(c => c.d90).filter(c => {
     const marca = c.d90['Marca temporal'];
     if (mes && getMes(marca) !== mes) return false;
     if (trim && !mesEnTrimestre(getMes(marca), trim)) return false;
@@ -6577,10 +6512,83 @@ function selectOnboardingEtapa(etapa) {
 function renderOnboardingShell() {
   const base = _onboardingSolo90 ? getColabIndex().filter(enVentana090) : getColabIndex();
   renderUnidadesChips('onboarding-unidades-chips', base, 'sucursal', _onboardingUnidadActiva, 'selectOnboardingUnidad');
+  renderOnboardingResumen();
 }
 function renderOnboardingEtapa() {
   renderOnboardingShell();
   ONBOARDING_ETAPA_RENDER[_onboardingEtapa]();
+}
+// Roster filtrado por los filtros compartidos de la vista Onboarding (sucursal/líder/unidad de
+// negocio/0-90 días) — reusado por el resumen general y por cada etapa.
+function onboardingIdxFiltrado() {
+  const { suc, lider } = getF();
+  return getColabIndex().filter(c => {
+    if (suc && c.sucursal !== suc) return false;
+    if (lider && c.lider !== lider) return false;
+    if (_onboardingUnidadActiva) {
+      const u = UNIDADES_NEGOCIO.find(x => x.nombre === _onboardingUnidadActiva);
+      if (u && !u.sucursales.includes(c.sucursal)) return false;
+    }
+    if (_onboardingSolo90 && !enVentana090(c)) return false;
+    return true;
+  });
+}
+// Resumen general de arriba de la vista Onboarding — rotación temprana, entrega de uniforme/
+// gafete (30 días) y % de satisfacción en cada etapa (30/60/90 y la evaluación del líder a los
+// 60 días), todo cruzando el mismo roster filtrado que usa cada etapa.
+function renderOnboardingResumen() {
+  const idx = onboardingIdxFiltrado();
+
+  const enVentanaRot = idx.filter(c => c.dias !== null && c.dias <= 91 && c.estatus !== 'desconocido');
+  const bajasRot = enVentanaRot.filter(c => c.estatus === 'baja').length;
+  const pctRotacion = enVentanaRot.length ? Math.round(bajasRot / enVentanaRot.length * 100) : null;
+
+  const rolSel = document.getElementById('onboarding-resumen-rol').value;
+  const conD30 = idx.filter(c => c.d30 && (!rolSel || c.rol === rolSel));
+  const conUniforme = conD30.filter(c => isSi(c.d30['  ¿Recibiste tu uniforme en tiempo y forma?  '])).length;
+  const conGafete = conD30.filter(c => isSi(c.d30['  ¿Recibiste tu gafete en tiempo y forma?  '])).length;
+  const pctUniforme = conD30.length ? Math.round(conUniforme / conD30.length * 100) : null;
+  const pctGafete = conD30.length ? Math.round(conGafete / conD30.length * 100) : null;
+
+  // % satisfacción 30 días: de todas las respuestas de sentimiento (Equipo/Incorporación/
+  // Líder/Pertenencia/Futuro), qué % fueron positivas.
+  let sentTotal = 0, sentPos = 0;
+  idx.filter(c => c.d30).forEach(c => {
+    D30_SENT_ITEMS.forEach(({col}) => {
+      const s = sentScore(c.d30[col]);
+      if (s) { sentTotal++; if (s === 2) sentPos++; }
+    });
+  });
+  const pctSat30 = sentTotal ? Math.round(sentPos / sentTotal * 100) : null;
+
+  // % satisfacción 60/90 días: % con calificación saludable (promedio ≥4/5) — mismo criterio
+  // que ya usa el "Real vs Meta" de esas pestañas.
+  const conD60 = idx.filter(c => c.d60);
+  const sat60 = conD60.filter(c => { const v = avgLikert(c.d60, D60_LIKERT); return v !== null && v >= 4; }).length;
+  const pctSat60 = conD60.length ? Math.round(sat60 / conD60.length * 100) : null;
+
+  const conD60L = idx.filter(c => c.d60l);
+  const sat60L = conD60L.filter(c => { const v = avgLikert(c.d60l, D60L_LIKERT); return v !== null && v >= 4; }).length;
+  const pctSat60L = conD60L.length ? Math.round(sat60L / conD60L.length * 100) : null;
+
+  const conD90 = idx.filter(c => c.d90);
+  const sat90 = conD90.filter(c => { const v = avgLikert(c.d90, D90_LIKERT); return v !== null && v >= 4; }).length;
+  const pctSat90 = conD90.length ? Math.round(sat90 / conD90.length * 100) : null;
+
+  document.getElementById('onboarding-resumen-kpis').innerHTML =
+    kpiCard('% Rotación en 90 días', pctRotacion!==null?`${pctRotacion}%`:'—', enVentanaRot.length?`${bajasRot} de ${enVentanaRot.length}`:'Sin datos de estatus', pctRotacion===null?'':pctRotacion<=10?'green':pctRotacion<=20?'yellow':'red') +
+    kpiCard('% Uniformes entregados', pctUniforme!==null?`${pctUniforme}%`:'—', conD30.length?`${conUniforme} de ${conD30.length} (30 días)`:'Sin respuestas de 30 días', pctUniforme===null?'':pctUniforme>=90?'green':pctUniforme>=70?'yellow':'red') +
+    kpiCard('% Gafetes entregados', pctGafete!==null?`${pctGafete}%`:'—', conD30.length?`${conGafete} de ${conD30.length} (30 días)`:'Sin respuestas de 30 días', pctGafete===null?'':pctGafete>=90?'green':pctGafete>=70?'yellow':'red') +
+    kpiCard('% Satisfacción 30 días', pctSat30!==null?`${pctSat30}%`:'—', sentTotal?`${sentPos} de ${sentTotal} respuestas`:'Sin respuestas de 30 días', pctSat30===null?'':pctSat30>=90?'green':pctSat30>=70?'yellow':'red') +
+    kpiCard('% Satisfacción 60 días', pctSat60!==null?`${pctSat60}%`:'—', conD60.length?`${sat60} de ${conD60.length}`:'Sin respuestas de 60 días', pctSat60===null?'':pctSat60>=80?'green':pctSat60>=60?'yellow':'red') +
+    kpiCard('% Satisfacción 60 días (líder)', pctSat60L!==null?`${pctSat60L}%`:'—', conD60L.length?`${sat60L} de ${conD60L.length}`:'Sin evaluaciones de líder', pctSat60L===null?'':pctSat60L>=80?'green':pctSat60L>=60?'yellow':'red') +
+    kpiCard('% Satisfacción 90 días', pctSat90!==null?`${pctSat90}%`:'—', conD90.length?`${sat90} de ${conD90.length}`:'Sin respuestas de 90 días', pctSat90===null?'':pctSat90>=80?'green':pctSat90>=60?'yellow':'red');
+
+  const rolesDisponibles = uniq(idx.filter(c => c.d30).map(c => c.rol).filter(Boolean));
+  const selEl = document.getElementById('onboarding-resumen-rol');
+  const valorActual = selEl.value;
+  selEl.innerHTML = '<option value="">Todos los roles</option>' + rolesDisponibles.map(r => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join('');
+  selEl.value = rolesDisponibles.includes(valorActual) ? valorActual : '';
 }
 function toggleOnboardingSolo90() {
   _onboardingSolo90 = document.getElementById('onboarding-toggle-90').checked;
