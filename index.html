@@ -6262,6 +6262,7 @@ function buildColabIndex() {
     // es el más confiable (gana empates), y el resto de sus campos gana sobre lo que hayan
     // traído las encuestas en vez de solo rellenar cuando esté vacío.
     considerarNombre(c, nom, 4);
+    c.unidadNegocio = r['Unidad de Negocio'] || c.unidadNegocio;
     c.sucursal = clubNombre(r['Sucursal']) || c.sucursal;
     c.rol = r['Rol'] || c.rol;
     c.turno = c.turno || r['Turno'];
@@ -6455,21 +6456,32 @@ const UNIDADES_NEGOCIO = [
 ];
 let _rutaUnidadActiva = null;
 
-// Filtra `rows` por las sucursales de la unidad de negocio elegida (o regresa `rows` tal cual si
-// no hay ninguna elegida, o si el nombre ya no existe en UNIDADES_NEGOCIO). Compartido entre Data
-// y el Checklist de Nuevo Ingreso — antes cada uno traía su propia copia de este filtro, y solo
-// una de las dos tenía el resguardo de que la unidad exista.
+// Onara y Nube tienen un local DENTRO de Naciones Unidas, pero son unidades de negocio
+// aparte de Vivo 47 — comparten el nombre de sucursal sin ser la misma unidad. Por eso, si la
+// fila ya trae su propia "Unidad de Negocio" (colaborador.unidadNegocio, o la columna cruda
+// "Unidad de Negocio" de Hoja Maestra), esa es la que manda; el nombre de sucursal solo se usa
+// como respaldo para gente que todavía no tiene esa columna llena (roster viejo de Hoja 5).
+function perteneceAUnidad(r, unidad, sucursalField) {
+  const unidadRow = r.unidadNegocio || r['Unidad de Negocio'];
+  if (unidadRow) return String(unidadRow).trim().toLowerCase() === unidad.nombre.toLowerCase();
+  return unidad.sucursales.includes(r[sucursalField]);
+}
+
+// Filtra `rows` por la unidad de negocio elegida (o regresa `rows` tal cual si no hay ninguna
+// elegida, o si el nombre ya no existe en UNIDADES_NEGOCIO). Compartido entre Data y el
+// Checklist de Nuevo Ingreso — antes cada uno traía su propia copia de este filtro, y solo una
+// de las dos tenía el resguardo de que la unidad exista.
 function filtrarPorUnidadNegocio(rows, unidadNombre, sucursalField) {
   if (!unidadNombre) return rows;
   const unidad = UNIDADES_NEGOCIO.find(u => u.nombre === unidadNombre);
-  return unidad ? rows.filter(r => unidad.sucursales.includes(r[sucursalField])) : rows;
+  return unidad ? rows.filter(r => perteneceAUnidad(r, unidad, sucursalField)) : rows;
 }
 
 // Dibuja "Todas + una por unidad de negocio" dentro de `elId`, contando sobre `rowsBase` y
 // marcando activa la unidad `unidadActiva` — mismo compartido de arriba.
 function renderUnidadesChips(elId, rowsBase, sucursalField, unidadActiva, onSelectFnName) {
   const chipsEl = document.getElementById(elId);
-  const contarUnidad = u => rowsBase.filter(r => u.sucursales.includes(r[sucursalField])).length;
+  const contarUnidad = u => rowsBase.filter(r => perteneceAUnidad(r, u, sucursalField)).length;
   chipsEl.innerHTML = `<button class="rv-suc-chip ${!unidadActiva?'active':''}" onclick="${onSelectFnName}(null)">Todas <span class="rv-suc-chip-n">${rowsBase.length}</span></button>` +
     UNIDADES_NEGOCIO.map(u => `<button class="rv-suc-chip ${unidadActiva===u.nombre?'active':''}" onclick="${onSelectFnName}('${u.nombre.replace(/'/g,"\\'")}')">${escapeHtml(u.nombre)} <span class="rv-suc-chip-n">${contarUnidad(u)}</span></button>`).join('');
 }
@@ -6529,7 +6541,7 @@ function onboardingIdxFiltrado() {
     if (lider && c.lider !== lider) return false;
     if (_onboardingUnidadActiva) {
       const u = UNIDADES_NEGOCIO.find(x => x.nombre === _onboardingUnidadActiva);
-      if (u && !u.sucursales.includes(c.sucursal)) return false;
+      if (u && !perteneceAUnidad(c, u, 'sucursal')) return false;
     }
     if (_onboardingSolo90 && !enVentana090(c)) return false;
     return true;
@@ -11046,6 +11058,7 @@ function hmChecklistVal(v) {
 function hmToEstatusRow(hm) {
   return {
     'Nombre completo': hm['Nombre completo'],
+    'Unidad de Negocio': hm['Unidad de Negocio'],
     'Sucursal': hm['Sucursal'],
     'Rol': hm['Rol'],
     'Líder': hm['Líder'],
