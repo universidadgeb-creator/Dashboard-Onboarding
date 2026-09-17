@@ -6539,7 +6539,7 @@ function onboardingIdxFiltrado() {
 function renderOnboardingResumen() {
   const idx = onboardingIdxFiltrado();
 
-  const enVentanaRot = idx.filter(c => c.dias !== null && c.dias <= 91 && c.estatus !== 'desconocido');
+  const enVentanaRot = idx.filter(c => c.dias !== null && c.dias >= 0 && c.dias <= 91 && c.estatus !== 'desconocido');
   const bajasRot = enVentanaRot.filter(c => c.estatus === 'baja').length;
   const pctRotacion = enVentanaRot.length ? Math.round(bajasRot / enVentanaRot.length * 100) : null;
 
@@ -6633,7 +6633,7 @@ function renderRuta() {
       if (rol==='limpieza' && !esLimpieza) return false;
       if (rol==='operacion' && esLimpieza) return false;
     }
-    if (c.dias === null || c.dias > 91) return false; // solo ventana de onboarding: 0–91 días
+    if (c.dias === null || c.dias < 0 || c.dias > 91) return false; // solo ventana de onboarding: 0–91 días
     return true;
   });
   renderRutaUnidadesChips(rowsBase);
