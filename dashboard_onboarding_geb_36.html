@@ -3087,9 +3087,9 @@
     <div class="panel-box" style="margin-bottom:20px;padding:18px">
       <h4>Resumen general</h4>
       <div class="kpi-row" id="onboarding-resumen-kpis"></div>
-      <div style="margin-top:12px">
-        <label style="font-size:11px;color:#5B5470;font-weight:600;margin-right:8px">Uniformes/gafetes por rol:</label>
-        <select class="filter-select" id="onboarding-resumen-rol" onchange="renderOnboardingResumen()" style="display:inline-block;width:auto"><option value="">Todos los roles</option></select>
+      <div class="panel-2col" style="margin-top:16px">
+        <div class="panel-box"><h4>% Uniformes entregados por rol</h4><div id="onboarding-resumen-uniforme-rol"></div></div>
+        <div class="panel-box"><h4>% Gafetes entregados por rol</h4><div id="onboarding-resumen-gafete-rol"></div></div>
       </div>
       <div class="mp-detalle-label" style="margin-top:16px">Bajas dentro de los primeros 90 días</div>
       <div id="onboarding-resumen-bajas" style="margin-top:8px"></div>
@@ -6546,8 +6546,7 @@ function renderOnboardingResumen() {
   const bajasRot = bajasArr.length;
   const pctRotacion = enVentanaRot.length ? Math.round(bajasRot / enVentanaRot.length * 100) : null;
 
-  const rolSel = document.getElementById('onboarding-resumen-rol').value;
-  const conD30 = idx.filter(c => c.d30 && (!rolSel || c.rol === rolSel));
+  const conD30 = idx.filter(c => c.d30);
   const conUniforme = conD30.filter(c => isSi(c.d30['  ¿Recibiste tu uniforme en tiempo y forma?  '])).length;
   const conGafete = conD30.filter(c => isSi(c.d30['  ¿Recibiste tu gafete en tiempo y forma?  '])).length;
   const pctUniforme = conD30.length ? Math.round(conUniforme / conD30.length * 100) : null;
@@ -6587,11 +6586,24 @@ function renderOnboardingResumen() {
     kpiCard('% Satisfacción 60 días (líder)', pctSat60L!==null?`${pctSat60L}%`:'—', conD60L.length?`${sat60L} de ${conD60L.length}`:'Sin evaluaciones de líder', pctSat60L===null?'':pctSat60L>=80?'green':pctSat60L>=60?'yellow':'red') +
     kpiCard('% Satisfacción 90 días', pctSat90!==null?`${pctSat90}%`:'—', conD90.length?`${sat90} de ${conD90.length}`:'Sin respuestas de 90 días', pctSat90===null?'':pctSat90>=80?'green':pctSat90>=60?'yellow':'red');
 
-  const rolesDisponibles = uniq(idx.filter(c => c.d30).map(c => c.rol).filter(Boolean));
-  const selEl = document.getElementById('onboarding-resumen-rol');
-  const valorActual = selEl.value;
-  selEl.innerHTML = '<option value="">Todos los roles</option>' + rolesDisponibles.map(r => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join('');
-  selEl.value = rolesDisponibles.includes(valorActual) ? valorActual : '';
+  // % Uniformes / % Gafetes por rol — un vistazo de todos los roles a la vez en vez de un
+  // dropdown que solo dejaba ver uno a la vez.
+  const porRolUniforme = {}, porRolUniformeN = {}, porRolGafete = {}, porRolGafeteN = {};
+  conD30.forEach(c => {
+    const r = c.rol || 'Sin rol';
+    porRolUniformeN[r] = (porRolUniformeN[r]||0) + 1;
+    if (isSi(c.d30['  ¿Recibiste tu uniforme en tiempo y forma?  '])) porRolUniforme[r] = (porRolUniforme[r]||0) + 1;
+    porRolGafeteN[r] = (porRolGafeteN[r]||0) + 1;
+    if (isSi(c.d30['  ¿Recibiste tu gafete en tiempo y forma?  '])) porRolGafete[r] = (porRolGafete[r]||0) + 1;
+  });
+  const pctPorRolUniforme = Object.fromEntries(Object.keys(porRolUniformeN).map(r => [r, Math.round((porRolUniforme[r]||0)/porRolUniformeN[r]*100)]));
+  const pctPorRolGafete = Object.fromEntries(Object.keys(porRolGafeteN).map(r => [r, Math.round((porRolGafete[r]||0)/porRolGafeteN[r]*100)]));
+  const elUniformeRol = document.getElementById('onboarding-resumen-uniforme-rol');
+  if (Object.keys(pctPorRolUniforme).length) barChart(elUniformeRol, pctPorRolUniforme, true);
+  else elUniformeRol.innerHTML = '<div class="focos-empty">Sin respuestas de 30 días.</div>';
+  const elGafeteRol = document.getElementById('onboarding-resumen-gafete-rol');
+  if (Object.keys(pctPorRolGafete).length) barChart(elGafeteRol, pctPorRolGafete, true);
+  else elGafeteRol.innerHTML = '<div class="focos-empty">Sin respuestas de 30 días.</div>';
 
   const elBajas = document.getElementById('onboarding-resumen-bajas');
   elBajas.innerHTML = bajasArr.length
