@@ -9559,7 +9559,7 @@ function colaboradoresPendientesEncuesta() {
     // Tope de 91 días: sin esto, cualquier veterano con estatus "activo" que venga de
     // "Hoja 5"/"Empleados" (no solo la gente en onboarding) queda marcado como pendiente
     // para siempre — inundando la campanita con gente que lleva años en la empresa.
-    if (c.estatus !== 'activo' || c.dias === null || c.dias > 91) return;
+    if (c.estatus !== 'activo' || c.dias === null || c.dias < 0 || c.dias > 91) return;
     if (c.dias >= 30 && !c.d30 && !enviadas[`${c.key}__d30`]) grupos.d30.push(c);
     if (c.dias >= 60 && !c.d60 && !enviadas[`${c.key}__d60`]) grupos.d60.push(c);
     if (c.dias >= 90 && !c.d90 && !enviadas[`${c.key}__d90`]) grupos.d90.push(c);
