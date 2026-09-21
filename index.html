@@ -580,8 +580,12 @@
   .oc-paso-estado.ok { background: #16A34A22; color: #16A34A; }
   .oc-paso-estado.tarde { background: #DC262622; color: #DC2626; }
 
-  /* MEDICIÓN PROVISIONAL — "cómo vamos" + observaciones clave, arriba del detalle de cada sección */
-  .mp-resumen { border-left-width: 4px; border-left-style: solid; }
+  /* "CÓMO VAMOS" — frase + observaciones clave, arriba del detalle de cada sección. Se usa
+     junto con la clase de tarjeta de cada página (.panel-box, .apar-panel, .af-section...),
+     todas las cuales fijan su propio `border` en shorthand — sin !important aquí, ese
+     shorthand posterior en la hoja de estilos gana y el borde izquierdo de color nunca se ve
+     (grosor 1px en vez de 4px), sin importar el color que ponga mpSetResumen(). */
+  .mp-resumen { border-left-width: 4px !important; border-left-style: solid !important; }
   .mp-como-vamos { font-size: 15px; font-weight: 700; color: #1E1B2E; }
   .mp-observaciones-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #6B6280; margin-top: 12px; }
   .mp-observaciones { margin: 6px 0 0; padding-left: 18px; font-size: 12.5px; color: #423C58; line-height: 1.6; }
@@ -4216,7 +4220,14 @@
               </div>
               <div id="af-clubs" class="af-club-cards"></div>
             </section>
-        
+
+            <section class="af-section mp-resumen" id="mp-af-resumen">
+              <div class="mp-como-vamos" id="mp-af-como-vamos"></div>
+              <div class="mp-observaciones-label">Observaciones clave</div>
+              <ul class="mp-observaciones" id="mp-af-observaciones"></ul>
+            </section>
+            <div class="mp-detalle-label">Detalle para revisión</div>
+
             <section class="af-section">
               <div class="af-section-head">
                 <div>
@@ -8911,6 +8922,7 @@ function afRender(){
   const agg = afAggregate(data);
 
   afRenderClubs();
+  afRenderComoVamos(agg, data.length);
   afRenderGeneral(agg, data.length);
   afRenderMonthly();
   afRenderMonthlyResults();
@@ -9079,6 +9091,18 @@ function afRenderMonthlyResults(){
   });
 }
 
+// "Cómo vamos" — reusa agg.general/agg.generalStatus/agg.lowest (ya calculados por
+// afAggregate, mismos umbrales 90/80 de afStatus) que también usa afRenderGeneral.
+function afRenderComoVamos(agg, count) {
+  const st = agg.generalStatus;
+  const headline = st.text === 'Sin datos'
+    ? 'Todavía no hay datos suficientes con estos filtros.'
+    : `${st.text === 'Meta lograda' ? 'Va muy bien' : st.text === 'En seguimiento' ? 'Hay que vigilarlo' : 'Hay un foco rojo'} — ${afFmt(agg.general)} de cumplimiento.`;
+  const observaciones = [];
+  observaciones.push(count === 1 ? '1 caminata filtrada.' : `${count} caminatas filtradas.`);
+  if (agg.lowest) observaciones.push(`El criterio más bajo es "${agg.lowest.name}" (${afFmt(agg.lowest.percentage)} · ${agg.lowest.category}).`);
+  mpSetResumen('af', headline, st.color, observaciones);
+}
 function afRenderGeneral(agg,count){
   document.getElementById("af-generalScore").textContent = afFmt(agg.general);
   document.getElementById("af-generalCount").textContent = count === 1 ? "1 caminata filtrada" : `${count} caminatas filtradas`;
