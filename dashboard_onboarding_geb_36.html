@@ -3860,7 +3860,12 @@
           <button class="btn-refresh" onclick="abrirRvRondaModal()">+ Nueva ronda</button>
         </div>
       </div>
-      <div class="kpi-row" id="rv-admin-kpis"></div>
+      <div class="panel-box mp-resumen" id="mp-rv-resumen">
+        <div class="mp-como-vamos" id="mp-rv-como-vamos"></div>
+        <div class="mp-observaciones-label">Observaciones clave</div>
+        <ul class="mp-observaciones" id="mp-rv-observaciones"></ul>
+      </div>
+      <div class="kpi-row" id="rv-admin-kpis" style="margin-top:16px"></div>
 
       <div id="rv-avance-wrap" style="display:none;margin-top:18px">
         <div class="modal-section-label">Avance</div>
@@ -14472,8 +14477,23 @@ function rvComputeAdminStats() {
   return { cob, nLideres };
 }
 
+// "Cómo vamos" — mismo umbral 80/50 que ya usa el acordeón de abajo (rvGrupoHtml) para sus
+// badges de color, así que el mensaje de arriba coincide con lo que se ve al desplegar.
+function rvRenderComoVamos(stats) {
+  const { cob, nLideres } = stats;
+  let headline, color;
+  if (!cob.total) { headline = 'Todavía no hay colaboradores con líder asignado.'; color = '#6B6280'; }
+  else if (cob.pct >= 80) { headline = `Va bien — ${cob.pct}% al día.`; color = '#16A34A'; }
+  else if (cob.pct >= 50) { headline = `Hay que vigilarlo — ${cob.pct}% al día.`; color = '#F59E0B'; }
+  else { headline = `Hay un foco rojo — ${cob.pct}% al día.`; color = '#DC2626'; }
+  const observaciones = [];
+  if (cob.total) observaciones.push(`${cob.hechas} de ${cob.total} colaboradores con líder están al día.`);
+  observaciones.push(`${nLideres} ${nLideres === 1 ? 'líder activo' : 'líderes activos'}.`);
+  mpSetResumen('rv', headline, color, observaciones);
+}
 function renderRvAdminKpis(stats) {
   const { cob, nLideres } = stats;
+  rvRenderComoVamos(stats);
   const labelHechas = _rvRondaActual ? 'Hechas en la ronda' : 'Al día';
   const labelPend = _rvRondaActual ? 'Pendientes en la ronda' : 'Pendientes';
   document.getElementById('rv-admin-kpis').innerHTML =
