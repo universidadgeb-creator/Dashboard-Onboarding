@@ -697,6 +697,12 @@
   .modal-item-label { font-size: 12px; color: #5B5470; line-height: 1.4; flex: 1; }
   .modal-item-vals { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
   .perfil-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+  /* Los valores largos (ej. "Coordinador Universidad Corporativa") no caben junto a la
+     etiqueta en una columna angosta — aquí se apila etiqueta arriba y valor abajo, en vez del
+     acomodo lado a lado que sí funciona en los modales (donde .modal-item no cambia). */
+  .perfil-grid .modal-item { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .perfil-grid .modal-item-vals { align-items: flex-start; width: 100%; }
+  .perfil-grid .modal-item-vals span { text-align: left; word-break: break-word; }
   .modal-resp { font-size: 12px; font-weight: 600; }
   .modal-resp.ok { color: var(--verde-ok); }
   .modal-resp.mal { color: var(--rojo); }
