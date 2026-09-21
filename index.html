@@ -2823,7 +2823,7 @@
     <span id="header-usuario" style="font-size:12px;color:#9C93AE;margin-right:10px"></span>
     <span id="last-updated">—</span>
     <button class="btn-refresh" onclick="loadAll()">↺ Actualizar</button>
-    <div class="alert-wrap">
+    <div class="alert-wrap" style="display:none">
       <button class="alert-bell" id="alert-bell-btn" onclick="toggleAlertPanel(event)" title="Encuestas pendientes de enviar"><span class="alert-badge" id="alert-badge" style="display:none">0</span></button>
       <div class="alert-panel" id="alert-panel"></div>
     </div>
@@ -9554,6 +9554,8 @@ function switchTab(tab) {
   if (tab === 'onboarding') document.getElementById(ONBOARDING_ETAPA_PANEL[_onboardingEtapa]).classList.add('active');
   document.getElementById('filters-bar').style.display = ONBOARDING_TABS.includes(tab) ? 'flex' : 'none';
   document.getElementById('metas-bar').style.display = (ONBOARDING_TABS.includes(tab) && tab !== 'onboarding') ? '' : 'none';
+  document.querySelector('.alert-wrap').style.display = tab === 'onboarding' ? '' : 'none';
+  if (tab !== 'onboarding') document.getElementById('alert-panel').classList.remove('open');
   updateEvFilters();
   applyFilters();
   if (tab === 'configuracion') renderConfiguracion();
