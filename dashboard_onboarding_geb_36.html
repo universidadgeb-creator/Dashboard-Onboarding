@@ -3374,7 +3374,13 @@
   <div class="tab-panel" id="panel-evaluacion">
     <div id="ev-loading" class="state-box"><div class="spinner"></div><span class="state-msg">Cargando datos…</span></div>
     <div id="ev-content" style="display:none">
-      <div class="kpi-row" id="ev-kpis"></div>
+      <div class="panel-box mp-resumen" id="mp-ev-resumen">
+        <div class="mp-como-vamos" id="mp-ev-como-vamos"></div>
+        <div class="mp-observaciones-label">Observaciones clave</div>
+        <ul class="mp-observaciones" id="mp-ev-observaciones"></ul>
+      </div>
+      <div class="kpi-row" id="ev-kpis" style="margin-top:16px"></div>
+      <div class="mp-detalle-label">Detalle para revisión</div>
       <div class="section-title">Real vs Meta <span class="meta-linea">· meta 90% Filosofía</span></div>
       <div class="metas-mensual panel-box" style="padding:0;overflow:hidden;margin-bottom:12px"><div class="table-scroll"><table class="metas-mensual-table"><thead><tr id="ev-meta-head"></tr></thead><tbody id="ev-meta-body"></tbody></table></div></div>
       <div class="panel-box" style="margin-bottom:24px;padding:18px">
@@ -5896,6 +5902,25 @@ function renderEv() {
   const avgProp = avg(propVals);
   const avgCredo = avg(credoVals);
   const avgValores = avg(valoresVals);
+
+  // "Cómo vamos" — % Filosofía (compuesto de Propósito+Credo+Valores) con el mismo umbral
+  // 80/60 que ya usan estas mismas 5 KPI cards.
+  let headlineEv, colorEv;
+  if (avgFil === null) { headlineEv = 'Todavía no hay evaluaciones con estos filtros.'; colorEv = '#6B6280'; }
+  else if (avgFil >= 80) { headlineEv = `Va bien — ${avgFil.toFixed(1)}% de Filosofía.`; colorEv = '#16A34A'; }
+  else if (avgFil >= 60) { headlineEv = `Hay que vigilarlo — ${avgFil.toFixed(1)}% de Filosofía.`; colorEv = '#F59E0B'; }
+  else { headlineEv = `Hay un foco rojo — ${avgFil.toFixed(1)}% de Filosofía.`; colorEv = '#DC2626'; }
+  const observacionesEv = [];
+  if (n) observacionesEv.push(`${n} ${n === 1 ? 'evaluación' : 'evaluaciones'} con estos filtros.`);
+  const componentesEv = [
+    { label: 'Propósito', val: avgProp }, { label: 'Credo', val: avgCredo },
+    { label: 'Valores', val: avgValores }, { label: 'Juego del Año', val: avgJuego },
+  ].filter(c => c.val !== null);
+  if (componentesEv.length) {
+    const masBajo = componentesEv.sort((a, b) => a.val - b.val)[0];
+    observacionesEv.push(`El componente más bajo es ${masBajo.label} (${masBajo.val.toFixed(1)}%).`);
+  }
+  mpSetResumen('ev', headlineEv, colorEv, observacionesEv);
 
   document.getElementById('ev-kpis').innerHTML =
     kpiCard('Evaluaciones', n, '') +
