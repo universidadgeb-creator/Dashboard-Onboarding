@@ -1055,6 +1055,11 @@
   .recl-tab-btn { background: transparent; border: none; padding: 10px 14px; font-size: 12.5px; font-weight: 600; color: #6B6280; cursor: pointer; font-family: 'Inter', sans-serif; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
   .recl-tab-btn:hover { color: #7C3AED; }
   .recl-tab-btn.active { color: #7C3AED; border-bottom-color: #7C3AED; }
+  /* Sub-vistas de Ausencias — reusa el mismo look de pestaña que .recl-tab-btn, pero cada
+     vista mantiene sus ids reales (#vac-kpis, #aus-mias-lista, etc.) en vez de regenerar el
+     contenido como hace Reclutamiento — solo se muestra/oculta. */
+  .aus-view { display: none; }
+  .aus-view.active { display: block; }
   .recl-filters { display: grid; grid-template-columns: repeat(5, minmax(140px, 1fr)); gap: 10px; margin-bottom: 18px; }
   .recl-filters select { padding: 9px 10px; border: 1px solid #E6DFF5; border-radius: 6px; background: #fff; font-size: 12.5px; font-family: 'Inter', sans-serif; color: var(--blanco); }
   .recl-note { font-size: 12px; color: #9C93AE; }
@@ -3729,50 +3734,63 @@
       <div class="section-title">Permisos y Vacaciones</div>
     </div>
 
-    <div class="panel-box" style="margin-bottom:20px">
-      <div class="modal-section-label">Vacaciones</div>
-      <p class="bandeja-sub" id="vac-periodo-rango" style="margin-top:2px"></p>
-      <div class="kpi-row" id="vac-kpis" style="margin-top:14px;margin-bottom:0"></div>
+    <div class="recl-tabs" id="aus-tabs">
+      <button class="recl-tab-btn active" data-aus-view="resumen" onclick="ausSwitchView('resumen')">Resumen</button>
+      <button class="recl-tab-btn" data-aus-view="nueva" onclick="ausSwitchView('nueva')">Nueva solicitud</button>
+      <button class="recl-tab-btn" data-aus-view="mias" onclick="ausSwitchView('mias')">Mis solicitudes</button>
+      <button class="recl-tab-btn" id="aus-tab-equipo-btn" data-aus-view="equipo" onclick="ausSwitchView('equipo')" style="display:none">Solicitudes del equipo</button>
     </div>
 
-    <div class="panel-box" style="margin-bottom:20px">
-      <div class="section-header" style="margin-bottom:10px">
-        <div class="modal-section-label" style="margin-bottom:0">Calendario de ausencias</div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <button class="cal-nav-btn" onclick="cambiarAnioVacCalendario(-1)">‹</button>
-          <span style="font-weight:700;font-size:14px" id="vac-cal-anio"></span>
-          <button class="cal-nav-btn" onclick="cambiarAnioVacCalendario(1)">›</button>
+    <div class="aus-view active" data-aus-view="resumen">
+      <div class="panel-box" style="margin-bottom:20px">
+        <div class="modal-section-label">Vacaciones</div>
+        <p class="bandeja-sub" id="vac-periodo-rango" style="margin-top:2px"></p>
+        <div class="kpi-row" id="vac-kpis" style="margin-top:14px;margin-bottom:0"></div>
+      </div>
+
+      <div class="panel-box">
+        <div class="section-header" style="margin-bottom:10px">
+          <div class="modal-section-label" style="margin-bottom:0">Calendario de ausencias</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="cal-nav-btn" onclick="cambiarAnioVacCalendario(-1)">‹</button>
+            <span style="font-weight:700;font-size:14px" id="vac-cal-anio"></span>
+            <button class="cal-nav-btn" onclick="cambiarAnioVacCalendario(1)">›</button>
+          </div>
+        </div>
+        <div class="vac-cal-legend" id="vac-cal-legend"></div>
+        <div class="vac-year-grid" id="vac-year-grid"></div>
+      </div>
+    </div>
+
+    <div class="aus-view" data-aus-view="nueva">
+      <div class="panel-box">
+        <div class="modal-section-label">Nueva solicitud</div>
+        <div class="alta-grid">
+          <label class="alta-campo">Tipo
+            <select id="aus-tipo">
+              <option value="vacaciones">Vacaciones</option>
+              <option value="incapacidad">Incapacidad</option>
+              <option value="permiso">Permiso</option>
+              <option value="otro">Otro</option>
+            </select>
+          </label>
+          <label class="alta-campo">Fecha inicio<input type="date" id="aus-inicio"></label>
+          <label class="alta-campo">Fecha fin<input type="date" id="aus-fin"></label>
+        </div>
+        <label class="alta-campo alta-campo-full">Motivo (opcional)<textarea id="aus-motivo" rows="2" placeholder="Cuéntanos brevemente el motivo…"></textarea></label>
+        <div class="dc-actions">
+          <button class="btn-nuevo-colab" onclick="enviarSolicitudAusencia()">Enviar solicitud</button>
         </div>
       </div>
-      <div class="vac-cal-legend" id="vac-cal-legend"></div>
-      <div class="vac-year-grid" id="vac-year-grid"></div>
     </div>
 
-    <div class="panel-box" style="margin-bottom:20px">
-      <div class="modal-section-label">Nueva solicitud</div>
-      <div class="alta-grid">
-        <label class="alta-campo">Tipo
-          <select id="aus-tipo">
-            <option value="vacaciones">Vacaciones</option>
-            <option value="incapacidad">Incapacidad</option>
-            <option value="permiso">Permiso</option>
-            <option value="otro">Otro</option>
-          </select>
-        </label>
-        <label class="alta-campo">Fecha inicio<input type="date" id="aus-inicio"></label>
-        <label class="alta-campo">Fecha fin<input type="date" id="aus-fin"></label>
-      </div>
-      <label class="alta-campo alta-campo-full">Motivo (opcional)<textarea id="aus-motivo" rows="2" placeholder="Cuéntanos brevemente el motivo…"></textarea></label>
-      <div class="dc-actions">
-        <button class="btn-nuevo-colab" onclick="enviarSolicitudAusencia()">Enviar solicitud</button>
-      </div>
+    <div class="aus-view" data-aus-view="mias">
+      <div class="section-title" style="margin-bottom:12px">Mis solicitudes</div>
+      <div id="aus-mias-lista"></div>
     </div>
 
-    <div class="section-title" style="margin-bottom:12px">Mis solicitudes</div>
-    <div id="aus-mias-lista"></div>
-
-    <div id="aus-admin-wrap" style="display:none">
-      <div class="section-title" style="margin:20px 0 12px">Solicitudes del equipo</div>
+    <div class="aus-view" id="aus-admin-wrap" data-aus-view="equipo">
+      <div class="section-title" style="margin-bottom:12px">Solicitudes del equipo</div>
       <p class="bandeja-sub">Cualquier administrador puede aprobar o rechazar — todavía no está ligado a un líder específico (ver nota en Perfil/Colaboradores sobre datos de líder incompletos).</p>
       <div id="aus-admin-lista"></div>
     </div>
@@ -14014,6 +14032,16 @@ async function enviarSolicitudAusencia() {
   renderAusencias();
 }
 
+// Sub-pestañas de Ausencias (Resumen / Nueva solicitud / Mis solicitudes / Solicitudes del
+// equipo) — mismo patrón visual que .recl-tab-btn (Reclutamiento), pero aquí cada vista
+// conserva sus ids reales en el DOM en vez de regenerarse. _ausView persiste entre
+// re-renders (ej. tras aprobar una solicitud) para no regresar siempre a "Resumen".
+let _ausView = 'resumen';
+function ausSwitchView(v) {
+  _ausView = v;
+  document.querySelectorAll('#aus-tabs .recl-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.ausView === v));
+  document.querySelectorAll('.aus-view').forEach(el => el.classList.toggle('active', el.dataset.ausView === v));
+}
 async function renderAusencias() {
   if (!_usuarioActual) return;
   const miasWrap = document.getElementById('aus-mias-lista');
@@ -14033,7 +14061,9 @@ async function renderAusencias() {
   }
 
   const esAdmin = _usuarioActual.rol_acceso === 'admin';
-  document.getElementById('aus-admin-wrap').style.display = esAdmin ? '' : 'none';
+  document.getElementById('aus-tab-equipo-btn').style.display = esAdmin ? '' : 'none';
+  if (!esAdmin && _ausView === 'equipo') _ausView = 'resumen';
+  ausSwitchView(_ausView);
   if (!esAdmin) return;
 
   const adminWrap = document.getElementById('aus-admin-lista');
