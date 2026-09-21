@@ -3093,6 +3093,13 @@
       </div>
       <div class="mp-detalle-label" style="margin-top:16px">Bajas dentro de los primeros 90 días</div>
       <div id="onboarding-resumen-bajas" style="margin-top:8px"></div>
+      <div class="mp-detalle-label" style="margin-top:16px">En qué día va cada quien (<span id="onboarding-resumen-seguimiento-n">0</span>)</div>
+      <div class="table-wrapper" style="margin-top:8px"><div class="table-scroll">
+        <table>
+          <thead><tr><th>Nombre</th><th>Unidad de Negocio</th><th>Sucursal</th><th>Rol</th><th>Día actual</th></tr></thead>
+          <tbody id="onboarding-resumen-seguimiento-tbody"></tbody>
+        </table>
+      </div></div>
     </div>
     <div class="onboarding-etapas" id="onboarding-etapa-selector">
       <button class="onboarding-etapa-btn active" data-etapa="pre" onclick="selectOnboardingEtapa('pre')">Preonboarding</button>
@@ -6623,12 +6630,28 @@ function renderOnboardingResumen() {
         <div class="encuesta-card-head">
           <div>
             <div style="font-weight:700;font-size:13.5px">${escapeHtml(c.nombre)}</div>
-            <div class="encuesta-card-meta">${escapeHtml(c.sucursal||'—')} · ${escapeHtml(c.rol||'Sin rol')} · Ingresó hace ${c.dias} día${c.dias===1?'':'s'}${c.motivoBaja?` · Motivo: ${escapeHtml(c.motivoBaja)}`:''}</div>
+            <div class="encuesta-card-meta">${escapeHtml(c.sucursal||'—')} · ${escapeHtml(c.rol||'Sin rol')} · ${c.diasDuro!==null?`Duró ${c.diasDuro} día${c.diasDuro===1?'':'s'}`:`Ingresó hace ${c.dias} día${c.dias===1?'':'s'} (sin fecha de baja)`}${c.motivoBaja?` · Motivo: ${escapeHtml(c.motivoBaja)}`:''}</div>
           </div>
           <span class="estatus-badge estatus-baja">Baja</span>
         </div>
       </div>`).join('')
     : '<div class="bandeja-sub">Nadie dentro de los primeros 90 días está dado de baja por ahora.</div>';
+
+  // Seguimiento por persona — en qué día va cada quien de los que están en la ventana 0-90,
+  // sin importar si ya respondieron algo o no (a diferencia de las 5 etapas, que solo muestran
+  // a quien ya respondió).
+  const enSeguimiento = idx.filter(enVentana090).sort((a,b) => b.dias - a.dias);
+  document.getElementById('onboarding-resumen-seguimiento-n').textContent = enSeguimiento.length;
+  const tbodySeguimiento = document.getElementById('onboarding-resumen-seguimiento-tbody');
+  tbodySeguimiento.innerHTML = enSeguimiento.length
+    ? enSeguimiento.map(c => `<tr>
+        <td class="td-name">${escapeHtml(c.nombre)}</td>
+        <td>${escapeHtml(c.unidadNegocio||'—')}</td>
+        <td class="td-sucursal">${escapeHtml(c.sucursal||'—')}</td>
+        <td style="font-size:11px">${escapeHtml(c.rol||'—')}</td>
+        <td>${c.dias}</td>
+      </tr>`).join('')
+    : `<tr><td colspan="5" class="empty">Nadie en la ventana de 0-90 días con los filtros actuales.</td></tr>`;
 }
 function toggleOnboardingSolo90() {
   _onboardingSolo90 = document.getElementById('onboarding-toggle-90').checked;
@@ -9528,7 +9551,7 @@ function switchTab(tab) {
   document.getElementById(`panel-${tab}`).classList.add('active');
   if (tab === 'onboarding') document.getElementById(ONBOARDING_ETAPA_PANEL[_onboardingEtapa]).classList.add('active');
   document.getElementById('filters-bar').style.display = ONBOARDING_TABS.includes(tab) ? 'flex' : 'none';
-  document.getElementById('metas-bar').style.display = ONBOARDING_TABS.includes(tab) ? '' : 'none';
+  document.getElementById('metas-bar').style.display = (ONBOARDING_TABS.includes(tab) && tab !== 'onboarding') ? '' : 'none';
   updateEvFilters();
   applyFilters();
   if (tab === 'configuracion') renderConfiguracion();
@@ -9554,17 +9577,18 @@ function toggleSidebarGroup(id) {
 function colaboradoresPendientesEncuesta() {
   const idx = getColabIndex();
   const enviadas = getEnviadas();
-  const grupos = { d30: [], d60: [], d90: [] };
+  const grupos = { ajuste10: [], d30: [], d60: [], d90: [] };
   idx.forEach(c => {
     // Tope de 91 días: sin esto, cualquier veterano con estatus "activo" que venga de
     // "Hoja 5"/"Empleados" (no solo la gente en onboarding) queda marcado como pendiente
     // para siempre — inundando la campanita con gente que lleva años en la empresa.
     if (c.estatus !== 'activo' || c.dias === null || c.dias < 0 || c.dias > 91) return;
+    if (c.dias >= 10 && !mpTieneAjuste10(c) && !enviadas[`${c.key}__ajuste10`]) grupos.ajuste10.push(c);
     if (c.dias >= 30 && !c.d30 && !enviadas[`${c.key}__d30`]) grupos.d30.push(c);
     if (c.dias >= 60 && !c.d60 && !enviadas[`${c.key}__d60`]) grupos.d60.push(c);
     if (c.dias >= 90 && !c.d90 && !enviadas[`${c.key}__d90`]) grupos.d90.push(c);
   });
-  ['d30','d60','d90'].forEach(k => grupos[k].sort((a,b) => b.dias - a.dias));
+  ['ajuste10','d30','d60','d90'].forEach(k => grupos[k].sort((a,b) => b.dias - a.dias));
   return grupos;
 }
 
@@ -9585,6 +9609,7 @@ function marcarEnviada(e, key, milestone) {
 
 function avisosHtml(grupos) {
   const secciones = [
+    { key: 'ajuste10', label: 'Entrevista de Ajuste 10-15 pendiente' },
     { key: 'd30', label: 'Encuesta de 30 días pendiente' },
     { key: 'd60', label: 'Encuesta de 60 días pendiente' },
     { key: 'd90', label: 'Encuesta de 90 días pendiente' },
@@ -9592,13 +9617,14 @@ function avisosHtml(grupos) {
   const bloques = secciones.filter(s => grupos[s.key].length).map(s => {
     const items = grupos[s.key].map(c => {
       const keyEsc = c.key.replace(/'/g,"\\'");
+      const accion = s.key === 'ajuste10' ? 'agenda la llamada' : 'manda la encuesta';
       return `
       <div class="alert-item">
         <div class="alert-item-info" onclick="irAColaborador('${keyEsc}')">
           <span class="n">${c.nombre}</span>
-          <span class="m">${c.sucursal||'—'} · ${c.dias} día(s) · manda la encuesta</span>
+          <span class="m">${c.sucursal||'—'} · ${c.dias} día(s) · ${accion}</span>
         </div>
-        <button class="alert-check" onclick="marcarEnviada(event,'${keyEsc}','${s.key}')" title="Ya se la mandé">✓</button>
+        <button class="alert-check" onclick="marcarEnviada(event,'${keyEsc}','${s.key}')" title="Ya se hizo">✓</button>
       </div>`;
     }).join('');
     return `<div class="alert-group-label">${s.label} (${grupos[s.key].length})</div>${items}`;
@@ -9608,7 +9634,7 @@ function avisosHtml(grupos) {
 
 function renderAlertas() {
   const grupos = colaboradoresPendientesEncuesta();
-  const total = grupos.d30.length + grupos.d60.length + grupos.d90.length;
+  const total = grupos.ajuste10.length + grupos.d30.length + grupos.d60.length + grupos.d90.length;
   const badge = document.getElementById('alert-badge');
   const bell = document.getElementById('alert-bell-btn');
   if (total > 0) {
