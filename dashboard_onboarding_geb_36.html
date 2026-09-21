@@ -2823,6 +2823,10 @@
     <span id="header-usuario" style="font-size:12px;color:#9C93AE;margin-right:10px"></span>
     <span id="last-updated">—</span>
     <button class="btn-refresh" onclick="loadAll()">↺ Actualizar</button>
+    <div class="alert-wrap">
+      <button class="alert-bell" id="alert-bell-btn" onclick="toggleAlertPanel(event)" title="Encuestas pendientes de enviar"><span class="alert-badge" id="alert-badge" style="display:none">0</span></button>
+      <div class="alert-panel" id="alert-panel"></div>
+    </div>
     <button class="btn-refresh" onclick="cerrarSesionPlenia()">Cerrar sesión</button>
   </div>
 </header>
@@ -2998,10 +3002,6 @@
     <span class="meta-val" id="meta-cert-val">—</span>
     <span class="meta-target">meta 100%</span>
   </div>
-  <div class="alert-wrap" style="margin-left:auto">
-    <button class="alert-bell" id="alert-bell-btn" onclick="toggleAlertPanel(event)" title="Encuestas pendientes de enviar"><span class="alert-badge" id="alert-badge" style="display:none">0</span></button>
-    <div class="alert-panel" id="alert-panel"></div>
-  </div>
 </div>
 
 <div class="main">
@@ -3093,13 +3093,15 @@
       </div>
       <div class="mp-detalle-label" style="margin-top:16px">Bajas dentro de los primeros 90 días</div>
       <div id="onboarding-resumen-bajas" style="margin-top:8px"></div>
-      <div class="mp-detalle-label" style="margin-top:16px">En qué día va cada quien (<span id="onboarding-resumen-seguimiento-n">0</span>)</div>
-      <div class="table-wrapper" style="margin-top:8px"><div class="table-scroll">
-        <table>
-          <thead><tr><th>Nombre</th><th>Unidad de Negocio</th><th>Sucursal</th><th>Rol</th><th>Día actual</th></tr></thead>
-          <tbody id="onboarding-resumen-seguimiento-tbody"></tbody>
-        </table>
-      </div></div>
+      <details class="onboarding-seguimiento-details" style="margin-top:16px">
+        <summary class="mp-detalle-label" style="display:list-item;cursor:pointer;margin:0">En qué día va cada quien (<span id="onboarding-resumen-seguimiento-n">0</span>)</summary>
+        <div class="table-wrapper" style="margin-top:8px"><div class="table-scroll">
+          <table>
+            <thead><tr><th>Nombre</th><th>Unidad de Negocio</th><th>Sucursal</th><th>Rol</th><th>Día actual</th></tr></thead>
+            <tbody id="onboarding-resumen-seguimiento-tbody"></tbody>
+          </table>
+        </div></div>
+      </details>
     </div>
     <div class="onboarding-etapas" id="onboarding-etapa-selector">
       <button class="onboarding-etapa-btn active" data-etapa="pre" onclick="selectOnboardingEtapa('pre')">Preonboarding</button>
