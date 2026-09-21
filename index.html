@@ -42,6 +42,8 @@
   .logo { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: 0.08em; color: #7C3AED; text-transform: uppercase; }
   .logo span { color: #9C93AE; font-weight: 300; }
   .header-right { display: flex; align-items: center; gap: 16px; }
+  .menu-movil-btn { display: none; background: transparent; border: 1px solid #E6DFF5; border-radius: 6px; width: 36px; height: 36px; font-size: 17px; color: #241B3D; cursor: pointer; margin-right: 12px; flex-shrink: 0; }
+  .sidebar-backdrop { display: none; }
   #last-updated { font-size: 11px; color: #9C93AE; letter-spacing: 0.04em; }
   .btn-refresh { background: transparent; border: 1px solid var(--verde-acento); color: var(--verde-acento); padding: 5px 14px; border-radius: 4px; font-size: 12px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; }
   .btn-refresh:hover { background: var(--verde-acento); color: #ffffff; }
@@ -1100,18 +1102,24 @@
     .main { padding: 16px; }
     .filters-bar, header { padding: 0 16px; }
     .filters-bar { padding: 12px 16px; }
-    .app-shell { flex-direction: column; }
-    .sidebar {
-      width: 100%; min-width: 0; height: auto; position: static; flex-direction: row; align-items: center;
-      overflow-x: auto; overflow-y: visible; padding: 6px 12px; gap: 4px;
-      border-bottom: 2px solid var(--verde-acento);
+    .menu-movil-btn { display: inline-flex; align-items: center; justify-content: center; }
+    .sidebar-backdrop {
+      display: block; position: fixed; inset: 0; background: rgba(20,14,36,.45);
+      z-index: 199; opacity: 0; pointer-events: none; transition: opacity .2s ease;
     }
-    .sidebar-top, .sidebar-group-body, .sidebar-subgroup-body { flex-direction: row; flex-wrap: nowrap; }
-    .sidebar-group, .sidebar-subgroup { display: flex; align-items: center; margin-bottom: 0; flex-shrink: 0; }
-    .sidebar-group-header { display: none; }
-    .sidebar-group.collapsed .sidebar-group-body, .sidebar-subgroup.collapsed .sidebar-subgroup-body { display: flex; }
-    .sidebar-bottom { margin-top: 0; padding-top: 0; border-top: none; flex-shrink: 0; }
-    .sidebar-item, .sidebar-subitem { width: auto; white-space: nowrap; flex-shrink: 0; }
+    .sidebar-backdrop.visible { opacity: 1; pointer-events: auto; }
+    .sidebar {
+      position: fixed; top: 0; left: 0; width: min(280px, 85vw); height: 100vh;
+      flex-direction: column; align-items: stretch;
+      overflow-x: hidden; overflow-y: auto; padding: 14px 10px 10px; gap: 2px;
+      border-bottom: none; transform: translateX(-100%); transition: transform .2s ease;
+      z-index: 200; box-shadow: 4px 0 24px rgba(20,14,36,.25);
+    }
+    .sidebar.abierto { transform: translateX(0); }
+    .sidebar-top, .sidebar-group-body, .sidebar-subgroup-body { flex-direction: column; flex-wrap: wrap; }
+    .sidebar-group, .sidebar-subgroup { display: block; margin-bottom: 2px; flex-shrink: 0; }
+    .sidebar-bottom { margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.08); flex-shrink: 0; }
+    .sidebar-item, .sidebar-subitem { width: 100%; white-space: normal; flex-shrink: 0; }
     .sidebar-subgroup-body { padding-left: 4px; margin-top: 0; }
   }
 
@@ -2758,11 +2766,12 @@
   .benito-chip { transition: all var(--pl-fast) var(--pl-ease); }
 
   /* ── RESPONSIVE ─────────────────────────────────────────────────────────
-     En móvil la barra lateral se vuelve una tira horizontal con scroll; se le
-     quita la barra visible y se le da inercia para que se sienta nativa. */
+     En móvil la barra lateral se vuelve un panel deslizable (drawer) activado
+     por el botón ☰; se le quita la barra visible y se le da inercia para que
+     se sienta nativa. */
   @media (max-width: 900px) {
     .sidebar {
-      background: linear-gradient(90deg, #2A2049 0%, #241B3D 100%);
+      background: linear-gradient(180deg, #2A2049 0%, #241B3D 42%, #1F1734 100%);
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
     }
@@ -2822,6 +2831,7 @@
 <div id="plenia-app-content" style="display:none">
 
 <header>
+  <button class="menu-movil-btn" id="menu-movil-btn" onclick="toggleMenuMovil()" aria-label="Abrir menú">☰</button>
   <div class="logo" style="display:flex;align-items:center">
     <svg viewBox="0 888 3224 474" style="height:28px;width:auto;display:block" role="img" aria-label="vivo 47 hub">
       <g fill="#1f2937" fill-rule="evenodd"><path d="M-0.5 953L64 952.3L65.3 954L216 1281.3L367.5 953L432.3 953L256 1326.6L173.4 1326L-0.5 953ZM503.3 953L564 953L564 1326L563 1326.7L503.3 1326L503.3 953ZM637.2 953L702.4 953L853 1280.7L854.4 1280L1005 953.2L1069.8 953L894 1326.2L810.8 1326L637.2 953ZM1266 946L1289 946.7L1305 948.8L1341 958.6L1374 974.7L1390 985.7L1404 997.4L1428.2 1024L1440.3 1042L1448.3 1057L1455.4 1074L1461.3 1093L1465.3 1114L1466.7 1131L1465.3 1165L1461.3 1186L1454.4 1208L1437.3 1242L1415 1270.8L1400 1285.3L1386 1296.4L1369 1307.3L1351 1316.4L1333 1323.4L1315 1328.3L1280 1333L1244 1331.3L1223 1327.2L1204 1321.4L1185 1313.3L1167 1303.3L1137 1280.2L1121.6 1264L1110.7 1250L1100.7 1234L1091.7 1216L1080.7 1183L1076.7 1159L1075.7 1141L1078.7 1106L1083.7 1085L1090.8 1065L1106.7 1035L1129.8 1006L1145 991.8L1161 979.7L1192 962.6L1228 950.7L1245 947.7L1266 946ZM1259 1000.7L1233 1005.8L1209 1015.7L1185 1031.8L1167.8 1049L1152.7 1071L1141.8 1096L1135.7 1125L1135.7 1154L1140.6 1179L1151.6 1206L1163.7 1225L1184 1246.4L1207 1262.3L1230 1272.4L1258 1278.3L1285 1278.3L1310 1273.2L1334 1263.3L1354 1250.3L1374.2 1231L1392.3 1204L1401.3 1182L1407.3 1152L1407.3 1127L1402.2 1100L1391.2 1073L1377.4 1052L1359 1032.9L1334 1015.8L1310 1005.9L1284 1000.7L1259 1000.7Z"></path><path d="M2351 970L2377 969.7L2392 971.8L2416 978.7L2435 987.7L2450 997.7L2466.4 1013L2478.3 1029L2486.4 1045L2493.4 1068L2496.3 1093L2496 1301.3L2446.3 1301L2446.3 1102L2443.3 1081L2438.2 1066L2426.4 1047L2411 1032.6L2390 1021.7L2365 1016.7L2354 1016.7L2334 1019.8L2309 1029.7L2290 1044.2L2281.6 1054L2274.8 1065L2265.8 1090L2262.7 1117L2262.7 1301L2213 1301L2213.3 978L2262 977.7L2263 1012.3L2280 996.7L2302 983L2324 974.7L2351 970Z"></path><path d="M2213 888H2263V990H2213Z"></path><path d="M2694.3 1301L2668.3 1301.3L2653.3 1299.2L2629.3 1292.3L2610.3 1283.3L2595.3 1273.3L2578.9 1258L2567 1242L2558.9 1226L2551.9 1203L2549 1178L2549.3 969.7L2599 970L2599 1169L2602 1190L2607.1 1205L2618.9 1224L2634.3 1238.4L2655.3 1249.3L2680.3 1254.3L2691.3 1254.3L2711.3 1251.2L2736.3 1241.3L2755.3 1226.8L2763.7 1217L2770.5 1206L2779.5 1181L2782.6 1154L2782.6 970L2832.3 970L2832 1293L2783.3 1293.3L2782.3 1258.7L2765.3 1274.3L2743.3 1288L2721.3 1296.3L2694.3 1301Z"></path><path d="M2885 1139.5A169.5 169.5 0 1 0 3224 1139.5A169.5 169.5 0 1 0 2885 1139.5ZM2935 1139.5A119.5 119.5 0 1 1 3174 1139.5A119.5 119.5 0 1 1 2935 1139.5Z" fill-rule="evenodd"></path><path d="M2885 888H2935V1301H2885Z"></path></g>
@@ -2843,13 +2853,14 @@
 <div class="sim-banner" id="sim-banner" style="display:none"></div>
 
 <div class="app-shell">
+<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="cerrarMenuMovil()"></div>
 <nav class="sidebar" id="sidebar">
   <div class="sidebar-top">
     <button class="sidebar-item active" data-tab="inicio" onclick="switchTab('inicio')">
       <span class="si-icon"></span><span class="si-label">Inicio</span>
     </button>
     <button class="sidebar-item" data-tab="bandeja" onclick="switchTab('bandeja')">
-      <span class="si-icon"></span><span class="si-label">Bandeja de entrada</span><span class="si-soon">pronto</span>
+      <span class="si-icon"></span><span class="si-label">Bandeja de entrada</span>
     </button>
     <button class="sidebar-item" data-tab="calendario" onclick="switchTab('calendario')">
       <span class="si-icon"></span><span class="si-label">Calendario</span>
@@ -2862,10 +2873,10 @@
     </button>
     <div class="sidebar-group-body">
       <button class="sidebar-item" data-tab="perfil" onclick="switchTab('perfil')">
-        <span class="si-icon"></span><span class="si-label">Perfil</span><span class="si-soon">pronto</span>
+        <span class="si-icon"></span><span class="si-label">Perfil</span>
       </button>
       <button class="sidebar-item" data-tab="ausencias" onclick="switchTab('ausencias')">
-        <span class="si-icon"></span><span class="si-label">Permisos y Vacaciones</span><span class="si-soon">pronto</span>
+        <span class="si-icon"></span><span class="si-label">Permisos y Vacaciones</span>
       </button>
       <button class="sidebar-item" data-tab="desarrollo" onclick="switchTab('desarrollo')">
         <span class="si-icon"></span><span class="si-label">Benito IA</span>
@@ -9656,6 +9667,7 @@ function aplicarVisibilidadNav() {
 function switchTab(tab) {
   if (!tabVisibleParaRol(tab, rolEfectivoActual())) tab = 'inicio';
   ACTIVE = tab;
+  cerrarMenuMovil();
   document.querySelectorAll('[data-tab]').forEach(b => {
     b.classList.toggle('active', b.dataset.tab === tab);
   });
@@ -9691,6 +9703,18 @@ function switchTab(tab) {
 
 function toggleSidebarGroup(id) {
   document.getElementById(id).classList.toggle('collapsed');
+}
+
+// ── MENÚ MÓVIL: el sidebar se vuelve un drawer deslizable en pantallas ≤900px
+// (ver @media en el CSS) — el botón ☰ del header lo abre/cierra, tocar el fondo
+// o navegar a otra pestaña lo cierra solo.
+function toggleMenuMovil() {
+  document.getElementById('sidebar').classList.toggle('abierto');
+  document.getElementById('sidebar-backdrop').classList.toggle('visible');
+}
+function cerrarMenuMovil() {
+  document.getElementById('sidebar').classList.remove('abierto');
+  document.getElementById('sidebar-backdrop').classList.remove('visible');
 }
 
 // ── ALERTAS: encuestas de 30/60/90 días pendientes de enviar ──
@@ -11109,7 +11133,11 @@ function renderSaludoInicio() {
     return;
   }
 
-  const nombre = getNombreUsuario();
+  // Con sesión real ya sabemos el nombre (_usuarioActual) — el prompt de "¿cómo te llamas?"
+  // es de antes de que existiera login real. Se respeta primero un apodo guardado a mano
+  // ("Cambiar nombre"), si no hay uno se usa el nombre real de la sesión, y el campo de texto
+  // solo aparece si de verdad no hay ningún nombre disponible.
+  const nombre = getNombreUsuario() || ((_usuarioActual && _usuarioActual.nombre) ? _usuarioActual.nombre.split(' ')[0] : '');
   if (!nombre) {
     tituloEl.textContent = '¡Hola!';
     subEl.innerHTML = `<span class="hero-nombre-prompt">¿Cómo te llamas?
