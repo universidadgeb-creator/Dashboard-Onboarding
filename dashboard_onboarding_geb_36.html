@@ -3523,13 +3523,21 @@
     <div id="ruta-content" class="ruta-v2" style="display:none">
       <div id="ruta-estatus-note"></div>
       <div class="rv-suc-chips" id="ruta-unidades-chips"></div>
-      <div class="kpi-row" id="ruta-kpis"></div>
+
+      <div class="panel-box mp-resumen" id="mp-ruta-resumen">
+        <div class="mp-como-vamos" id="mp-ruta-como-vamos"></div>
+        <div class="mp-observaciones-label">Observaciones clave</div>
+        <ul class="mp-observaciones" id="mp-ruta-observaciones"></ul>
+      </div>
+
+      <div class="kpi-row" id="ruta-kpis" style="margin-top:16px"></div>
 
       <div class="panel-2col">
         <div class="panel-box"><h4>Rotación Temprana por sucursal</h4><div id="ruta-rotacion-suc"></div></div>
         <div class="panel-box"><h4>Focos rojos por rol</h4><div id="ruta-focos-rol"></div></div>
       </div>
 
+      <div class="mp-detalle-label">Detalle para revisión</div>
       <div class="panel-box" style="margin-bottom:24px">
         <h4>Tiempo de Baja</h4>
         <div class="rv-funnel-note" style="margin:-6px 0 10px">Días de antigüedad que tenía cada colaborador al momento de irse (1–90). Muestra en qué tramo se está yendo la gente, no en qué mes.</div>
@@ -6829,6 +6837,31 @@ function renderRuta() {
   const rowsConFocos = rows.map(c => ({ c, focos: focosRojosDe(c) }));
   const todosFocos = [];
   rowsConFocos.forEach(({c, focos}) => focos.forEach(f => todosFocos.push({ ...f, nombre: c.nombre, key: c.key, rol: c.rol, sucursal: c.sucursal })));
+
+  // "Cómo vamos" — misma frase/umbrales que ya usan los kpiCard de arriba (Activos/Rotación),
+  // más las 2 observaciones que mejor explican el resto de la página: el motivo de baja y el
+  // foco rojo más comunes, para no obligar a leer las gráficas de abajo para saber qué pasa.
+  let headlineRuta, colorRuta;
+  if (pctRotacion === null) { headlineRuta = 'Todavía no hay estatus (activo/baja) registrado para este filtro.'; colorRuta = '#6B6280'; }
+  else if (pctRotacion <= 10) { headlineRuta = `Va bien — ${pctRotacion}% de rotación temprana.`; colorRuta = '#16A34A'; }
+  else if (pctRotacion <= 20) { headlineRuta = `Hay que vigilarlo — ${pctRotacion}% de rotación temprana.`; colorRuta = '#F59E0B'; }
+  else { headlineRuta = `Hay un foco rojo — ${pctRotacion}% de rotación temprana.`; colorRuta = '#DC2626'; }
+
+  const observacionesRuta = [];
+  if (conEstatus.length) observacionesRuta.push(`${conEstatus.length} de ${rows.length} colaboradores en la ventana de 0-91 días tienen estatus registrado.`);
+  const conteoMotivoBaja = {};
+  conEstatus.filter(c => c.estatus === 'baja').forEach(c => {
+    const m = String(c.motivoBaja || '').trim();
+    if (m) conteoMotivoBaja[m] = (conteoMotivoBaja[m] || 0) + 1;
+  });
+  const topMotivo = Object.entries(conteoMotivoBaja).sort((a, b) => b[1] - a[1])[0];
+  if (topMotivo) observacionesRuta.push(`El motivo de baja más común es "${topMotivo[0]}" (${topMotivo[1]} caso${topMotivo[1] === 1 ? '' : 's'}).`);
+  const conteoFocoRojo = {};
+  todosFocos.forEach(f => { conteoFocoRojo[f.motivo] = (conteoFocoRojo[f.motivo] || 0) + 1; });
+  const topFocoRojo = Object.entries(conteoFocoRojo).sort((a, b) => b[1] - a[1])[0];
+  if (topFocoRojo) observacionesRuta.push(`El foco rojo más común es "${topFocoRojo[0]}" (${topFocoRojo[1]} caso${topFocoRojo[1] === 1 ? '' : 's'}).`);
+  if (enRiesgo > 0) observacionesRuta.push(`${enRiesgo} colaborador${enRiesgo === 1 ? '' : 'es'} marcado${enRiesgo === 1 ? '' : 's'} en riesgo medio/alto por su líder.`);
+  mpSetResumen('ruta', headlineRuta, colorRuta, observacionesRuta);
 
   const byRol = {};
   todosFocos.forEach(f => { const rol = f.rol || 'Sin rol'; byRol[rol] = (byRol[rol]||0) + 1; });
@@ -12990,6 +13023,12 @@ function reclSummary(){
   },{})).sort((a,b)=>a.unidad.localeCompare(b.unidad,'es',{sensitivity:'base'}));
 
   document.querySelector('#recl-content').innerHTML=`
+    <div class="panel-box mp-resumen" id="mp-recl-resumen">
+      <div class="mp-como-vamos" id="mp-recl-como-vamos"></div>
+      <div class="mp-observaciones-label">Observaciones clave</div>
+      <ul class="mp-observaciones" id="mp-recl-observaciones"></ul>
+    </div>
+    <div class="mp-detalle-label" style="margin-top:16px">Detalle para revisión</div>
     <div class="kpi-row">
       ${reclKpi('Vacantes abiertas al cierre',active.reduce((s,x)=>s+x.plazas,0),'Incluye vacantes arrastradas de meses anteriores',active.some(x=>reclAgeAtEnd(x)>45)?'bad':'warn')}
       ${reclKpi('Vacantes cubiertas',covered.length,'Cubiertas durante el periodo seleccionado','good')}
@@ -13028,6 +13067,20 @@ function reclSummary(){
         return [name,count];
       }))}
     </div>`;
+
+  // "Cómo vamos" — efectividad de contratación (meta 80%) y vacantes fuera de SLA son las 2
+  // métricas que mejor resumen si reclutamiento va bien, del resto de KPIs ya calculados arriba.
+  let headlineRecl, colorRecl;
+  if (!evalp.length) { headlineRecl = 'Todavía no hay contrataciones evaluables (+90 días) en este periodo.'; colorRecl = '#6B6280'; }
+  else if (eff >= 80) { headlineRecl = `Va bien — ${eff}% de efectividad de contratación.`; colorRecl = '#16A34A'; }
+  else if (eff >= 60) { headlineRecl = `Hay que vigilarlo — ${eff}% de efectividad de contratación.`; colorRecl = '#F59E0B'; }
+  else { headlineRecl = `Hay un foco rojo — ${eff}% de efectividad de contratación.`; colorRecl = '#DC2626'; }
+
+  const observacionesRecl = [];
+  if (evalp.length) observacionesRecl.push(`${good.length} de ${evalp.length} contrataciones evaluables llegaron a los +90 días.`);
+  if (out.length) observacionesRecl.push(`${out.length} vacante${out.length === 1 ? ' está' : 's están'} fuera de SLA (más de 45 días).`);
+  if (avg) observacionesRecl.push(`El tiempo promedio de cobertura es de ${avg} día${avg === 1 ? '' : 's'} (meta: 45).`);
+  mpSetResumen('recl', headlineRecl, colorRecl, observacionesRecl);
 }
 
 function reclVacancies(){
