@@ -4043,7 +4043,15 @@
               </div></div>
               <div id="apar-clubCards" class="apar-grid apar-grid-3"></div>
             </section>
-        
+
+            <!-- CÓMO VAMOS -->
+            <section class="apar-section apar-panel mp-resumen" id="mp-apar-resumen">
+              <div class="mp-como-vamos" id="mp-apar-como-vamos"></div>
+              <div class="mp-observaciones-label">Observaciones clave</div>
+              <ul class="mp-observaciones" id="mp-apar-observaciones"></ul>
+            </section>
+            <div class="mp-detalle-label">Detalle para revisión</div>
+
             <!-- GRÁFICA -->
             <section class="apar-section apar-panel">
               <div class="apar-section-head"><div>
@@ -7796,9 +7804,25 @@ const FORMACION_TABS = ['onboarding','evaluacion','certificaciones','ruta','chec
   }
 
   // ─── RENDER PRINCIPAL ─────────────────────────────────────────────────────────
+  // "Cómo vamos" — reusa el mismo cálculo/umbral que ya usan las 3 KPI cards (aparCalcGeneral,
+  // aparGetState 90/80, aparStateColor) en vez de inventar uno nuevo.
+  function aparRenderComoVamos(filtered) {
+    const gen = aparCalcGeneral(filtered);
+    const st = aparGetState(gen.percent, filtered.length);
+    const color = aparStateColor(st);
+    const low = aparGetLowestCriterion(filtered);
+    const headline = st === 'Sin datos'
+      ? 'Todavía no hay datos suficientes con estos filtros.'
+      : `${st === 'Excelente' ? 'Va muy bien' : st === 'En seguimiento' ? 'Hay que vigilarlo' : 'Hay un foco rojo'} — ${gen.percent}% de cumplimiento.`;
+    const observaciones = [];
+    if (filtered.length) observaciones.push(`${filtered.length} caminatas filtradas.`);
+    if (low.percent !== null) observaciones.push(`El criterio más bajo es "${low.name}" (${low.percent}%).`);
+    mpSetResumen('apar', headline, color, observaciones);
+  }
   function aparRenderAll() {
     const filtered = aparGetFilteredData();
     aparRenderClubCards(filtered);
+    aparRenderComoVamos(filtered);
     aparRenderMonthlyChart();
     aparRenderKpis(filtered);
     aparRenderResultsMonthlyChart(); // [NUEVO] Resultado mensual comparativo
