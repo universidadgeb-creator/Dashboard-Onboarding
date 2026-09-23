@@ -591,15 +591,6 @@
   .mp-observaciones { margin: 6px 0 0; padding-left: 18px; font-size: 12.5px; color: #423C58; line-height: 1.6; }
   .mp-detalle-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #6B6280; margin: 22px 0 10px; }
 
-  /* ONBOARDING — embudo del recorrido (resumen general) */
-  .onb-funnel { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
-  .onb-stage-card { background: #FFFFFF; border: 1px solid #E6DFF5; border-radius: 8px; padding: 14px 16px; }
-  .onb-stage-label { font-size: 11px; color: #5B5470; font-weight: 600; margin-bottom: 6px; }
-  .onb-stage-pct { font-size: 24px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
-  .onb-stage-sub { font-size: 10.5px; color: #6B6280; margin-bottom: 8px; }
-  .onb-stage-bar { height: 6px; background: #F5F2FC; border-radius: 3px; overflow: hidden; }
-  .onb-stage-bar-fill { height: 100%; border-radius: 3px; }
-
   /* NPS */
   .nps-badge { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; font-weight: 700; font-size: 11px; }
   .nps-promotor { background: var(--verde-ok-bg); color: var(--verde-ok); }
@@ -3141,11 +3132,7 @@
     </div>
     <div class="kpi-row" id="onboarding-resumen-kpis-headline" style="margin-top:16px"></div>
 
-    <div class="mp-detalle-label" style="margin-top:8px">Embudo del recorrido</div>
-    <p class="bandeja-sub" style="margin:-4px 0 10px">Solo colaboradores con 180 días de antigüedad o menos — el resto de la plantilla ya pasó su ventana de onboarding y no aplica.</p>
-    <div class="onb-funnel" id="onboarding-funnel"></div>
-
-    <div class="mp-detalle-label">Detalle para revisión</div>
+    <div class="mp-detalle-label" style="margin-top:8px">Detalle para revisión</div>
     <div class="panel-box" style="margin-bottom:20px;padding:18px">
       <div class="kpi-row" id="onboarding-resumen-kpis"></div>
       <div class="panel-2col" style="margin-top:16px">
@@ -6701,37 +6688,6 @@ function renderOnboardingComoVamos(enVentanaRot, bajasArr, pctRotacion, pctSat30
 
   mpSetResumen('onb', headline, color, observaciones);
 }
-// Embudo del recorrido — cuántos elegibles de cada etapa ya respondieron. Función local (no
-// toca computeStageCompletion/renderFunnel de la pestaña Data) porque aquí además se agrega
-// Ajuste 10-15, que esa versión no tiene, y usa el tema visual normal de Onboarding en vez del
-// tema de la pestaña Data (.ruta-v2).
-function renderOnboardingFunnel(idx) {
-  // Se limita a la cohorte con 180 días de antigüedad o menos — incluir a toda la plantilla
-  // histórica diluye el % con gente contratada antes de que existieran estas encuestas (ej.
-  // Preonboarding cae a 7% sobre 422 personas en vez de ~33% sobre la cohorte real que le
-  // aplica). 180 días da margen para que a cualquiera en la cohorte ya le haya tocado la
-  // encuesta de 90 días.
-  const cohorte = idx.filter(c => c.dias !== null && c.dias <= 180);
-  const stages = [
-    { label: 'Preonboarding', elegible: () => true, hecho: c => !!c.pre },
-    { label: 'Ajuste 10-15', elegible: c => c.dias >= 10, hecho: c => mpTieneAjuste10(c) },
-    { label: '30 días', elegible: c => c.dias >= VENTANA_30.ini, hecho: c => !!c.d30 },
-    { label: '60 días', elegible: c => c.dias >= VENTANA_60.ini, hecho: c => !!c.d60 || !!c.d60l },
-    { label: '90 días', elegible: c => c.dias >= VENTANA_90.ini, hecho: c => !!c.d90 },
-  ];
-  document.getElementById('onboarding-funnel').innerHTML = stages.map(s => {
-    const elig = cohorte.filter(s.elegible);
-    const hechos = elig.filter(s.hecho).length;
-    const pct = elig.length ? Math.round(hechos / elig.length * 100) : null;
-    const color = pct === null ? '#6B6280' : pct >= 90 ? '#16A34A' : pct >= 70 ? '#F59E0B' : '#DC2626';
-    return `<div class="onb-stage-card">
-      <div class="onb-stage-label">${s.label}</div>
-      <div class="onb-stage-pct" style="color:${color}">${pct === null ? '—' : pct + '%'}</div>
-      <div class="onb-stage-sub">${elig.length ? `${hechos} de ${elig.length} elegibles` : 'aún nadie elegible'}</div>
-      <div class="onb-stage-bar"><div class="onb-stage-bar-fill" style="width:${pct || 0}%;background:${color}"></div></div>
-    </div>`;
-  }).join('');
-}
 // Resumen general de arriba de la vista Onboarding — rotación temprana, entrega de uniforme/
 // gafete (30 días) y % de satisfacción en cada etapa (30/60/90 y la evaluación del líder a los
 // 60 días), todo cruzando el mismo roster filtrado que usa cada etapa.
@@ -6783,7 +6739,6 @@ function renderOnboardingResumen() {
   const gruposAvisos = colaboradoresPendientesEncuesta();
   const totalAvisos = gruposAvisos.ajuste10.length + gruposAvisos.d30.length + gruposAvisos.d60.length + gruposAvisos.d90.length;
   renderOnboardingComoVamos(enVentanaRot, bajasArr, pctRotacion, pctSat30, totalAvisos);
-  renderOnboardingFunnel(idx);
 
   document.getElementById('onboarding-resumen-kpis-headline').innerHTML =
     kpiCard('% Rotación en 90 días', pctRotacion!==null?`${pctRotacion}%`:'—', enVentanaRot.length?`${bajasRot} de ${enVentanaRot.length}`:'Sin datos de estatus', pctRotacion===null?'':pctRotacion<=10?'green':pctRotacion<=20?'yellow':'red') +
