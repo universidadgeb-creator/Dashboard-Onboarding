@@ -4876,10 +4876,20 @@ function quitarSeguimiento() {
   renderD30();
 }
 // ── FETCH ──
-async function fetchSheet(name) {
-  const res = await fetch(`${API}?sheet=${encodeURIComponent(name)}`);
-  if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
-  return await res.json();
+// El backend de Apps Script a veces falla o tarda de forma pasajera (confirmado varias veces:
+// un mismo request que falla con 404/500 responde bien segundos después) — se reintenta antes
+// de darse por vencido, en vez de mostrar el error de una sola vez.
+async function fetchSheet(name, intentos = 3) {
+  for (let i = 1; i <= intentos; i++) {
+    try {
+      const res = await fetch(`${API}?sheet=${encodeURIComponent(name)}`);
+      if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
+      return await res.json();
+    } catch (e) {
+      if (i === intentos) throw e;
+      await new Promise(r => setTimeout(r, 1500 * i));
+    }
+  }
 }
 
 // "Hoja 5" tiene encabezados corridos varias filas/columnas hacia adentro, así que el Apps
@@ -11442,7 +11452,8 @@ async function loadAll() {
   const errMsg = (k, e) => {
     document.getElementById(`${k}-loading`).innerHTML =
       `<span class="state-msg" style="color:var(--rojo)">Error al cargar: ${e.message}<br><br>
-      Verifica que el Apps Script esté publicado como webapp pública.</span>`;
+      Ya se reintentó varias veces — puede ser una falla pasajera de Google, prueba con "↺ Actualizar" en unos segundos.
+      Si sigue fallando, verifica que el Apps Script esté publicado como webapp pública.</span>`;
   };
 
   try {
