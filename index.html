@@ -3261,7 +3261,7 @@
             <th>Nombre</th><th>Sucursal</th><th>Rol</th><th>Turno</th><th>Mes</th>
             <th>Org. coincide</th><th>Dec. correcta</th><th>Conectado</th>
             <th>Equipo</th><th>Incorporación</th><th>Líder</th>
-            <th>KPIs de rol</th><th>Certificación</th><th>Capacitación</th>
+            <th>KPIs de rol</th>
             <th>Recorrido</th><th>Plan desarrollo</th><th>Plan 12m</th>
             <th>Uniforme</th><th>Gafete</th><th>Vales</th><th>Nómina</th>
             <th>Seguimiento</th>
@@ -5437,7 +5437,7 @@ function renderD30() {
   renderMetasD30(rows);
   renderCausasD30(rows);
   const tbody = document.getElementById('d30-tbody');
-  if (!rows.length) { tbody.innerHTML=`<tr><td colspan="22" class="empty">Sin resultados.</td></tr>`; return; }
+  if (!rows.length) { tbody.innerHTML=`<tr><td colspan="20" class="empty">Sin resultados.</td></tr>`; return; }
 
   const soloAlertasD30 = document.getElementById('d30-toggle-alerta').checked;
   const alertCountD30 = rows.filter(d30HasAlert).length;
@@ -5446,7 +5446,7 @@ function renderD30() {
   cntElD30.classList.toggle('visible', alertCountD30 > 0);
 
   const visiblesD30 = soloAlertasD30 ? rows.filter(d30HasAlert) : rows;
-  if (!visiblesD30.length) { tbody.innerHTML=`<tr><td colspan="22" class="empty">No hay registros con alertas en los filtros actuales.</td></tr>`; return; }
+  if (!visiblesD30.length) { tbody.innerHTML=`<tr><td colspan="20" class="empty">No hay registros con alertas en los filtros actuales.</td></tr>`; return; }
 
   const sentTag = v => {
     const s = sentScore(v);
@@ -5481,8 +5481,6 @@ function renderD30() {
       <td>${sentTag(r['Incorporación'])}</td>
       <td>${sentTag(r['Líder'])}</td>
       <td>${siNoAlert(r['  ¿Tu líder se reunió contigo para explicarte los indicadores clave de desempeño de tu rol?'])}</td>
-      <td>${siNoAlert(r['  ¿Recibiste por escrito tu certificación de rol?'])}</td>
-      <td>${siNoAlert(r['  ¿Tu capacitación se cumplió al pie de la letra?  '])}</td>
       <td>${siNoAlert(r['  ¿Alguien te dio un recorrido por la empresa y te presentó a la mayoría de los miembros del equipo?  '])}</td>
       <td>${siNoAlert(r['  ¿Te hemos compartido un plan claro de tu desarrollo aquí con nosotros?  '])}</td>
       <td>${siNoAlert(r['  ¿Te hemos compartido cómo será tu formación y capacitación en los próximos 12 meses con nosotros?  '])}</td>
