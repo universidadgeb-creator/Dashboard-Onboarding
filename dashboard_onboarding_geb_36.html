@@ -14733,29 +14733,59 @@ function ocLimpiarFiltros() {
   ocAplicarFiltros();
 }
 
-// Gente dada de alta con "+ Nuevo colaborador" en este navegador que no tiene fila en
-// onboarding_checklist (alta anterior a que existiera el checklist, o cuyo guardado falló) —
-// se ofrece crearles su checklist con los mismos datos mínimos que manda guardarAltaColaborador.
+// El checklist solo se crea solo cuando alguien se da de alta con "+ Nuevo colaborador". Quien
+// entra por otro lado (se agregó directo en la hoja "Hoja Maestra", o el alta es anterior al
+// checklist, o su guardado falló) sale en Colaboradores pero no aquí — se detectan y se ofrece
+// crearles su checklist con los mismos datos mínimos que manda guardarAltaColaborador.
+// Del roster solo se consideran ingresos recientes y activos (no los ~400 de toda la plantilla).
+const OC_DIAS_RECIENTE = 45;
+let _ocCandidatos = [];
+
+function ocFechaISO(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function ocColabsSinChecklist() {
-  const conChecklist = new Set(_ocRegistros.map(r => r.colaborador_key));
-  return getColaboradoresPreview().filter(p => p.nombre && p.contratacion && !conChecklist.has(normName(p.nombre)));
+  const keys = _ocRegistros.map(r => r.colaborador_key);
+  const yaTiene = nombre => { const k = normName(nombre); return keys.some(x => x === k || similarNames(x, k)); };
+  const candidatos = [];
+  const vistos = new Set();
+  const agregar = (nombre, contratacion, sucursal, lider) => {
+    nombre = String(nombre || '').trim();
+    const k = normName(nombre);
+    if (!nombre || !contratacion || vistos.has(k) || yaTiene(nombre)) return;
+    vistos.add(k);
+    candidatos.push({ nombre, contratacion, sucursal: sucursal || null, lider: lider || null });
+  };
+  getColaboradoresPreview().forEach(p => agregar(p.nombre, p.contratacion, p.sucursal, p.lider));
+  getColabIndex().forEach(c => {
+    if (c.esVistaPrevia || c.estatus === 'baja' || !c.fechaIngreso || c.dias === null || c.dias < 0 || c.dias > OC_DIAS_RECIENTE) return;
+    agregar(c.nombre, ocFechaISO(c.fechaIngreso), c.sucursal, c.lider);
+  });
+  return candidatos;
 }
 
 function renderOcFaltantesBanner() {
   const el = document.getElementById('oc-faltantes-banner');
-  const faltan = _ocCargaOk ? ocColabsSinChecklist() : [];
-  if (!faltan.length) { el.innerHTML = ''; return; }
+  _ocCandidatos = _ocCargaOk ? ocColabsSinChecklist() : [];
+  if (!_ocCandidatos.length) { el.innerHTML = ''; return; }
+  const n = _ocCandidatos.length;
   el.innerHTML = `<div class="panel-box" style="border-left:4px solid #F59E0B;margin-bottom:14px">
-    <div style="font-weight:700;font-size:13.5px">${faltan.length} persona${faltan.length === 1 ? '' : 's'} dada${faltan.length === 1 ? '' : 's'} de alta en Colaboradores sin checklist</div>
-    <div class="bandeja-sub" style="margin:4px 0 10px">${faltan.map(p => escapeHtml(p.nombre)).join(', ')}</div>
-    <button class="btn-nuevo-colab" onclick="ocCrearChecklistsFaltantes()">Crear su checklist</button>
+    <div style="font-weight:700;font-size:13.5px">${n} persona${n === 1 ? '' : 's'} en Colaboradores sin checklist</div>
+    <div class="bandeja-sub" style="margin:4px 0 10px">Ingresos de los últimos ${OC_DIAS_RECIENTE} días (o altas de este navegador) que todavía no tienen su Checklist de Nuevo Ingreso.</div>
+    ${_ocCandidatos.map((p, i) => `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid #F1EEF8">
+      <span style="font-size:13px"><strong>${escapeHtml(p.nombre)}</strong> · ingresó ${fmtFecha(parseFecha(p.contratacion))}${p.sucursal ? ' · ' + escapeHtml(clubNombre(p.sucursal)) : ''}</span>
+      <button class="btn-clear" onclick="ocCrearChecklists(${i})">Crear checklist</button>
+    </div>`).join('')}
+    ${n > 1 ? `<button class="btn-nuevo-colab" style="margin-top:10px" onclick="ocCrearChecklists()">Crear los ${n}</button>` : ''}
   </div>`;
 }
 
-async function ocCrearChecklistsFaltantes() {
-  const faltan = ocColabsSinChecklist();
-  if (!faltan.length) return;
-  const filas = faltan.map(p => ({
+// indice undefined = crear todos los candidatos; número = solo ese
+async function ocCrearChecklists(indice) {
+  const elegidos = indice === undefined ? _ocCandidatos : [_ocCandidatos[indice]].filter(Boolean);
+  if (!elegidos.length) return;
+  const filas = elegidos.map(p => ({
     colaborador_key: normName(p.nombre),
     colaborador_nombre: p.nombre,
     fecha_ingreso: p.contratacion,
