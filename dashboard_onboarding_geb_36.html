@@ -3874,6 +3874,7 @@
     </div>
     <p class="bandeja-sub">Sigue el checklist de onboarding de cada nuevo ingreso agregado desde "+ Nuevo colaborador" en Colaboradores — con la fecha real en la que se completó cada paso, comparada contra el plazo esperado.</p>
     <div class="rv-suc-chips" id="oc-unidades-chips"></div>
+    <div id="oc-faltantes-banner"></div>
     <div class="kpi-row" id="oc-kpis"></div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0">
       <input type="text" class="rv-search-input" id="oc-buscar" placeholder="Buscar por nombre…" oninput="renderOcLista()" autocomplete="off" style="max-width:420px">
@@ -14690,6 +14691,7 @@ const REGISTRO_PASOS = [
 let _ocRegistros = [];
 let _ocExpandedKeys = new Set();
 let _ocUnidadActiva = null; // filtro por unidad de negocio (reutiliza UNIDADES_NEGOCIO de Data) — null = todas
+let _ocCargaOk = false; // la última carga de onboarding_checklist salió bien
 let _ocCargaId = 0; // token de la carga más reciente — si dos fetch se cruzan, solo aplica el último en pedirse
 
 async function renderOnboardingChecklist() {
@@ -14697,6 +14699,7 @@ async function renderOnboardingChecklist() {
   const { data, error } = await supabaseClient.from('onboarding_checklist').select('*').order('fecha_ingreso', { ascending: false });
   if (miCarga !== _ocCargaId) return; // llegó una carga más nueva mientras esperábamos esta — se descarta
   _ocRegistros = error ? [] : data;
+  _ocCargaOk = !error;
   ocPoblarMeses();
   ocAplicarFiltros();
 }
@@ -14718,8 +14721,50 @@ function ocPoblarMeses() {
 
 function ocAplicarFiltros() {
   renderOcUnidadesChips();
+  renderOcFaltantesBanner();
   renderOcKpis();
   renderOcLista();
+}
+
+function ocLimpiarFiltros() {
+  _ocUnidadActiva = null;
+  document.getElementById('oc-mes').value = '';
+  document.getElementById('oc-buscar').value = '';
+  ocAplicarFiltros();
+}
+
+// Gente dada de alta con "+ Nuevo colaborador" en este navegador que no tiene fila en
+// onboarding_checklist (alta anterior a que existiera el checklist, o cuyo guardado falló) —
+// se ofrece crearles su checklist con los mismos datos mínimos que manda guardarAltaColaborador.
+function ocColabsSinChecklist() {
+  const conChecklist = new Set(_ocRegistros.map(r => r.colaborador_key));
+  return getColaboradoresPreview().filter(p => p.nombre && p.contratacion && !conChecklist.has(normName(p.nombre)));
+}
+
+function renderOcFaltantesBanner() {
+  const el = document.getElementById('oc-faltantes-banner');
+  const faltan = _ocCargaOk ? ocColabsSinChecklist() : [];
+  if (!faltan.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="panel-box" style="border-left:4px solid #F59E0B;margin-bottom:14px">
+    <div style="font-weight:700;font-size:13.5px">${faltan.length} persona${faltan.length === 1 ? '' : 's'} dada${faltan.length === 1 ? '' : 's'} de alta en Colaboradores sin checklist</div>
+    <div class="bandeja-sub" style="margin:4px 0 10px">${faltan.map(p => escapeHtml(p.nombre)).join(', ')}</div>
+    <button class="btn-nuevo-colab" onclick="ocCrearChecklistsFaltantes()">Crear su checklist</button>
+  </div>`;
+}
+
+async function ocCrearChecklistsFaltantes() {
+  const faltan = ocColabsSinChecklist();
+  if (!faltan.length) return;
+  const filas = faltan.map(p => ({
+    colaborador_key: normName(p.nombre),
+    colaborador_nombre: p.nombre,
+    fecha_ingreso: p.contratacion,
+    sucursal: p.sucursal ? clubNombre(p.sucursal) : null,
+    lider: p.lider || null,
+  }));
+  const { error } = await supabaseClient.from('onboarding_checklist').insert(filas);
+  if (error) { alert('No se pudo crear el checklist: ' + error.message); return; }
+  await renderOnboardingChecklist();
 }
 
 function ocRegistrosFiltrados() {
@@ -14775,14 +14820,20 @@ function renderOcLista() {
   const base = ocRegistrosFiltrados();
   const q = normName(document.getElementById('oc-buscar').value);
   const filtrados = q ? base.filter(r => normName(r.colaborador_nombre).includes(q)) : base;
+  // Si hay un mes, una unidad o una búsqueda activos que esconden gente, se avisa y se ofrece
+  // quitarlos — antes quedaba una lista "vacía" sin explicar que era por un filtro olvidado.
+  const ocultos = _ocRegistros.length - filtrados.length;
+  const avisoFiltros = ocultos > 0
+    ? `<div class="bandeja-sub" style="margin-bottom:10px">Mostrando ${filtrados.length} de ${_ocRegistros.length} · <a href="#" onclick="ocLimpiarFiltros();return false" style="color:var(--verde-acento);font-weight:600">Quitar filtros</a></div>`
+    : '';
   if (!filtrados.length) {
     let msg = 'Sin resultados.';
     if (!_ocRegistros.length) msg = 'Todavía no se ha agregado ningún nuevo ingreso desde "+ Nuevo colaborador" en Colaboradores.';
     else if (!base.length) msg = 'Nadie de esta unidad de negocio todavía.';
-    el.innerHTML = `<div class="bandeja-sub">${msg}</div>`;
+    el.innerHTML = avisoFiltros + `<div class="bandeja-sub">${msg}</div>`;
     return;
   }
-  el.innerHTML = filtrados.map(row => ocCardHtml(row)).join('');
+  el.innerHTML = avisoFiltros + filtrados.map(row => ocCardHtml(row)).join('');
 }
 
 function ocCardHtml(row) {
