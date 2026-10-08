@@ -7053,6 +7053,22 @@ function renEsOrdenLimpieza(c) {
   return /limpieza|o\s*&\s*l\b/i.test(String(c.rol || ''));
 }
 
+// Comentarios del líder capturados a mano para la renovación, mientras no exista el formulario
+// del líder. Cuando exista, hay que conectarlo a Hoja Maestra y quitar esta lista. Para agregar a
+// alguien: una entrada nueva con el nombre como aparece en Colaboradores.
+const REN_COMENTARIOS_MANUALES = [
+  {
+    nombre: 'Carmen Maria Ahumada',
+    lider: 'Candida Ramos',
+    semaforo: '🟢 Foco verde',
+    notas: [
+      { etiqueta: 'Satisfacción', texto: 'Candy se siente feliz con Carmen.' },
+      { etiqueta: 'Retardos', texto: 'No reporta llegadas tarde; menciona que usualmente llega antes.' },
+      { etiqueta: 'Ausencias', texto: 'Solo reporta el 7 de octubre, que faltó porque se sentía mal; no había faltado antes.' },
+    ],
+  },
+];
+
 function renderRenovaciones() {
   _rutaIndex = getColabIndex(); // openRutaModal() busca a la persona aquí
   const lista = onboardingIdxFiltrado()
@@ -7123,6 +7139,11 @@ function renderRenovaciones() {
     const d60c = c.d60 ? escapeHtml(narr60Colab(c).trim()) : '';
     const d60l = c.d60l ? escapeHtml(narr60Lider(c).trim()) : '';
 
+    const man = REN_COMENTARIOS_MANUALES.find(m => similarNames(normName(m.nombre), c.key));
+    const manHtml = man
+      ? `<div>Semáforo: <b>${escapeHtml(man.semaforo)}</b></div>` + man.notas.map(n => `<div>${escapeHtml(n.etiqueta)}: ${escapeHtml(n.texto)}</div>`).join('')
+      : '';
+
     return `<div class="ren-card" onclick="openRutaModal('${c.key.replace(/'/g, "\\'")}')">
       <div class="ren-card-head">
         <div>
@@ -7136,6 +7157,7 @@ function renderRenovaciones() {
       ${sec('Ajuste 10-15', ajHtml, 'Sin llamada de Ajuste 10-15 registrada.', false)}
       ${sec('60 días — colaborador', d60c, 'Sin autoevaluación de 60 días todavía.', esOL)}
       ${sec('60 días — líder', d60l, 'Sin evaluación del líder de 60 días todavía.', esOL)}
+      ${sec(`Comentarios del líder${man ? ' — ' + escapeHtml(man.lider) : ''} <span class="ren-vacio" style="text-transform:none;letter-spacing:0">(captura manual)</span>`, manHtml, '', true)}
     </div>`;
   }).join('');
 }
