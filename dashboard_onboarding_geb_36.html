@@ -903,16 +903,18 @@
   .onboarding-etapa-btn.active { background: var(--rv-blue, #7C3AED); border-color: var(--rv-blue, #7C3AED); color: #fff; }
 
   /* RENOVACIONES DE CONTRATOS — una tarjeta por colaborador que está por cumplir 90 días */
-  .ren-card { background: #fff; border: 1px solid #E6DFF5; border-left: 4px solid var(--ren-color, #E6DFF5); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: box-shadow .15s; }
+  .ren-card { background: #fff; border: 1px solid #E6DFF5; border-left: 4px solid #7C3AED; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: box-shadow .15s; }
   .ren-card:hover { box-shadow: 0 4px 14px rgba(76,29,149,.10); }
   .ren-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
   .ren-nombre { font-weight: 700; font-size: 14px; color: #1E1B2E; }
   .ren-meta { font-size: 11.5px; color: #6B6280; margin-top: 2px; }
   .ren-faltan { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
-  .ren-stats { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 10px; font-size: 12px; color: #423C58; }
-  .ren-stats b { color: #1E1B2E; }
-  .ren-resumen { margin-top: 8px; font-size: 12.5px; color: #423C58; line-height: 1.5; }
-  .ren-pendiente { margin-top: 4px; font-size: 11.5px; color: #6B6280; }
+  .ren-sec { margin-top: 10px; padding-top: 8px; border-top: 1px solid #F1EEF8; }
+  .ren-sec-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #6B6280; margin-bottom: 3px; }
+  .ren-sec-body { font-size: 12.5px; color: #423C58; line-height: 1.5; }
+  .ren-sec-body b { color: #1E1B2E; }
+  .ren-cita { color: #5B5470; font-style: italic; }
+  .ren-vacio { color: #9C93AE; }
 
   .rv-search-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
   .rv-search-input { flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid var(--rv-border); border-radius: 6px; font-size: 12px; font-family: 'Inter', sans-serif; color: var(--rv-text); background: var(--rv-surface); }
@@ -3376,7 +3378,7 @@
   <!-- RENOVACIONES DE CONTRATOS — quienes están por cumplir 90 días (ver renderRenovaciones) -->
   <div class="tab-panel" id="panel-renovaciones">
     <div class="section-title">Renovaciones de contratos</div>
-    <p class="bandeja-sub">Colaboradores activos que cumplen 90 días en los próximos <span id="ren-ventana-dias"></span> días (de 70 a 90 días de antigüedad). Cumplen 90 días = fecha de ingreso + 90 días. Toca una tarjeta para ver su ficha completa.</p>
+    <p class="bandeja-sub">Colaboradores activos próximos a renovar contrato. Orden y Limpieza se renueva a los 30 días (aparece desde los 15 días de antigüedad); los demás roles a los 90 días (aparecen desde los 70). La fecha de renovación es la fecha de ingreso + 30 o 90 días. Toca una tarjeta para ver su ficha completa.</p>
     <div class="panel-box mp-resumen" id="mp-ren-resumen">
       <div class="mp-como-vamos" id="mp-ren-como-vamos"></div>
       <div class="mp-observaciones-label">Observaciones clave</div>
@@ -6982,39 +6984,37 @@ function narr30(c) {
   return frase;
 }
 
+function narr60Colab(c) {
+  if (!c.d60) return 'El colaborador todavía no responde su encuesta de 60 días. ';
+  const r = c.d60;
+  const claro = String(r['¿Tienes claro cómo se mide tu desempeño en este puesto?']||'').toLowerCase();
+  const uno1 = String(r['¿Has tenido al menos una conversación 1:1 con tu líder?']||'').toLowerCase();
+  const avgV = avgLikert(r, D60_LIKERT);
+  let frase = `A los 60 días, el propio colaborador se autocalifica en promedio ${avgV!==null?avgV.toFixed(1):'—'}/5 en su adaptación`;
+  if (claro==='no') frase += ', y menciona que NO tiene claro cómo se mide su desempeño';
+  if (uno1==='no') frase += ', además de no haber tenido todavía una conversación 1:1 con su líder';
+  return frase + '. ';
+}
+
+function narr60Lider(c) {
+  if (!c.d60l) return 'El líder todavía no responde su evaluación de 60 días.';
+  const r = c.d60l;
+  const riesgo = String(r['¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?']||'');
+  const causa = r['¿Cuál es la causa principal?'] || '';
+  const accion = r['¿Qué acción vas a tomar o ya tomaste?'] || '';
+  const faltas = String(r['¿Ha tenido faltas o retardos que preocupen en este periodo?']||'').toLowerCase();
+  const avgV = avgLikert(r, D60L_LIKERT);
+  let frase = `Su líder (${r['Nombre del líder']||'—'}) lo calificó en promedio ${avgV!==null?avgV.toFixed(1):'—'}/5`;
+  if (riesgo) frase += ` y marca su riesgo de rotación como "${riesgo}"`;
+  if (causa) frase += `, con causa principal: "${truncar(causa,140)}"`;
+  if (faltas==='sí' || faltas==='si') frase += '. Señala que ha tenido faltas o retardos que preocupan';
+  if (accion) frase += `. Acción del líder: "${truncar(accion,140)}"`;
+  return frase + '.';
+}
+
 function narr60(c) {
-  const tieneColab = !!c.d60, tieneLider = !!c.d60l;
-  if (!tieneColab && !tieneLider) return 'Todavía no hay encuesta de 60 días, ni del colaborador ni del líder.';
-  let frase = '';
-  if (tieneColab) {
-    const r = c.d60;
-    const claro = String(r['¿Tienes claro cómo se mide tu desempeño en este puesto?']||'').toLowerCase();
-    const uno1 = String(r['¿Has tenido al menos una conversación 1:1 con tu líder?']||'').toLowerCase();
-    const avgV = avgLikert(r, D60_LIKERT);
-    frase += `A los 60 días, el propio colaborador se autocalifica en promedio ${avgV!==null?avgV.toFixed(1):'—'}/5 en su adaptación`;
-    if (claro==='no') frase += ', y menciona que NO tiene claro cómo se mide su desempeño';
-    if (uno1==='no') frase += ', además de no haber tenido todavía una conversación 1:1 con su líder';
-    frase += '. ';
-  } else {
-    frase += 'El colaborador todavía no responde su encuesta de 60 días. ';
-  }
-  if (tieneLider) {
-    const r = c.d60l;
-    const riesgo = String(r['¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?']||'');
-    const causa = r['¿Cuál es la causa principal?'] || '';
-    const accion = r['¿Qué acción vas a tomar o ya tomaste?'] || '';
-    const faltas = String(r['¿Ha tenido faltas o retardos que preocupen en este periodo?']||'').toLowerCase();
-    const avgV = avgLikert(r, D60L_LIKERT);
-    frase += `Su líder (${r['Nombre del líder']||'—'}) lo calificó en promedio ${avgV!==null?avgV.toFixed(1):'—'}/5`;
-    if (riesgo) frase += ` y marca su riesgo de rotación como "${riesgo}"`;
-    if (causa) frase += `, con causa principal: "${truncar(causa,140)}"`;
-    if (faltas==='sí' || faltas==='si') frase += '. Señala que ha tenido faltas o retardos que preocupan';
-    if (accion) frase += `. Acción del líder: "${truncar(accion,140)}"`;
-    frase += '.';
-  } else {
-    frase += 'El líder todavía no responde su evaluación de 60 días.';
-  }
-  return frase;
+  if (!c.d60 && !c.d60l) return 'Todavía no hay encuesta de 60 días, ni del colaborador ni del líder.';
+  return narr60Colab(c) + narr60Lider(c);
 }
 
 function narr90(c) {
@@ -7040,82 +7040,102 @@ function veredictoColab(c, focos) {
   return { cls:'good', text:'Va bien — sin focos rojos' };
 }
 
-// ── RENOVACIONES DE CONTRATOS — activos a REN_VENTANA_DIAS o menos de cumplir 90 días ──
-// La fecha de renovación se toma como fecha de ingreso + 90 días (no hay fecha de fin de
-// contrato en el Sheet). Respeta los mismos filtros del resto de Onboarding.
-const REN_VENTANA_DIAS = 20;
-const REN_COLOR = { critical: '#DC2626', warning: '#F59E0B', good: '#16A34A' };
+// ── RENOVACIONES DE CONTRATOS — quién está por renovar contrato ──
+// Orden y Limpieza se renueva a los 30 días (se muestran desde los 15 días de antigüedad); los
+// demás roles a los 90 días (se muestran desde los 70). La fecha de renovación es la fecha de
+// ingreso + 30 / 90 días — no hay fecha de fin de contrato en el Sheet. Respeta los mismos
+// filtros del resto de Onboarding.
+const REN_REGLAS = {
+  ol:   { tope: 30, antes: 15, etiqueta: 'Orden y Limpieza' },
+  otro: { tope: 90, antes: 20, etiqueta: 'Demás roles' },
+};
+function renEsOrdenLimpieza(c) {
+  return /limpieza|o\s*&\s*l\b/i.test(String(c.rol || ''));
+}
 
 function renderRenovaciones() {
-  document.getElementById('ren-ventana-dias').textContent = REN_VENTANA_DIAS;
   _rutaIndex = getColabIndex(); // openRutaModal() busca a la persona aquí
   const lista = onboardingIdxFiltrado()
-    .filter(c => c.estatus !== 'baja' && c.fechaIngreso && c.dias !== null && c.dias >= 90 - REN_VENTANA_DIAS && c.dias <= 90)
-    .map(c => { const focos = focosRojosDe(c); return { c, focos, ver: veredictoColab(c, focos), faltan: 90 - c.dias }; })
+    .filter(c => c.estatus !== 'baja' && c.fechaIngreso && c.dias !== null && c.dias >= 0)
+    .map(c => {
+      const regla = renEsOrdenLimpieza(c) ? REN_REGLAS.ol : REN_REGLAS.otro;
+      return { c, regla, esOL: regla === REN_REGLAS.ol, faltan: regla.tope - c.dias };
+    })
+    .filter(x => x.faltan >= 0 && x.faltan <= x.regla.antes)
     .sort((a, b) => a.faltan - b.faltan || a.c.nombre.localeCompare(b.c.nombre, 'es'));
 
-  const fechaCumple = c => new Date(c.fechaIngreso.getTime() + 90 * 86400000);
+  const fechaRenueva = x => new Date(x.c.fechaIngreso.getTime() + x.regla.tope * 86400000);
+  const cuando = x => x.faltan === 0 ? 'hoy' : `en ${x.faltan} día${x.faltan === 1 ? '' : 's'}`;
   const n = lista.length;
-  const criticos = lista.filter(x => x.ver.cls === 'critical');
-  const conAtencion = lista.filter(x => x.ver.cls !== 'good');
-  const sinLider = lista.filter(x => !x.c.d60l);
   const estaSemana = lista.filter(x => x.faltan <= 7);
+  const nOL = lista.filter(x => x.esOL).length;
 
   let headline, color;
-  if (!n) { headline = `Nadie cumple 90 días en los próximos ${REN_VENTANA_DIAS} días.`; color = '#6B6280'; }
+  if (!n) { headline = 'Nadie está por renovar contrato con los filtros actuales.'; color = '#6B6280'; }
   else {
-    const base = `${n} contrato${n === 1 ? '' : 's'} por renovar en los próximos ${REN_VENTANA_DIAS} días`;
-    if (criticos.length) { headline = `${base} — ${criticos.length} con riesgo alto.`; color = REN_COLOR.critical; }
-    else if (conAtencion.length) { headline = `${base} — ${conAtencion.length} requiere${conAtencion.length === 1 ? '' : 'n'} atención.`; color = REN_COLOR.warning; }
-    else { headline = `${base} — todos van bien.`; color = REN_COLOR.good; }
+    headline = `${n} contrato${n === 1 ? '' : 's'} por renovar${estaSemana.length ? ` — ${estaSemana.length} esta semana` : ''}.`;
+    color = estaSemana.length ? '#F59E0B' : '#7C3AED';
   }
   const obs = [];
   if (n) {
     const p = lista[0];
-    obs.push(`El primero en cumplir 90 días es ${p.c.nombre}: ${p.faltan === 0 ? 'hoy' : `en ${p.faltan} día${p.faltan === 1 ? '' : 's'}`} (${fmtFecha(fechaCumple(p.c))}).`);
-    if (conAtencion.length) obs.push(`Requieren revisión antes de renovar: ${conAtencion.map(x => x.c.nombre).join(', ')}.`);
-    if (sinLider.length) obs.push(`${sinLider.length} todavía sin evaluación del líder de 60 días: ${sinLider.map(x => x.c.nombre).join(', ')}.`);
+    obs.push(`El primero en renovar es ${p.c.nombre}: ${cuando(p)} (${fmtFecha(fechaRenueva(p))}, a los ${p.regla.tope} días).`);
+    if (estaSemana.length > 1) obs.push(`Esta semana: ${estaSemana.map(x => x.c.nombre).join(', ')}.`);
+    obs.push(`${nOL} de Orden y Limpieza (se renuevan a los 30 días) y ${n - nOL} de otros roles (a los 90 días).`);
   }
   mpSetResumen('ren', headline, color, obs);
 
   document.getElementById('ren-kpis').innerHTML =
-    kpiCard('Por renovar', n, `en los próximos ${REN_VENTANA_DIAS} días`) +
-    kpiCard('Esta semana', estaSemana.length, 'cumplen 90 días en 7 días o menos', estaSemana.length ? 'yellow' : '') +
-    kpiCard('Con focos o riesgo', conAtencion.length, 'requieren revisión', conAtencion.length ? (criticos.length ? 'red' : 'yellow') : 'green') +
-    kpiCard('Sin evaluación del líder', sinLider.length, 'falta su evaluación de 60 días', sinLider.length ? 'yellow' : 'green');
+    kpiCard('Por renovar', n, 'contratos próximos') +
+    kpiCard('Esta semana', estaSemana.length, 'se renuevan en 7 días o menos', estaSemana.length ? 'yellow' : '') +
+    kpiCard('Orden y Limpieza', nOL, 'se renuevan a los 30 días') +
+    kpiCard('Demás roles', n - nOL, 'se renuevan a los 90 días');
 
   const el = document.getElementById('ren-lista');
   if (!n) { el.innerHTML = `<div class="bandeja-sub">Nadie en esta ventana con los filtros actuales.</div>`; return; }
-  const riesgoCol = '¿Cómo calificarías el riesgo de rotación de este colaborador en los próximos 30 días?';
-  el.innerHTML = lista.map(({ c, focos, ver, faltan }) => {
-    const aj = DATA.ajuste10.find(r => similarNames(normName(r['Nombre del colaborador']), c.key));
-    const semAj = aj ? String(aj['Resultado del semáforo'] || '').trim() : '';
-    const avgColab = c.d60 ? avgLikert(c.d60, D60_LIKERT) : null;
-    const avgLider = c.d60l ? avgLikert(c.d60l, D60L_LIKERT) : null;
-    const riesgo = c.d60l ? riesgoLabelCorto(c.d60l[riesgoCol]) : null;
-    const motivos = focos.slice(0, 3).map(f => f.motivo);
-    const pendientes = [];
-    if (!c.d30) pendientes.push('encuesta de 30 días');
-    if (!c.d60) pendientes.push('autoevaluación de 60 días');
-    if (!c.d60l) pendientes.push('evaluación del líder de 60 días');
+
+  const sec = (label, cuerpo, vacio, ocultarSiVacio) => {
+    if (!cuerpo && ocultarSiVacio) return '';
+    return `<div class="ren-sec"><div class="ren-sec-label">${label}</div><div class="ren-sec-body">${cuerpo || `<span class="ren-vacio">${vacio}</span>`}</div></div>`;
+  };
+  const tag = v => { const s = sentScore(v); return s === 2 ? '<b style="color:#16A34A">✓ Bien</b>' : s === 1 ? '<b style="color:#DC2626">Atención</b>' : ''; };
+
+  el.innerHTML = lista.map(x => {
+    const { c, esOL, faltan, regla } = x;
     const badge = faltan <= 7 ? 'background:#FEE2E2;color:#B91C1C' : faltan <= 14 ? 'background:#FEF3C7;color:#92400E' : 'background:#F5F2FC;color:#6B6280';
-    return `<div class="ren-card" style="--ren-color:${REN_COLOR[ver.cls]}" onclick="openRutaModal('${c.key.replace(/'/g, "\\'")}')">
+
+    let d30 = '';
+    if (c.d30) {
+      const conectado = String(c.d30['  ¿Me siento conectado con esta organización?  '] || '').trim();
+      const pertenencia = String(c.d30['Pertenencia'] || '').trim();
+      d30 = (conectado ? `<div>Se siente conectado con la organización: <b>${escapeHtml(conectado)}</b></div>` : '')
+        + (pertenencia ? `<div>Pertenencia: ${tag(pertenencia)} <span class="ren-cita">${escapeHtml(truncar(pertenencia, 170))}</span></div>` : '');
+    }
+
+    const aj = DATA.ajuste10.find(r => similarNames(normName(r['Nombre del colaborador']), c.key));
+    let ajHtml = '';
+    if (aj) {
+      const sem = String(aj['Resultado del semáforo'] || '').trim();
+      const com = String(aj['Observaciones adicionales / justificación del semáforo'] || '').trim();
+      ajHtml = `<div>Semáforo: <b>${escapeHtml(sem || '—')}</b></div>` + (com ? `<div>Comentarios: <span class="ren-cita">${escapeHtml(com)}</span></div>` : '');
+    }
+
+    const d60c = c.d60 ? escapeHtml(narr60Colab(c).trim()) : '';
+    const d60l = c.d60l ? escapeHtml(narr60Lider(c).trim()) : '';
+
+    return `<div class="ren-card" onclick="openRutaModal('${c.key.replace(/'/g, "\\'")}')">
       <div class="ren-card-head">
         <div>
           <div class="ren-nombre">${escapeHtml(c.nombre)}</div>
           <div class="ren-meta">${[c.rol, c.sucursal, c.lider ? 'Líder: ' + c.lider : null].filter(Boolean).map(escapeHtml).join(' · ')}</div>
+          <div class="ren-meta">Ingresó ${fmtFecha(c.fechaIngreso)} (${c.dias} días) · se renueva a los ${regla.tope} días</div>
         </div>
-        <span class="ren-faltan" style="${badge}">${faltan === 0 ? 'Cumple 90 días hoy' : `Faltan ${faltan} día${faltan === 1 ? '' : 's'}`} · ${fmtFecha(fechaCumple(c))}</span>
+        <span class="ren-faltan" style="${badge}">${faltan === 0 ? 'Se renueva hoy' : `Faltan ${faltan} día${faltan === 1 ? '' : 's'}`} · ${fmtFecha(fechaRenueva(x))}</span>
       </div>
-      <div class="ren-stats">
-        <span>Ingresó <b>${fmtFecha(c.fechaIngreso)}</b> (${c.dias} días)</span>
-        <span>Ajuste 10-15: <b>${escapeHtml(semAj || 'sin llamada')}</b></span>
-        <span>Autoevaluación 60d: <b>${avgColab !== null ? avgColab.toFixed(1) + '/5' : '—'}</b></span>
-        <span>Evaluación líder 60d: <b>${avgLider !== null ? avgLider.toFixed(1) + '/5' : '—'}</b></span>
-        <span>Riesgo de rotación: <b>${escapeHtml(riesgo || '—')}</b></span>
-      </div>
-      <div class="ren-resumen"><b style="color:${REN_COLOR[ver.cls]}">${escapeHtml(ver.text)}.</b>${motivos.length ? ' Focos: ' + motivos.map(escapeHtml).join('; ') + (focos.length > 3 ? ` y ${focos.length - 3} más` : '') + '.' : ''}</div>
-      ${pendientes.length ? `<div class="ren-pendiente">Pendiente: ${pendientes.join(', ')}.</div>` : ''}
+      ${sec('30 días — integración', d30, 'Sin encuesta de 30 días todavía.', esOL)}
+      ${sec('Ajuste 10-15', ajHtml, 'Sin llamada de Ajuste 10-15 registrada.', false)}
+      ${sec('60 días — colaborador', d60c, 'Sin autoevaluación de 60 días todavía.', esOL)}
+      ${sec('60 días — líder', d60l, 'Sin evaluación del líder de 60 días todavía.', esOL)}
     </div>`;
   }).join('');
 }
