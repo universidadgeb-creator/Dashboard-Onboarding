@@ -908,7 +908,6 @@
   .ren-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
   .ren-id { display: flex; align-items: center; gap: 12px; min-width: 0; }
   .ren-id .ren-foto { width: 64px; height: 64px; font-size: 20px; flex-shrink: 0; }
-  .ren-id img.ren-foto { object-fit: cover; object-position: 50% 33%; }
   .ren-nombre { font-weight: 700; font-size: 14px; color: #1E1B2E; }
   .ren-meta { font-size: 11.5px; color: #6B6280; margin-top: 2px; }
   .ren-faltan { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
@@ -936,6 +935,9 @@
   .rv-avatar { width: 38px; height: 38px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
   .rv-avatar-lg { width: 52px; height: 52px; font-size: 18px; }
   .rv-avatar-wrap { display: inline-block; flex-shrink: 0; }
+  .rv-avatar-con-foto { position: relative; overflow: hidden; }
+  .rv-avatar-foto { position: absolute; inset: 0; border-radius: 50%; background-repeat: no-repeat; }
+  .rv-avatar.rv-avatar-xl { width: 76px; height: 76px; font-size: 24px; }
   .rv-avatar-img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; display: block; }
   .rv-avatar-img.rv-avatar-lg { width: 52px; height: 52px; }
 
@@ -6132,13 +6134,11 @@ function initials(nombre) {
 }
 function avatarHtml(c, sizeClass) {
   const cls = sizeClass || '';
-  const initHtml = `<div class="rv-avatar ${cls}" style="background:${avatarColor(c.nombre)}">${initials(c.nombre)}</div>`;
-  if (!c.foto) return initHtml;
-  const safeFoto = String(c.foto).replace(/"/g,'&quot;');
-  return `<span class="rv-avatar-wrap">
-    <img class="rv-avatar-img ${cls}" src="${safeFoto}" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div class="rv-avatar ${cls}" style="background:${avatarColor(c.nombre)};display:none">${initials(c.nombre)}</div>
-  </span>`;
+  const foto = fotoColab(c);
+  if (!foto) return `<div class="rv-avatar ${cls}" style="background:${avatarColor(c.nombre)}">${initials(c.nombre)}</div>`;
+  // Las iniciales quedan debajo: si la foto no carga, se ven ellas.
+  const safeUrl = foto.url.replace(/["'()\\]/g, encodeURIComponent);
+  return `<span class="rv-avatar-wrap"><div class="rv-avatar rv-avatar-con-foto ${cls}" style="background:${avatarColor(c.nombre)}">${initials(c.nombre)}<span class="rv-avatar-foto" style="background-image:url('${safeUrl}');background-size:${foto.size};background-position:${foto.pos}"></span></div></span>`;
 }
 function avatarColor(nombre) {
   let hash = 0;
@@ -7059,18 +7059,30 @@ function renEsOrdenLimpieza(c) {
 // Fotos de colaboradores (enlaces de Google Drive compartidos). No hay columna de foto en el Sheet,
 // así que se mantienen aquí: una entrada por persona, con el nombre como aparece en Colaboradores.
 // Si la foto no carga (archivo no compartido o enlace roto), se muestran las iniciales.
+// El círculo se recorta sobre la cara: fx/fy = centro de la cara (0–1, desde la esquina superior
+// izquierda de la foto), hh = alto de la cabeza como fracción del alto de la foto, ar = alto/ancho
+// de la foto. Si una persona nueva no trae estos datos, se centra la parte de arriba de la foto.
 const FOTOS_COLABORADORES = [
-  { nombre: 'Isaac Israel Elizondo Olivares',     url: 'https://drive.google.com/file/d/1whE9uyU2SaBzHXT92xXKyxzBrs1L-YID/view?usp=sharing' },
-  { nombre: 'Maximus Gabriel Ruvalcaba Palomera', url: 'https://drive.google.com/file/d/1mE0ZBd98x_hg5rnb_EY4q8_p1ojFI--K/view?usp=drive_link' },
-  { nombre: 'Carmen Maria Ahumada',               url: 'https://drive.google.com/file/d/1laGaFAp9S8Uq4tMNCqH0-fc3IFtJppm6/view?usp=drive_link' },
-  { nombre: 'Oscar Esteban Uribe Adame',          url: 'https://drive.google.com/file/d/1Qa0nQXA7foad3vGERC1aldEhzznBYHm0/view?usp=drive_link' },
-  { nombre: 'Yajaira Estefania Reyes Ramirez',    url: 'https://drive.google.com/file/d/1TovSdvW93uk_ABu-QJanZE1VGU6moA7d/view?usp=drive_link' },
-  { nombre: 'Abraham Ochoa Pérez',                url: 'https://drive.google.com/file/d/1fEfsfL5MMlymWKbUmI2QMY_AklnT3fdb/view?usp=drive_link' },
+  { nombre: 'Isaac Israel Elizondo Olivares',     url: 'https://drive.google.com/file/d/1whE9uyU2SaBzHXT92xXKyxzBrs1L-YID/view?usp=sharing', ar: 2.17, fx: .48, fy: .46, hh: .17 },
+  { nombre: 'Maximus Gabriel Ruvalcaba Palomera', url: 'https://drive.google.com/file/d/1mE0ZBd98x_hg5rnb_EY4q8_p1ojFI--K/view?usp=drive_link', ar: 2.17, fx: .49, fy: .36, hh: .17 },
+  { nombre: 'Carmen Maria Ahumada',               url: 'https://drive.google.com/file/d/1laGaFAp9S8Uq4tMNCqH0-fc3IFtJppm6/view?usp=drive_link', ar: 2.17, fx: .52, fy: .43, hh: .17 },
+  { nombre: 'Oscar Esteban Uribe Adame',          url: 'https://drive.google.com/file/d/1Qa0nQXA7foad3vGERC1aldEhzznBYHm0/view?usp=drive_link', ar: 2.17, fx: .53, fy: .43, hh: .18 },
+  { nombre: 'Yajaira Estefania Reyes Ramirez',    url: 'https://drive.google.com/file/d/1TovSdvW93uk_ABu-QJanZE1VGU6moA7d/view?usp=drive_link', ar: 1.4,  fx: .47, fy: .17, hh: .27 },
+  { nombre: 'Abraham Ochoa Pérez',                url: 'https://drive.google.com/file/d/1fEfsfL5MMlymWKbUmI2QMY_AklnT3fdb/view?usp=drive_link', ar: 1.33, fx: .53, fy: .48, hh: .21 },
 ];
+// Devuelve { url, size, pos } listos para usar como background del círculo, o null si no hay foto.
 function fotoColab(c) {
-  const f = FOTOS_COLABORADORES.find(x => similarNames(normName(x.nombre), c.key));
-  const url = f ? f.url : c.foto;
-  return url ? reclDriveImageUrl(url).replace('sz=w800', 'sz=w300') : '';
+  const f = FOTOS_COLABORADORES.find(x => similarNames(normName(x.nombre), c.key || normName(c.nombre)));
+  const raw = f ? f.url : c.foto;
+  if (!raw) return null;
+  const url = reclDriveImageUrl(raw).replace('sz=w800', 'sz=w500');
+  if (!f) return { url, size: 'cover', pos: '50% 25%' };
+  const S = Math.max(1.05, 0.7 / (f.hh * f.ar));             // zoom: la cabeza ocupa ~70% del círculo
+  const pct = (cara, k) => {                                   // % de background-position que centra la cara
+    const d = 1 - S * k;
+    return d === 0 ? 50 : Math.min(100, Math.max(0, (0.5 - cara * S * k) / d * 100));
+  };
+  return { url, size: `${(S * 100).toFixed(0)}% auto`, pos: `${pct(f.fx, 1).toFixed(1)}% ${pct(f.fy, f.ar).toFixed(1)}%` };
 }
 
 // Comentarios del líder capturados a mano para la renovación, mientras no exista el formulario
@@ -7167,7 +7179,7 @@ function renderRenovaciones() {
     return `<div class="ren-card" onclick="openRutaModal('${c.key.replace(/'/g, "\\'")}')">
       <div class="ren-card-head">
         <div class="ren-id">
-          ${avatarHtml({ nombre: c.nombre, foto: fotoColab(c) }, 'ren-foto')}
+          ${avatarHtml(c, 'ren-foto')}
           <div>
             <div class="ren-nombre">${escapeHtml(c.nombre)}</div>
             <div class="ren-meta">${[c.rol, c.sucursal, c.lider ? 'Líder: ' + c.lider : null].filter(Boolean).map(escapeHtml).join(' · ')}</div>
@@ -7196,7 +7208,7 @@ function openRutaModal(key) {
       ? (c.diasDuro!==null ? `Duró ${c.diasDuro} días` : null)
       : (c.dias!==null ? `${c.dias} días` : null)
   ].filter(Boolean).map(v=>`<span>${v}</span>`).join('');
-  document.getElementById('ruta-modal-avatar').innerHTML = avatarHtml(c, 'rv-avatar-lg');
+  document.getElementById('ruta-modal-avatar').innerHTML = avatarHtml(c, 'rv-avatar-lg rv-avatar-xl');
 
   const focos = focosRojosDe(c);
   const stPre = rvStageState(!!c.pre, null, null, false);
