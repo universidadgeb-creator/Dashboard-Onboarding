@@ -906,6 +906,9 @@
   .ren-card { background: #fff; border: 1px solid #E6DFF5; border-left: 4px solid #7C3AED; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: box-shadow .15s; }
   .ren-card:hover { box-shadow: 0 4px 14px rgba(76,29,149,.10); }
   .ren-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .ren-id { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .ren-id .ren-foto { width: 64px; height: 64px; font-size: 20px; flex-shrink: 0; }
+  .ren-id img.ren-foto { object-fit: cover; object-position: 50% 33%; }
   .ren-nombre { font-weight: 700; font-size: 14px; color: #1E1B2E; }
   .ren-meta { font-size: 11.5px; color: #6B6280; margin-top: 2px; }
   .ren-faltan { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
@@ -6133,7 +6136,7 @@ function avatarHtml(c, sizeClass) {
   if (!c.foto) return initHtml;
   const safeFoto = String(c.foto).replace(/"/g,'&quot;');
   return `<span class="rv-avatar-wrap">
-    <img class="rv-avatar-img ${cls}" src="${safeFoto}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <img class="rv-avatar-img ${cls}" src="${safeFoto}" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
     <div class="rv-avatar ${cls}" style="background:${avatarColor(c.nombre)};display:none">${initials(c.nombre)}</div>
   </span>`;
 }
@@ -7053,6 +7056,23 @@ function renEsOrdenLimpieza(c) {
   return /limpieza|o\s*&\s*l\b/i.test(String(c.rol || ''));
 }
 
+// Fotos de colaboradores (enlaces de Google Drive compartidos). No hay columna de foto en el Sheet,
+// así que se mantienen aquí: una entrada por persona, con el nombre como aparece en Colaboradores.
+// Si la foto no carga (archivo no compartido o enlace roto), se muestran las iniciales.
+const FOTOS_COLABORADORES = [
+  { nombre: 'Isaac Israel Elizondo Olivares',     url: 'https://drive.google.com/file/d/1whE9uyU2SaBzHXT92xXKyxzBrs1L-YID/view?usp=sharing' },
+  { nombre: 'Maximus Gabriel Ruvalcaba Palomera', url: 'https://drive.google.com/file/d/1mE0ZBd98x_hg5rnb_EY4q8_p1ojFI--K/view?usp=drive_link' },
+  { nombre: 'Carmen Maria Ahumada',               url: 'https://drive.google.com/file/d/1laGaFAp9S8Uq4tMNCqH0-fc3IFtJppm6/view?usp=drive_link' },
+  { nombre: 'Oscar Esteban Uribe Adame',          url: 'https://drive.google.com/file/d/1Qa0nQXA7foad3vGERC1aldEhzznBYHm0/view?usp=drive_link' },
+  { nombre: 'Yajaira Estefania Reyes Ramirez',    url: 'https://drive.google.com/file/d/1TovSdvW93uk_ABu-QJanZE1VGU6moA7d/view?usp=drive_link' },
+  { nombre: 'Abraham Ochoa Pérez',                url: 'https://drive.google.com/file/d/1fEfsfL5MMlymWKbUmI2QMY_AklnT3fdb/view?usp=drive_link' },
+];
+function fotoColab(c) {
+  const f = FOTOS_COLABORADORES.find(x => similarNames(normName(x.nombre), c.key));
+  const url = f ? f.url : c.foto;
+  return url ? reclDriveImageUrl(url).replace('sz=w800', 'sz=w300') : '';
+}
+
 // Comentarios del líder capturados a mano para la renovación, mientras no exista el formulario
 // del líder. Cuando exista, hay que conectarlo a Hoja Maestra y quitar esta lista. Para agregar a
 // alguien: una entrada nueva con el nombre como aparece en Colaboradores.
@@ -7146,10 +7166,13 @@ function renderRenovaciones() {
 
     return `<div class="ren-card" onclick="openRutaModal('${c.key.replace(/'/g, "\\'")}')">
       <div class="ren-card-head">
-        <div>
-          <div class="ren-nombre">${escapeHtml(c.nombre)}</div>
-          <div class="ren-meta">${[c.rol, c.sucursal, c.lider ? 'Líder: ' + c.lider : null].filter(Boolean).map(escapeHtml).join(' · ')}</div>
-          <div class="ren-meta">Ingresó ${fmtFecha(c.fechaIngreso)} (${c.dias} días) · se renueva a los ${regla.tope} días</div>
+        <div class="ren-id">
+          ${avatarHtml({ nombre: c.nombre, foto: fotoColab(c) }, 'ren-foto')}
+          <div>
+            <div class="ren-nombre">${escapeHtml(c.nombre)}</div>
+            <div class="ren-meta">${[c.rol, c.sucursal, c.lider ? 'Líder: ' + c.lider : null].filter(Boolean).map(escapeHtml).join(' · ')}</div>
+            <div class="ren-meta">Ingresó ${fmtFecha(c.fechaIngreso)} (${c.dias} días) · se renueva a los ${regla.tope} días</div>
+          </div>
         </div>
         <span class="ren-faltan" style="${badge}">${faltan === 0 ? 'Se renueva hoy' : `Faltan ${faltan} día${faltan === 1 ? '' : 's'}`} · ${fmtFecha(fechaRenueva(x))}</span>
       </div>
