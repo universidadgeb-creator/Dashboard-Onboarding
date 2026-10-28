@@ -906,6 +906,11 @@
   .ren-card { background: #fff; border: 1px solid #E6DFF5; border-left: 4px solid #7C3AED; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: box-shadow .15s; }
   .ren-card:hover { box-shadow: 0 4px 14px rgba(76,29,149,.10); }
   .ren-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .d15-linea { margin-top: 3px; }
+  .d15-linea:first-child { margin-top: 0; }
+  .d15-ok { color: #166534; }
+  .d15-bien { color: #166534; font-weight: 600; }
+  .d15-mal { color: #B91C1C; font-weight: 700; }
   .ren-rub { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
   .ren-rub-row { background: #FAF8FE; border: 1px solid #EEE9F8; border-radius: 6px; padding: 7px 10px; }
   .ren-rub-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
@@ -3196,6 +3201,7 @@
     <div class="onboarding-etapas" id="onboarding-etapa-selector">
       <button class="onboarding-etapa-btn active" data-etapa="pre" onclick="selectOnboardingEtapa('pre')">Preonboarding</button>
       <button class="onboarding-etapa-btn" data-etapa="ajuste10" onclick="selectOnboardingEtapa('ajuste10')">Ajuste 10-15</button>
+      <button class="onboarding-etapa-btn" data-etapa="d15" onclick="selectOnboardingEtapa('d15')">15 días · Orden y Limpieza</button>
       <button class="onboarding-etapa-btn" data-etapa="d30" onclick="selectOnboardingEtapa('d30')">30 días</button>
       <button class="onboarding-etapa-btn" data-etapa="d60" onclick="selectOnboardingEtapa('d60')">60 días</button>
       <button class="onboarding-etapa-btn" data-etapa="d90" onclick="selectOnboardingEtapa('d90')">90 días</button>
@@ -3262,6 +3268,20 @@
         </table>
       </div></div>
     </div>
+  </div>
+
+  <!-- 15 DÍAS — Orden y Limpieza (lo contesta el líder) -->
+  <div class="tab-panel" id="panel-quince">
+    <div class="section-title">Evaluación de 15 días · Orden y Limpieza</div>
+    <p class="bandeja-sub">La contesta el líder al cumplir 15 días el colaborador: retardos, inasistencias e incidencias de sus primeras dos semanas. También aparece en Renovaciones de contratos.</p>
+    <div class="panel-box mp-resumen" id="mp-d15-resumen">
+      <div class="mp-como-vamos" id="mp-d15-como-vamos"></div>
+      <div class="mp-observaciones-label">Observaciones clave</div>
+      <ul class="mp-observaciones" id="mp-d15-observaciones"></ul>
+    </div>
+    <div class="kpi-row" id="d15-kpis" style="margin-top:16px"></div>
+    <div class="mp-detalle-label">Detalle por colaborador</div>
+    <div id="d15-lista"></div>
   </div>
 
   <!-- 30 DÍAS -->
@@ -4777,7 +4797,7 @@
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbzRRcURonub1sNF9z7QOfWmtj-elYqohLAXO73M6S6I6TwvWQLCeSNhZ5SulR8BMffm/exec';
 
-let DATA = { pre: [], ajuste10: [], d30: [], ev: [], cert: [], d60: [], d60l: [], d90: [], estatus: [], empleados: [], hoja5: [] };
+let DATA = { pre: [], ajuste10: [], d15: [], d30: [], ev: [], cert: [], d60: [], d60l: [], d90: [], estatus: [], empleados: [], hoja5: [] };
 let AJUSTE10_HECHAS = [];
 let AJUSTE10_FALTANTES = [];
 let ACTIVE = 'inicio';
@@ -6429,6 +6449,14 @@ function buildColabIndex() {
   // localStorage de este navegador, nunca se mandan a ningún lado.
   colaboradoresPreviewComoLista().forEach(c => list.push(c));
 
+  // Evaluación de 15 días (Orden y Limpieza), ya con el roster completo: solo se pega a quien ya existe — una respuesta con
+  // el nombre mal escrito no debe crear a un colaborador nuevo. Si hay varias, gana la más reciente.
+  DATA.d15.forEach(r => {
+    const key = normName(r['Nombre del colaborador evaluado']); if (!key) return;
+    const c = byKey.get(key) || list.find(x => similarNames(key, x.key));
+    if (c && (!c.d15 || new Date(r['Marca temporal']) >= new Date(c.d15['Marca temporal']))) c.d15 = r;
+  });
+
   const hoy = new Date();
   return list.map(c => {
     const fechaIngreso = c.fechaIngresoSrc || null;
@@ -6651,15 +6679,15 @@ function renderRutaUnidadesChips(rowsBase) {
 // renderD30, renderD60Tab, renderD90Tab) — esto solo decide cuál se ve y aplica los filtros de
 // unidad de negocio y líder encima de lo que cada una ya filtraba (sucursal/mes/trimestre).
 let _onboardingUnidadActiva = null;
-let _onboardingEtapa = 'pre'; // 'pre' | 'ajuste10' | 'd30' | 'd60' | 'd90' | 'ren'
+let _onboardingEtapa = 'pre'; // 'pre' | 'ajuste10' | 'd15' | 'd30' | 'd60' | 'd90' | 'ren'
 let _onboardingSolo90 = false; // solo colaboradores con 0-90 días de antigüedad ahora mismo
 const ONBOARDING_ETAPA_PANEL = {
-  pre: 'panel-preonboarding', ajuste10: 'panel-ajuste10',
+  pre: 'panel-preonboarding', ajuste10: 'panel-ajuste10', d15: 'panel-quince',
   d30: 'panel-treinta', d60: 'panel-sesenta', d90: 'panel-noventa',
   ren: 'panel-renovaciones',
 };
 const ONBOARDING_ETAPA_RENDER = {
-  pre: () => renderPre(), ajuste10: () => renderAjuste10(), d30: () => renderD30(),
+  pre: () => renderPre(), ajuste10: () => renderAjuste10(), d15: () => renderD15(), d30: () => renderD30(),
   d60: () => renderD60Tab(), d90: () => renderD90Tab(), ren: () => renderRenovaciones(),
 };
 function selectOnboardingUnidad(nombre) {
@@ -7114,6 +7142,106 @@ function veredictoColab(c, focos) {
   return { cls:'good', text:'Va bien — sin focos rojos' };
 }
 
+// ── 15 DÍAS · ORDEN Y LIMPIEZA — evaluación que contesta el líder ──
+// Pestaña del Sheet donde llega el formulario (aún sin columnas en Hoja Maestra). Se prueban
+// ambos nombres a la vez: el que trae por defecto Google y "15 días líder" si la renombran.
+const D15_TABS = ['15 días líder', 'Respuestas de formulario 9'];
+const D15_COL = {
+  nombre: 'Nombre del colaborador evaluado', evalua: 'Nombre de quien evalúa', marca: 'Marca', sucursal: 'Sucursal', turno: 'Turno',
+  retardo: '¿El colaborador tuvo algún retardo en sus primeros 15 días?', nRetardos: '¿Cuántos retardos tuvo?',
+  durRetardos: 'Duración aproximada de los retardos', fbRetardos: '¿Se le dio retroalimentación sobre los retardos?',
+  inasist: '¿El colaborador tuvo alguna inasistencia en sus primeros 15 días?', nInasist: '¿Cuántas inasistencias tuvo?',
+  tipoInasist: 'Tipo de inasistencia(s)', hablaInasist: '¿Se habló con el colaborador sobre la(s) inasistencia(s)?',
+  incidencia: '¿Se presentó alguna incidencia con el colaborador en estos 15 días?', tipoIncidencia: 'Tipo de incidencia',
+  comentarios: 'Comentarios adicionales',
+};
+const d15Si = v => /^s[ií]($|[^a-záéíóúñ])/i.test(String(v == null ? '' : v).trim());
+const d15Txt = v => String(v == null ? '' : v).trim();
+// Novedades de una evaluación: cuántas de las tres preguntas (retardos / inasistencias / incidencia)
+// salieron en "Sí", y si quedó algo sin atender (retardo sin retroalimentación, inasistencia sin hablarla).
+function d15Estado(r) {
+  const retardo = d15Si(r[D15_COL.retardo]), inasist = d15Si(r[D15_COL.inasist]), incid = d15Si(r[D15_COL.incidencia]);
+  const sinAtender = (retardo && !d15Si(r[D15_COL.fbRetardos])) || (inasist && !d15Si(r[D15_COL.hablaInasist]));
+  const novedades = [retardo, inasist, incid].filter(Boolean).length;
+  return { retardo, inasist, incid, sinAtender, novedades,
+    cls: sinAtender ? 'rojo' : novedades ? 'ambar' : 'verde',
+    texto: sinAtender ? 'Hay algo sin atender' : novedades ? `${novedades} novedad${novedades === 1 ? '' : 'es'}` : 'Sin novedades' };
+}
+// Cuerpo de la evaluación (retardos / inasistencias / incidencias / comentarios) — lo usan la
+// pestaña "15 días" y la tarjeta de Renovaciones.
+function d15DetalleHtml(r) {
+  const e = d15Estado(r);
+  const ok = t => `<div class="d15-linea d15-ok">✓ ${t}</div>`;
+  const dato = (etq, v) => d15Txt(v) ? ` · ${etq}: ${escapeHtml(d15Txt(v))}` : '';
+  const aviso = (bien, t) => `<span class="${bien ? 'd15-bien' : 'd15-mal'}">${bien ? '✓' : '✗'} ${t}</span>`;
+  const lineas = [];
+  lineas.push(e.retardo
+    ? `<div class="d15-linea"><b>Retardos${d15Txt(r[D15_COL.nRetardos]) ? ': ' + escapeHtml(d15Txt(r[D15_COL.nRetardos])) : ''}</b>${dato('duración', r[D15_COL.durRetardos])} · ${d15Si(r[D15_COL.fbRetardos]) ? aviso(true, 'se le dio retroalimentación') : aviso(false, 'sin retroalimentación')}</div>`
+    : ok('Sin retardos'));
+  lineas.push(e.inasist
+    ? `<div class="d15-linea"><b>Inasistencias${d15Txt(r[D15_COL.nInasist]) ? ': ' + escapeHtml(d15Txt(r[D15_COL.nInasist])) : ''}</b>${dato('tipo', r[D15_COL.tipoInasist])} · ${d15Si(r[D15_COL.hablaInasist]) ? aviso(true, 'se habló con el colaborador') : aviso(false, 'no se habló con el colaborador')}</div>`
+    : ok('Sin inasistencias'));
+  const tipoInc = d15Txt(r[D15_COL.tipoIncidencia]);
+  lineas.push(e.incid
+    ? `<div class="d15-linea"><b>Incidencia</b>${tipoInc && tipoInc !== '.' ? ': ' + escapeHtml(tipoInc) : ''}</div>`
+    : ok('Sin incidencias'));
+  const com = d15Txt(r[D15_COL.comentarios]);
+  if (com && com !== '.') lineas.push(`<div class="d15-linea">Comentarios: <span class="ren-cita">${escapeHtml(com)}</span></div>`);
+  return lineas.join('');
+}
+function renderD15() {
+  _rutaIndex = getColabIndex();
+  const permitidos = new Set(onboardingIdxFiltrado());
+  const todas = [...DATA.d15].sort((a, b) => new Date(b['Marca temporal']) - new Date(a['Marca temporal']));
+  const filas = todas.map(r => ({ r, c: _rutaIndex.find(x => x.d15 === r) }))
+    .filter(x => !x.c || permitidos.has(x.c)); // sin colaborador en el roster: se muestra siempre
+  const estados = filas.map(x => ({ ...x, e: d15Estado(x.r) }));
+  const n = estados.length;
+  const conNovedad = estados.filter(x => x.e.novedades);
+  const sinAtender = estados.filter(x => x.e.sinAtender);
+
+  let headline, color;
+  if (!n) { headline = 'Todavía no hay evaluaciones de 15 días con los filtros actuales.'; color = '#6B6280'; }
+  else if (sinAtender.length) { headline = `${sinAtender.length} evaluación${sinAtender.length === 1 ? '' : 'es'} con algo sin atender.`; color = '#DC2626'; }
+  else if (conNovedad.length) { headline = `${n} evaluaciones — ${conNovedad.length} con novedades, ya atendidas.`; color = '#F59E0B'; }
+  else { headline = `Va bien — ${n} evaluación${n === 1 ? '' : 'es'} de 15 días sin novedades.`; color = '#16A34A'; }
+  const obs = [];
+  if (n) obs.push(`${n - conNovedad.length} de ${n} sin retardos, inasistencias ni incidencias en sus primeros 15 días.`);
+  const nom = x => (x.c ? x.c.nombre : d15Txt(x.r[D15_COL.nombre]));
+  sinAtender.forEach(x => obs.push(`${nom(x)}: ${[d15Si(x.r[D15_COL.retardo]) && !d15Si(x.r[D15_COL.fbRetardos]) ? 'retardos sin retroalimentación' : null, d15Si(x.r[D15_COL.inasist]) && !d15Si(x.r[D15_COL.hablaInasist]) ? 'inasistencias sin hablar con el colaborador' : null].filter(Boolean).join(' y ')}.`));
+  conNovedad.filter(x => !x.e.sinAtender).forEach(x => obs.push(`${nom(x)}: ${[x.e.retardo ? 'retardos' : null, x.e.inasist ? 'inasistencias' : null, x.e.incid ? 'incidencia' : null].filter(Boolean).join(', ')}.`));
+  mpSetResumen('d15', headline, color, obs);
+
+  document.getElementById('d15-kpis').innerHTML =
+    kpiCard('Evaluaciones', n, 'de 15 días recibidas') +
+    kpiCard('Con retardos', estados.filter(x => x.e.retardo).length, 'en sus primeros 15 días', estados.some(x => x.e.retardo) ? 'yellow' : '') +
+    kpiCard('Con inasistencias', estados.filter(x => x.e.inasist).length, 'en sus primeros 15 días', estados.some(x => x.e.inasist) ? 'yellow' : '') +
+    kpiCard('Con incidencias', estados.filter(x => x.e.incid).length, 'reportadas por el líder', estados.some(x => x.e.incid) ? 'yellow' : '');
+
+  const el = document.getElementById('d15-lista');
+  if (!n) { el.innerHTML = '<div class="bandeja-sub">Nadie ha contestado la evaluación de 15 días con los filtros actuales.</div>'; return; }
+  const badge = { verde: 'background:#DCFCE7;color:#166534', ambar: 'background:#FEF3C7;color:#92400E', rojo: 'background:#FEE2E2;color:#B91C1C' };
+  el.innerHTML = estados.map(({ r, c, e }) => {
+    const nombre = c ? c.nombre : d15Txt(r[D15_COL.nombre]);
+    const meta = [d15Txt(r[D15_COL.sucursal]), d15Txt(r[D15_COL.turno]), d15Txt(r[D15_COL.marca])].filter(Boolean).map(escapeHtml).join(' · ');
+    const click = c ? ` onclick="openRutaModal('${c.key.replace(/'/g, "\\'")}')"` : ' style="cursor:default"';
+    return `<div class="ren-card"${click}>
+      <div class="ren-card-head">
+        <div class="ren-id">
+          ${avatarHtml(c || { nombre }, 'ren-foto')}
+          <div>
+            <div class="ren-nombre">${escapeHtml(nombre)}</div>
+            <div class="ren-meta">${meta}</div>
+            <div class="ren-meta">Evaluó ${escapeHtml(d15Txt(r[D15_COL.evalua]) || '—')} · ${fmtFecha(new Date(r['Marca temporal']))}${c ? '' : ' · no está en Colaboradores'}</div>
+          </div>
+        </div>
+        <span class="ren-faltan" style="${badge[e.cls]}">${e.texto}</span>
+      </div>
+      <div class="ren-sec"><div class="ren-sec-body">${d15DetalleHtml(r)}</div></div>
+    </div>`;
+  }).join('');
+}
+
 // ── RENOVACIONES DE CONTRATOS — quién está por renovar contrato ──
 // Orden y Limpieza se renueva a los 30 días (se muestran desde los 15 días de antigüedad); los
 // demás roles a los 90 días (se muestran desde los 70). La fecha de renovación es la fecha de
@@ -7261,6 +7389,7 @@ function renderRenovaciones() {
         </div>
         <span class="ren-faltan" style="${badge}">${faltan === 0 ? 'Se renueva hoy' : `Faltan ${faltan} día${faltan === 1 ? '' : 's'}`} · ${fmtFecha(fechaRenueva(x))}</span>
       </div>
+      ${sec('15 días — líder', c.d15 ? d15DetalleHtml(c.d15) : '', 'Sin evaluación de 15 días todavía.', !esOL)}
       ${sec('30 días — integración', d30, 'Sin encuesta de 30 días todavía.', esOL)}
       ${sec('Ajuste 10-15', ajHtml, 'Sin llamada de Ajuste 10-15 registrada.', false)}
       ${sec('60 días — colaborador', d60c, 'Sin autoevaluación de 60 días todavía.', esOL)}
@@ -11665,6 +11794,17 @@ async function loadAll() {
     DATA.d60 = hmRows.filter(r => r['Marca temporal 60 días']).map(hmToD60Row);
     DATA.d60l = hmRows.filter(r => r['Marca temporal 60 días líder']).map(hmToD60LRow);
     DATA.d90 = hmRows.filter(r => r['Marca temporal 90 días']).map(hmToD90Row);
+
+    // Evaluación de 15 días de Orden y Limpieza (la contesta el líder). Todavía no tiene columnas
+    // en Hoja Maestra, así que se lee directo de la pestaña del formulario. Opcional: si no existe
+    // o falla, esa sección simplemente sale vacía. Renombrar la pestaña a "15 días líder" es seguro.
+    try {
+      const tabs = await Promise.allSettled(D15_TABS.map(n => fetchSheet(n)));
+      const ok = tabs.find(t => t.status === 'fulfilled' && Array.isArray(t.value) && t.value.length && D15_COL.nombre in t.value[0]);
+      DATA.d15 = ok ? ok.value.filter(r => String(r[D15_COL.nombre] || '').trim().length > 1 && r['Marca temporal'] && !/^\s*(pr[iu]eba|test)\s*$/i.test(r[D15_COL.nombre])) : [];
+    } catch (eD15) {
+      DATA.d15 = [];
+    }
 
     // Hoja "Empleados" — roster completo con cumpleaños y aniversarios, para el calendario.
     // Opcional también: si no existe o falla, el calendario simplemente sale vacío.
