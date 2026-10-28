@@ -7310,7 +7310,8 @@ function renderRenovaciones() {
       const regla = renEsOrdenLimpieza(c) ? REN_REGLAS.ol : REN_REGLAS.otro;
       return { c, regla, esOL: regla === REN_REGLAS.ol, faltan: regla.tope - c.dias };
     })
-    .filter(x => x.faltan >= 0 && x.faltan <= x.regla.antes)
+    // Orden y Limpieza entra desde los 15 días, o antes si su líder ya contestó la evaluación de 15.
+    .filter(x => x.faltan >= 0 && (x.faltan <= x.regla.antes || (x.esOL && x.c.d15)))
     .sort((a, b) => a.faltan - b.faltan || a.c.nombre.localeCompare(b.c.nombre, 'es'));
 
   const fechaRenueva = x => new Date(x.c.fechaIngreso.getTime() + x.regla.tope * 86400000);
