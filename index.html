@@ -7189,6 +7189,13 @@ function d15DetalleHtml(r) {
   if (com && com !== '.') lineas.push(`<div class="d15-linea">Comentarios: <span class="ren-cita">${escapeHtml(com)}</span></div>`);
   return lineas.join('');
 }
+function d15QuitarFiltros() {
+  _onboardingUnidadActiva = null;
+  ['f-sucursal', 'f-lider'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  const t = document.getElementById('onboarding-toggle-90');
+  if (t && t.checked) { t.checked = false; _onboardingSolo90 = false; }
+  renderOnboardingEtapa();
+}
 function renderD15() {
   _rutaIndex = getColabIndex();
   const permitidos = new Set(onboardingIdxFiltrado());
@@ -7200,12 +7207,22 @@ function renderD15() {
   const conNovedad = estados.filter(x => x.e.novedades);
   const sinAtender = estados.filter(x => x.e.sinAtender);
 
+  // Si hay evaluaciones pero los filtros las esconden, se dice cuáles y por qué (antes solo decía "0").
+  const ocultas = todas.length - n;
+  const { suc: fSuc, lider: fLider } = getF();
+  const filtrosActivos = [fSuc && `sucursal «${fSuc}»`, fLider && `líder «${fLider}»`, _onboardingUnidadActiva && `unidad «${_onboardingUnidadActiva}»`, _onboardingSolo90 && 'solo 0–90 días'].filter(Boolean);
   let headline, color;
-  if (!n) { headline = 'Todavía no hay evaluaciones de 15 días con los filtros actuales.'; color = '#6B6280'; }
+  if (!n && ocultas) { headline = `Hay ${ocultas} evaluación${ocultas === 1 ? '' : 'es'} de 15 días, pero los filtros actuales ${ocultas === 1 ? 'la' : 'las'} ocultan.`; color = '#F59E0B'; }
+  else if (!n) { headline = 'Todavía no hay evaluaciones de 15 días registradas.'; color = '#6B6280'; }
   else if (sinAtender.length) { headline = `${sinAtender.length} evaluación${sinAtender.length === 1 ? '' : 'es'} con algo sin atender.`; color = '#DC2626'; }
   else if (conNovedad.length) { headline = `${n} evaluaciones — ${conNovedad.length} con novedades, ya atendidas.`; color = '#F59E0B'; }
   else { headline = `Va bien — ${n} evaluación${n === 1 ? '' : 'es'} de 15 días sin novedades.`; color = '#16A34A'; }
   const obs = [];
+  if (!n && ocultas) {
+    if (filtrosActivos.length) obs.push(`Filtros activos: ${filtrosActivos.join(', ')}.`);
+    todas.forEach(r => { const c = _rutaIndex.find(x => x.d15 === r); obs.push(`Oculta: ${c ? c.nombre : d15Txt(r[D15_COL.nombre])}${c ? ` (${[c.sucursal, c.lider ? 'líder: ' + c.lider : 'sin líder en Hoja Maestra'].filter(Boolean).join(', ')})` : ''}.`); });
+  } else if (!n) obs.push('Si el líder ya contestó el formulario, dale a ↺ Actualizar para traer la respuesta.');
+  if (n && ocultas) obs.push(`${ocultas} evaluación${ocultas === 1 ? '' : 'es'} más ${ocultas === 1 ? 'está oculta' : 'están ocultas'} por los filtros (${filtrosActivos.join(', ') || 'filtros activos'}).`);
   if (n) obs.push(`${n - conNovedad.length} de ${n} sin retardos, inasistencias ni incidencias en sus primeros 15 días.`);
   const nom = x => (x.c ? x.c.nombre : d15Txt(x.r[D15_COL.nombre]));
   sinAtender.forEach(x => obs.push(`${nom(x)}: ${[d15Si(x.r[D15_COL.retardo]) && !d15Si(x.r[D15_COL.fbRetardos]) ? 'retardos sin retroalimentación' : null, d15Si(x.r[D15_COL.inasist]) && !d15Si(x.r[D15_COL.hablaInasist]) ? 'inasistencias sin hablar con el colaborador' : null].filter(Boolean).join(' y ')}.`));
@@ -7219,7 +7236,12 @@ function renderD15() {
     kpiCard('Con incidencias', estados.filter(x => x.e.incid).length, 'reportadas por el líder', estados.some(x => x.e.incid) ? 'yellow' : '');
 
   const el = document.getElementById('d15-lista');
-  if (!n) { el.innerHTML = '<div class="bandeja-sub">Nadie ha contestado la evaluación de 15 días con los filtros actuales.</div>'; return; }
+  if (!n) {
+    el.innerHTML = ocultas
+      ? `<div class="bandeja-sub">Los filtros actuales esconden ${ocultas === 1 ? 'la evaluación' : 'las evaluaciones'}. <button class="btn-link" style="color:#7C3AED;font-weight:700;cursor:pointer;background:none;border:0;padding:0" onclick="d15QuitarFiltros()">Quitar filtros</button></div>`
+      : '<div class="bandeja-sub">Nadie ha contestado la evaluación de 15 días todavía.</div>';
+    return;
+  }
   const badge = { verde: 'background:#DCFCE7;color:#166534', ambar: 'background:#FEF3C7;color:#92400E', rojo: 'background:#FEE2E2;color:#B91C1C' };
   el.innerHTML = estados.map(({ r, c, e }) => {
     const nombre = c ? c.nombre : d15Txt(r[D15_COL.nombre]);
