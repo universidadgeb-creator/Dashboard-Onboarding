@@ -7257,15 +7257,35 @@ function empodDe(c) {
   _empodCache.set(llave, res);
   return res;
 }
+// Meta de empoderamientos para renovar: 12 en total (4 al mes × 3 meses). Se evalúa solo a quien se cuenta
+// desde su ingreso; quien entró antes de 2026 no tiene el periodo completo en la hoja.
+const EMPOD_META = 12;
+// Meta cumplida = llegar a 12; Sobresaliente = pasarse (13 o más); Mejora = menos de la mitad (menos de 6);
+// En camino = entre la mitad y la meta, todavía sin cumplir.
+function empodEstado(total) {
+  if (total > EMPOD_META) return { txt: 'Sobresaliente', color: '#0F766E', fondo: '#CCFBF1' };
+  if (total >= EMPOD_META) return { txt: 'Meta', color: '#166534', fondo: '#DCFCE7' };
+  if (total < EMPOD_META / 2) return { txt: 'Mejora', color: '#B91C1C', fondo: '#FEE2E2' };
+  return { txt: 'En camino', color: '#92400E', fondo: '#FEF3C7' };
+}
 // Texto para la ficha y la tarjeta de renovación ('' si la persona no está en la hoja).
 function empodHtml(c) {
   const e = empodDe(c);
   if (!e) return '';
   const meses = e.lista.map(x => `${EMPOD_MES_ETQ[x.m]} <b>${x.v}</b>${x.m === e.mesActual ? ' (en curso)' : ''}`).join(' · ');
-  const nota = e.desdeIngreso ? ' · la hoja cuenta por mes, así que incluye todo el mes de su ingreso' : '';
-  const cierre = (e.meta ? ` · meta: ${e.meta} al mes` : '') + nota;
-  return `<div><b>${e.total}</b> empoderamiento${e.total === 1 ? '' : 's'} ${e.desdeIngreso ? `desde su ingreso${c.fechaIngreso ? ' (' + fmtFecha(c.fechaIngreso) + ')' : ''}` : 'en 2026 (la hoja solo trae este año)'}</div>` +
-    (meses ? `<div class="ren-meta" style="margin-top:2px">${meses}${cierre}</div>` : '');
+  const plural = e.total === 1 ? '' : 's';
+  if (!e.desdeIngreso) {
+    return `<div><b>${e.total}</b> empoderamiento${plural} en 2026 (la hoja solo trae este año)</div>` +
+      (meses ? `<div class="ren-meta" style="margin-top:2px">${meses}</div>` : '');
+  }
+  const est = empodEstado(e.total);
+  const pct = Math.round(e.total / EMPOD_META * 100);
+  const nota = 'la hoja cuenta por mes, así que incluye todo el mes de su ingreso';
+  return `<div><b>${e.total}</b> empoderamiento${plural} desde su ingreso${c.fechaIngreso ? ' (' + fmtFecha(c.fechaIngreso) + ')' : ''}` +
+    `<span style="background:${est.fondo};color:${est.color};font-weight:700;font-size:11px;padding:1px 9px;border-radius:10px;margin-left:4px">${est.txt}</span></div>` +
+    `<div style="margin-top:4px">Meta: <b>${EMPOD_META}</b> · lleva <b>${e.total}</b> = <b style="color:${est.color}">${pct}%</b></div>` +
+    `<div style="height:6px;border-radius:3px;background:#EDE9FE;margin-top:4px;overflow:hidden"><div style="height:100%;width:${Math.min(100, pct)}%;background:${est.color}"></div></div>` +
+    (meses ? `<div class="ren-meta" style="margin-top:4px">${meses} · ${nota}</div>` : '');
 }
 
 // ── 15 DÍAS · ORDEN Y LIMPIEZA — evaluación que contesta el líder ──
@@ -7588,7 +7608,7 @@ function openRutaModal(key) {
     <div class="rv-modal-stat"><div class="l">NPS</div><div class="v">${nps!==null&&nps!==undefined&&nps!==''?nps+'/10':'—'}</div></div>
     <div class="rv-modal-stat"><div class="l">% Filosofía</div><div class="v">${fil!==null&&fil>0?fil+'%':'—'}</div></div>
     <div class="rv-modal-stat"><div class="l">% Certificación</div><div class="v">${av!==null?av+'%':'—'}</div></div>
-    <div class="rv-modal-stat" title="${empo ? (empo.desdeIngreso ? 'Desde que entró' : 'En 2026 (la hoja solo trae este año)') : 'No aparece en la hoja de Empoderamientos'}"><div class="l">Empoderam.</div><div class="v">${empo ? empo.total : '—'}</div></div>
+    <div class="rv-modal-stat" title="${empo ? (empo.desdeIngreso ? 'Desde su ingreso · meta ' + EMPOD_META + ' · ' + Math.round(empo.total / EMPOD_META * 100) + '% · ' + empodEstado(empo.total).txt : 'En 2026 (la hoja solo trae este año)') : 'No aparece en la hoja de Empoderamientos'}"><div class="l">Empoderam.</div><div class="v"${empo && empo.desdeIngreso ? ' style="color:' + empodEstado(empo.total).color + '"' : ''}>${empo ? empo.total : '—'}</div></div>
     <div class="rv-modal-stat"><div class="l">Riesgo líder</div><div class="v" style="font-size:12px">${riesgoCorto}</div></div>
   </div>`;
 
