@@ -7262,8 +7262,9 @@ function empodHtml(c) {
   const e = empodDe(c);
   if (!e) return '';
   const meses = e.lista.map(x => `${EMPOD_MES_ETQ[x.m]} <b>${x.v}</b>${x.m === e.mesActual ? ' (en curso)' : ''}`).join(' · ');
-  const cierre = e.meta ? ` · meta: ${e.meta} al mes` : '';
-  return `<div><b>${e.total}</b> empoderamiento${e.total === 1 ? '' : 's'} ${e.desdeIngreso ? 'desde que entró' : 'en 2026 (la hoja solo trae este año)'}</div>` +
+  const nota = e.desdeIngreso ? ' · la hoja cuenta por mes, así que incluye todo el mes de su ingreso' : '';
+  const cierre = (e.meta ? ` · meta: ${e.meta} al mes` : '') + nota;
+  return `<div><b>${e.total}</b> empoderamiento${e.total === 1 ? '' : 's'} ${e.desdeIngreso ? `desde su ingreso${c.fechaIngreso ? ' (' + fmtFecha(c.fechaIngreso) + ')' : ''}` : 'en 2026 (la hoja solo trae este año)'}</div>` +
     (meses ? `<div class="ren-meta" style="margin-top:2px">${meses}${cierre}</div>` : '');
 }
 
@@ -7537,7 +7538,7 @@ function renderRenovaciones() {
         </div>
         <span class="ren-faltan" style="${badge}">${faltan === 0 ? 'Se renueva hoy' : `Faltan ${faltan} día${faltan === 1 ? '' : 's'}`} · ${fmtFecha(fechaRenueva(x))}</span>
       </div>
-      ${sec('Empoderamientos', empodHtml(c), 'Sin registro en la hoja de Empoderamientos.', false)}
+      ${sec('Empoderamientos', empodHtml(c), '', true)}
       ${sec('15 días — líder', c.d15 ? d15DetalleHtml(c.d15) : '', 'Sin evaluación de 15 días todavía.', !esOL)}
       ${sec('30 días — integración', d30, 'Sin encuesta de 30 días todavía.', esOL)}
       ${sec('Ajuste 10-15', ajHtml, 'Sin llamada de Ajuste 10-15 registrada.', false)}
