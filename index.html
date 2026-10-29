@@ -7272,20 +7272,15 @@ function empodEstado(total) {
 function empodHtml(c) {
   const e = empodDe(c);
   if (!e) return '';
-  const meses = e.lista.map(x => `${EMPOD_MES_ETQ[x.m]} <b>${x.v}</b>${x.m === e.mesActual ? ' (en curso)' : ''}`).join(' · ');
   const plural = e.total === 1 ? '' : 's';
   if (!e.desdeIngreso) {
-    return `<div><b>${e.total}</b> empoderamiento${plural} en 2026 (la hoja solo trae este año)</div>` +
-      (meses ? `<div class="ren-meta" style="margin-top:2px">${meses}</div>` : '');
+    return `<div><b>${e.total}</b> empoderamiento${plural} en 2026 (la hoja solo trae este año)</div>`;
   }
   const est = empodEstado(e.total);
   const pct = Math.round(e.total / EMPOD_META * 100);
-  const nota = 'la hoja cuenta por mes, así que incluye todo el mes de su ingreso';
-  return `<div><b>${e.total}</b> empoderamiento${plural} desde su ingreso${c.fechaIngreso ? ' (' + fmtFecha(c.fechaIngreso) + ')' : ''}` +
+  return `<div><b>${e.total}</b> empoderamiento${plural} desde su ingreso${c.fechaIngreso ? ' (' + fmtFecha(c.fechaIngreso) + ')' : ''} ` +
     `<span style="background:${est.fondo};color:${est.color};font-weight:700;font-size:11px;padding:1px 9px;border-radius:10px;margin-left:4px">${est.txt}</span></div>` +
-    `<div style="margin-top:4px">Meta: <b>${EMPOD_META}</b> · lleva <b>${e.total}</b> = <b style="color:${est.color}">${pct}%</b></div>` +
-    `<div style="height:6px;border-radius:3px;background:#EDE9FE;margin-top:4px;overflow:hidden"><div style="height:100%;width:${Math.min(100, pct)}%;background:${est.color}"></div></div>` +
-    (meses ? `<div class="ren-meta" style="margin-top:4px">${meses} · ${nota}</div>` : '');
+    `<div style="margin-top:4px">Meta: <b>${EMPOD_META}</b> · lleva <b>${e.total}</b> = <b style="color:${est.color}">${pct}%</b></div>`;
 }
 
 // ── 15 DÍAS · ORDEN Y LIMPIEZA — evaluación que contesta el líder ──
