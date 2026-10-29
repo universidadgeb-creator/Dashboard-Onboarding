@@ -1005,7 +1005,7 @@
   .ruta-v2 .rv-modal-verdict-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
   .ruta-v2 .rv-modal-stages { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
   .ruta-v2 .rv-modal-stages-label { font-size: 10px; color: var(--rv-muted); text-transform: uppercase; letter-spacing: .05em; margin-right: 4px; }
-  .ruta-v2 .rv-modal-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 16px; }
+  .ruta-v2 .rv-modal-stats { display: grid; grid-template-columns: repeat(auto-fit,minmax(68px,1fr)); gap: 8px; margin-bottom: 16px; }
   .ruta-v2 .rv-modal-stat { background: var(--rv-surface); border: 1px solid var(--rv-border); border-radius: 8px; padding: 10px 6px; text-align: center; }
   .ruta-v2 .rv-modal-stat .l { font-size: 9px; color: var(--rv-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
   .ruta-v2 .rv-modal-stat .v { font-size: 15px; font-weight: 700; color: var(--rv-text); }
@@ -4797,7 +4797,7 @@
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbzRRcURonub1sNF9z7QOfWmtj-elYqohLAXO73M6S6I6TwvWQLCeSNhZ5SulR8BMffm/exec';
 
-let DATA = { pre: [], ajuste10: [], d15: [], d30: [], ev: [], cert: [], d60: [], d60l: [], d90: [], estatus: [], empleados: [], hoja5: [] };
+let DATA = { pre: [], ajuste10: [], d15: [], empod: [], d30: [], ev: [], cert: [], d60: [], d60l: [], d90: [], estatus: [], empleados: [], hoja5: [] };
 let AJUSTE10_HECHAS = [];
 let AJUSTE10_FALTANTES = [];
 let ACTIVE = 'inicio';
@@ -7142,6 +7142,131 @@ function veredictoColab(c, focos) {
   return { cls:'good', text:'Va bien — sin focos rojos' };
 }
 
+// ── EMPODERAMIENTOS — cuántos lleva cada colaborador desde que entró ──
+// Sale de la hoja pública del repo universidadgeb-creator/Empoderamientos (una pestaña por sucursal,
+// una columna por mes de 2026). Las pestañas no comparten estructura: cols = posición (A=0) de cada dato.
+// Ojo: la hoja solo trae 2026, así que quien entró antes se cuenta "en 2026", no desde su ingreso.
+const EMPOD_SHEET_ID = '1UGjqpgMLrWk7QHMDy8rTkPTiAuzGUgJZ47uWSqDdho4';
+const EMPOD_ANIO = 2026;
+const EMPOD_MESES_N = 12;
+const EMPOD_MES_ETQ = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const EMPOD_COLS_A = { ingreso: null, salida: null, meta: 5, mes: 6 };
+const EMPOD_COLS_FECHAS = { ingreso: 2, salida: 3, meta: 7, mes: 8 };
+const EMPOD_COLS_OFC47 = { ingreso: 3, salida: 4, meta: 6, mes: 7 };
+const EMPOD_COLS_B = { ingreso: null, salida: null, meta: 4, mes: 5 };
+const EMPOD_TABS = [
+  { sheet: 'ALEIRA', sucursal: 'Aleira', cols: EMPOD_COLS_A }, { sheet: 'CAÑADAS', sucursal: 'Cañadas', cols: EMPOD_COLS_A },
+  { sheet: 'AVILA CAMACHO', sucursal: 'Ávila Camacho', cols: EMPOD_COLS_A }, { sheet: 'ITESO', sucursal: 'Iteso', cols: EMPOD_COLS_A },
+  { sheet: 'CENTER', sucursal: 'Center', cols: EMPOD_COLS_FECHAS }, { sheet: 'VR', sucursal: 'Valle Real', cols: EMPOD_COLS_FECHAS },
+  { sheet: 'GMT', sucursal: 'Gourmetería', cols: EMPOD_COLS_FECHAS }, { sheet: ' NAC', sucursal: 'Naciones Unidas', cols: EMPOD_COLS_FECHAS },
+  { sheet: 'OFC 47', sucursal: 'Oficina Central Vivo47', cols: EMPOD_COLS_OFC47 }, { sheet: ' GEB', sucursal: 'GEB', cols: EMPOD_COLS_OFC47 },
+  { sheet: 'OFC Easy Fit ', sucursal: 'Oficina Central Easy Fit', cols: EMPOD_COLS_B },
+];
+let _empodCache = new Map();
+function empodUrl(sheet) {
+  return `https://docs.google.com/spreadsheets/d/${EMPOD_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;
+}
+function empodParseCSV(text) {
+  const rows = []; let row = [], field = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) { if (ch === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; } else field += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === ',') { row.push(field); field = ''; }
+    else if (ch === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+    else if (ch !== '\r') field += ch;
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+// Una pestaña → sus colaboradores. La tabla principal termina en el renglón "Suma" (solo se busca en
+// las primeras columnas: más a la derecha hay una tabla lateral de "Área" con su propio "Suma").
+function empodParseTab(text, tab) {
+  const rows = empodParseCSV(text);
+  const h = rows.findIndex(r => String(r[1] || '').trim() === 'Nombre');
+  if (h < 0) return [];
+  const out = [];
+  for (let i = h + 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (r.slice(0, 10).some(v => String(v || '').trim().toLowerCase() === 'suma')) break;
+    const nombre = String(r[1] || '').trim();
+    if (!nombre) continue;
+    const c = tab.cols, celda = idx => idx === null ? '' : String(r[idx] || '').trim();
+    const meses = [];
+    for (let m = 0; m < EMPOD_MESES_N; m++) { const v = r[c.mes + m]; meses.push(v === undefined || v === '' || isNaN(Number(v)) ? null : Number(v)); }
+    out.push({ sucursal: tab.sucursal, nombre, ingreso: celda(c.ingreso), salida: celda(c.salida), meta: Number(r[c.meta]) || 0, meses });
+  }
+  return out;
+}
+async function cargarEmpoderamientos() {
+  const una = async tab => {
+    const res = await fetch(empodUrl(tab.sheet));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return empodParseTab(await res.text(), tab);
+  };
+  const espera = new Promise(resolve => setTimeout(() => resolve('timeout'), 10000));
+  const r = await Promise.race([Promise.allSettled(EMPOD_TABS.map(una)), espera]);
+  if (r === 'timeout') return [];
+  return r.filter(x => x.status === 'fulfilled').flatMap(x => x.value);
+}
+function empodToks(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(t => t.length >= 2);
+}
+function empodLev(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 0; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+// Mismo nombre sin importar el orden (la hoja a veces trae "Apellidos Nombre"), mayúsculas, acentos o un typo.
+function empodMismaPersona(a, b) {
+  const ta = empodToks(a), tb = empodToks(b);
+  if (ta.length < 2 || tb.length < 2) return false;
+  const [corto, largo] = ta.length <= tb.length ? [ta, tb] : [tb, ta];
+  const iguales = (x, y) => x === y || (Math.max(x.length, y.length) >= 6 && empodLev(x, y) <= 1);
+  const hits = corto.filter(t => largo.some(u => iguales(t, u))).length;
+  return hits >= Math.min(corto.length, Math.max(2, corto.length - (corto.length >= 4 ? 1 : 0)));
+}
+// Mes de ingreso (0=enero) que trae la hoja, en aaaa-mm-dd o dd/mm/aaaa; null si no hay o no es de 2026.
+function empodMesIngreso(raw) {
+  const s = String(raw || '').trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-\d{1,2}$/), anio, mes;
+  if (m) { anio = +m[1]; mes = +m[2]; }
+  else if ((m = s.match(/^\d{1,2}\/(\d{1,2})\/(\d{4})$/))) { mes = +m[1]; anio = +m[2]; }
+  return anio === EMPOD_ANIO && mes >= 1 && mes <= 12 ? mes - 1 : null;
+}
+// { total, lista:[{m,v}], desdeIngreso, meta, mesActual } o null si la persona no está en la hoja.
+function empodDe(c) {
+  const llave = c.key || c.nombre;
+  if (_empodCache.has(llave)) return _empodCache.get(llave);
+  const cand = DATA.empod.filter(e => empodMismaPersona(c.nombre, e.nombre));
+  const reg = cand.find(e => e.sucursal === c.sucursal) || cand[0];
+  let res = null;
+  if (reg) {
+    let inicio = 0, desdeIngreso = false;
+    const f = c.fechaIngreso;
+    const mesHoja = empodMesIngreso(reg.ingreso);
+    if (f && f.getFullYear() === EMPOD_ANIO) { inicio = f.getMonth(); desdeIngreso = true; }
+    else if (!f && mesHoja !== null) { inicio = mesHoja; desdeIngreso = true; }
+    const hoy = new Date();
+    const fin = hoy.getFullYear() === EMPOD_ANIO ? hoy.getMonth() : EMPOD_MESES_N - 1;
+    const lista = [];
+    for (let m = inicio; m <= fin; m++) if (reg.meses[m] !== null) lista.push({ m, v: reg.meses[m] });
+    res = { total: lista.reduce((a, x) => a + x.v, 0), lista, desdeIngreso, meta: reg.meta, mesActual: fin };
+  }
+  _empodCache.set(llave, res);
+  return res;
+}
+// Texto para la ficha y la tarjeta de renovación ('' si la persona no está en la hoja).
+function empodHtml(c) {
+  const e = empodDe(c);
+  if (!e) return '';
+  const meses = e.lista.map(x => `${EMPOD_MES_ETQ[x.m]} <b>${x.v}</b>${x.m === e.mesActual ? ' (en curso)' : ''}`).join(' · ');
+  const cierre = e.meta ? ` · meta: ${e.meta} al mes` : '';
+  return `<div><b>${e.total}</b> empoderamiento${e.total === 1 ? '' : 's'} ${e.desdeIngreso ? 'desde que entró' : 'en 2026 (la hoja solo trae este año)'}</div>` +
+    (meses ? `<div class="ren-meta" style="margin-top:2px">${meses}${cierre}</div>` : '');
+}
+
 // ── 15 DÍAS · ORDEN Y LIMPIEZA — evaluación que contesta el líder ──
 // Pestaña del Sheet donde llega el formulario (aún sin columnas en Hoja Maestra). Se prueban
 // ambos nombres a la vez: el que trae por defecto Google y "15 días líder" si la renombran.
@@ -7412,6 +7537,7 @@ function renderRenovaciones() {
         </div>
         <span class="ren-faltan" style="${badge}">${faltan === 0 ? 'Se renueva hoy' : `Faltan ${faltan} día${faltan === 1 ? '' : 's'}`} · ${fmtFecha(fechaRenueva(x))}</span>
       </div>
+      ${sec('Empoderamientos', empodHtml(c), 'Sin registro en la hoja de Empoderamientos.', false)}
       ${sec('15 días — líder', c.d15 ? d15DetalleHtml(c.d15) : '', 'Sin evaluación de 15 días todavía.', !esOL)}
       ${sec('30 días — integración', d30, 'Sin encuesta de 30 días todavía.', esOL)}
       ${sec('Ajuste 10-15', ajHtml, 'Sin llamada de Ajuste 10-15 registrada.', false)}
@@ -7447,6 +7573,7 @@ function openRutaModal(key) {
   const nps = c.pre ? c.pre['Del 0 al 10 ¿Recomendarías nuestro proceso de ingreso a un amigo o conocido?  '] : null;
   const fil = c.ev ? filosofiaPct(c.ev) : null;
   const av = c.cert ? avancePct(c.cert) : null;
+  const empo = empodDe(c);
   const riesgoCorto = riesgoTxtResumen ? riesgoTxtResumen.split('—')[0].trim() : '—';
 
   let html = '';
@@ -7460,6 +7587,7 @@ function openRutaModal(key) {
     <div class="rv-modal-stat"><div class="l">NPS</div><div class="v">${nps!==null&&nps!==undefined&&nps!==''?nps+'/10':'—'}</div></div>
     <div class="rv-modal-stat"><div class="l">% Filosofía</div><div class="v">${fil!==null&&fil>0?fil+'%':'—'}</div></div>
     <div class="rv-modal-stat"><div class="l">% Certificación</div><div class="v">${av!==null?av+'%':'—'}</div></div>
+    <div class="rv-modal-stat" title="${empo ? (empo.desdeIngreso ? 'Desde que entró' : 'En 2026 (la hoja solo trae este año)') : 'No aparece en la hoja de Empoderamientos'}"><div class="l">Empoderam.</div><div class="v">${empo ? empo.total : '—'}</div></div>
     <div class="rv-modal-stat"><div class="l">Riesgo líder</div><div class="v" style="font-size:12px">${riesgoCorto}</div></div>
   </div>`;
 
@@ -11828,6 +11956,11 @@ async function loadAll() {
     } catch (eD15) {
       DATA.d15 = [];
     }
+
+    // Empoderamientos por colaborador (hoja pública del repo Empoderamientos). Opcional: si tarda más de
+    // 10 s o falla, el resto del dashboard carga igual y la sección sale como "sin registro".
+    try { DATA.empod = await cargarEmpoderamientos(); } catch (eEmpod) { DATA.empod = []; }
+    _empodCache = new Map();
 
     // Hoja "Empleados" — roster completo con cumpleaños y aniversarios, para el calendario.
     // Opcional también: si no existe o falla, el calendario simplemente sale vacío.
